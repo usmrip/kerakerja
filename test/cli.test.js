@@ -87,3 +87,24 @@ test('Quota helpers - parseAgyQuotaOutput mem-parsing grup kuota AGY dengan bena
   assert.strictEqual(parsed.groups[1].buckets[0].statusText, 'Quota available');
   assert.strictEqual(quotaCommand.parseAgyQuotaOutput('not-json'), null);
 });
+
+test('Installer - Skrip instalasi multi-OS (Linux, macOS, Windows) tersedia dan valid', () => {
+  const fs = require('fs');
+  const shPath = path.join(__dirname, '..', 'install.sh');
+  const psPath = path.join(__dirname, '..', 'install.ps1');
+  const cmdPath = path.join(__dirname, '..', 'install.cmd');
+  const nodeInstallPath = path.join(__dirname, '..', 'scripts', 'install.js');
+
+  assert.ok(fs.existsSync(shPath), 'install.sh harus ada');
+  assert.ok(fs.existsSync(psPath), 'install.ps1 harus ada');
+  assert.ok(fs.existsSync(cmdPath), 'install.cmd harus ada');
+  assert.ok(fs.existsSync(nodeInstallPath), 'scripts/install.js harus ada');
+
+  const shContent = fs.readFileSync(shPath, 'utf-8');
+  assert.ok(shContent.includes('OS_NAME'));
+  assert.ok(shContent.includes('node scripts/install.js'));
+
+  const psContent = fs.readFileSync(psPath, 'utf-8');
+  assert.ok(psContent.includes('TargetDir'));
+  assert.ok(psContent.includes('node scripts/install.js'));
+});

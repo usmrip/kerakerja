@@ -44,6 +44,42 @@ WantedBy=default.target
       } catch (e) {
         console.log(`⚠️ Unit file tersimpan di ${unitPath}. Jalankan manual: systemctl --user start tele-vs-cli`);
       }
+    } else if (process.platform === 'darwin') {
+      const launchAgentsDir = path.join(process.env.HOME || '~', 'Library', 'LaunchAgents');
+      if (!fs.existsSync(launchAgentsDir)) fs.mkdirSync(launchAgentsDir, { recursive: true });
+      const plistPath = path.join(launchAgentsDir, 'com.usmrip.tele-vs-cli.plist');
+      const plistContent = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.usmrip.tele-vs-cli</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>${nodeBin}</string>
+        <string>${scriptPath}</string>
+        <string>start</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>${cwd}</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>${path.join(cwd, 'logs', 'worker.log')}</string>
+    <key>StandardErrorPath</key>
+    <string>${path.join(cwd, 'logs', 'worker.log')}</string>
+</dict>
+</plist>
+`;
+      fs.writeFileSync(plistPath, plistContent, 'utf-8');
+      try {
+        execSync(`launchctl unload "${plistPath}" 2>/dev/null; launchctl load "${plistPath}"`, { stdio: 'inherit' });
+        console.log(`✅ Layanan macOS launchd 'com.usmrip.tele-vs-cli' berhasil dipasang dan diaktifkan.`);
+      } catch (e) {
+        console.log(`⚠️ Plist tersimpan di ${plistPath}. Jalankan manual: launchctl load "${plistPath}"`);
+      }
     } else {
       console.log('Sistem operasi saat ini belum didukung untuk auto-service.');
     }
@@ -60,6 +96,13 @@ WantedBy=default.target
       try {
         execSync('systemctl --user stop tele-vs-cli && systemctl --user disable tele-vs-cli', { stdio: 'inherit' });
         console.log(`✅ Layanan systemd 'tele-vs-cli' berhasil dicopot.`);
+      } catch (e) {}
+    } else if (process.platform === 'darwin') {
+      const plistPath = path.join(process.env.HOME || '~', 'Library', 'LaunchAgents', 'com.usmrip.tele-vs-cli.plist');
+      try {
+        execSync(`launchctl unload "${plistPath}" 2>/dev/null`, { stdio: 'inherit' });
+        if (fs.existsSync(plistPath)) fs.unlinkSync(plistPath);
+        console.log(`✅ Layanan macOS launchd 'com.usmrip.tele-vs-cli' berhasil dicopot.`);
       } catch (e) {}
     }
   } else {

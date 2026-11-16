@@ -6,6 +6,26 @@
 
 ## ⏳ Tugas Aktif
 
+### [PENDING] #TASK-06f8
+- **Waktu:** 2026-11-16 11:24:10
+- **Pengirim:** @usmrip (Private Chat)
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** Install upload ke server dengan alamat tele-vs-cli/install
+- **Status:** PENDING
+- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
+
+
+
+### [IN_PROGRESS] #TASK-4055
+- **Waktu:** 2026-11-16 04:23:24
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** buatkan install yang bisa dijalankan di linux, windows dan osx
+- **Status:** IN_PROGRESS
+- **Catatan:** Sedang dikerjakan oleh AI Agent...
+
+
+
 ## ✅ Riwayat Tugas Selesai
 
 ### [DONE] #TASK-8a30

@@ -22,14 +22,55 @@ Pada versi sebelumnya (*tele-vs-cli*), eksekusi tugas AI Agent bergantung pada V
 
 ---
 
-## 📦 Instalasi & Penggunaan Global
+## 📦 Panduan Instalasi (Linux, Windows, macOS)
 
-### 1. Masuk ke folder proyek dan pasang global:
+Tele-vs-CLI menyediakan skrip instalasi otomatis untuk **Linux**, **Windows**, dan **macOS (OS X)**.
+
+### 🐧 Linux & 🍎 macOS (OS X)
+
+**Cara 1: One-liner via cURL (Instalasi Langsung):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/install.sh | bash
+```
+
+**Cara 2: Dari Repositori Lokal:**
+```bash
+git clone https://github.com/usmrip/tele-vs-cli.git
+cd tele-vs-cli
+./install.sh
+```
+
+---
+
+### 🪟 Windows (PowerShell / Command Prompt)
+
+**Cara 1: One-liner via PowerShell:**
+```powershell
+irm https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/install.ps1 | iex
+```
+
+**Cara 2: Dari Repositori Lokal:**
+```powershell
+git clone https://github.com/usmrip/tele-vs-cli.git
+cd tele-vs-cli
+.\install.ps1
+```
+*(Atau klik ganda `install.cmd` untuk pengguna Command Prompt/GUI)*
+
+---
+
+### 🌐 Universal Node.js Installer (Semua OS)
+Jika Node.js (>= 18.0.0) sudah terpasang di sistem:
 ```bash
 cd tele-vs-cli
-npm link
+node scripts/install.js
 ```
-Setelah di-link, perintah `tele` langsung dapat diakses dari direktori mana pun di terminal Anda.
+*atau:*
+```bash
+npm run install-cli
+```
+
+---
 
 ### 2. Inisialisasi Proyek (`tele init`):
 ```bash
@@ -47,6 +88,12 @@ tele doctor
 ```
 Memeriksa status runtime Node.js, koneksi ke server, ketersediaan CLI Agent di PATH, dan izin direktori logs.
 
+### 4. Cek Kuota & Status Model AI (`tele quota`):
+```bash
+tele quota
+```
+Memeriksa kuota aktif, model AI yang tersedia (Gemini 4 Argon, Gemini 3.8 Flash, Claude Sonnet 3.5, dll.), dan status background worker.
+
 ---
 
 ## 🛠️ Daftar Perintah CLI (`tele`)
@@ -54,18 +101,19 @@ Memeriksa status runtime Node.js, koneksi ke server, ketersediaan CLI Agent di P
 | Perintah | Deskripsi |
 |---|---|
 | `tele doctor` | Diagnostik lingkungan, koneksi server, dan deteksi CLI Agent |
-| `tele start [--daemon]` | Jalankan worker di foreground atau sebagai background daemon |
+| `tele start [--daemon] [--verbose]` | Jalankan worker di foreground atau background (opsi `--verbose` untuk live progress) |
 | `tele stop` | Hentikan worker daemon yang sedang berjalan |
 | `tele restart` | Restart worker daemon |
 | `tele logs [-f]` | Lihat atau pantau log worker secara live (*follow*) |
-| `tele task "<instruksi>"` | Kirim tugas baru ke antrean dari terminal |
+| `tele task "<instruksi>" [--verbose]` | Kirim tugas baru ke antrean dari terminal (opsi `--verbose` untuk live progress) |
+| `tele quota [--json]` | Tampilkan status kuota, model AI, dan kesiapan agent aktif |
 | `tele status [--json]` | Cek status worker, koneksi server, dan antrean tugas |
 | `tele list` | Tampilkan daftar tugas di server |
 | `tele cancel <id>` | Batalkan tugas tertentu |
 | `tele retry <id>` | Jadwalkan ulang tugas yang gagal/batal |
 | `tele projects` | Tampilkan daftar proyek di server |
 | `tele use <id>` | Beralih proyek aktif lokal |
-| `tele service install` | Pasang auto-start service (Windows Task Scheduler / Linux systemd) |
+| `tele service install` | Pasang auto-start service (Windows Task Scheduler, Linux systemd, macOS launchd) |
 | `tele service uninstall` | Hapus auto-start service |
 
 ---
