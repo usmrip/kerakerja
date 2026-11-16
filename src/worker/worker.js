@@ -9,13 +9,15 @@ const { isDangerousSystemCommand } = require('../security/guard');
 class TeleWorker {
   constructor(options = {}) {
     this.workDir = options.workDir || process.cwd();
+    this.verbose = Boolean(options.verbose || process.env.TELE_VERBOSE);
     this.config = loadConfig(this.workDir);
     this.api = new ApiClient(this.config.serverUrl, this.config.secret, this.config.projectId);
     this.workerId = options.workerId || `worker-${os.hostname()}-${process.pid}`;
     this.executor = new CliExecutor({
       agent: this.config.agent,
       workDir: this.workDir,
-      timeout: this.config.taskTimeout
+      timeout: this.config.taskTimeout,
+      verbose: this.verbose
     });
     this.running = false;
     this.activeTask = null;
@@ -118,11 +120,29 @@ class TeleWorker {
       await this.api.startTask(task.id, this.workerId, this.config.agent);
       this.log(`Status tugas #${task.id} diubah menjadi IN_PROGRESS.`);
 
+      const isTaskVerbose = Boolean(
+        this.verbose ||
+        task.verbose ||
+        (task.instruction && (/\b--verbose\b/i.test(task.instruction) || /\b-v\b/.test(task.instruction)))
+      );
+
+      if (isTaskVerbose) {
+        this.log(`🔍 [VERBOSE] Mode verbose aktif untuk tugas #${task.id}. Menampilkan progres berjalan agent secara live.`);
+      }
+
       // Execute via CLI executor
       const startTime = Date.now();
       const res = await this.executor.execute(task, {
         workDir: this.workDir,
-        agent: task.assigned_agent || task.agent || this.config.agent
+        agent: task.assigned_agent || task.agent || this.config.agent,
+        verbose: isTaskVerbose,
+        onProgress: (chunk, isErr) => {
+          if (isTaskVerbose) {
+            const prefix = isErr ? '[AGENT-ERR]' : '[AGENT-PROG]';
+            const clean = chunk.trim();
+            if (clean) this.log(`${prefix} ${clean}`);
+          }
+        }
       });
       const durationSec = Math.round((Date.now() - startTime) / 1000);
 

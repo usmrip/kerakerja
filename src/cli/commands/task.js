@@ -3,13 +3,14 @@ const { loadConfig } = require('../../config/config');
 
 async function taskCommand(args) {
   if (args.length === 0) {
-    console.log('Penggunaan: tele task "<instruksi>" [--agent <nama>] [--priority <NORMAL|HIGH>]');
+    console.log('Penggunaan: tele task "<instruksi>" [--agent <nama>] [--priority <NORMAL|HIGH>] [--verbose]');
     return;
   }
 
   let instruction = '';
   let agent = '';
   let priority = 'NORMAL';
+  let isVerbose = false;
 
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
@@ -17,6 +18,8 @@ async function taskCommand(args) {
       agent = args[++i];
     } else if (a === '--priority' && i + 1 < args.length) {
       priority = args[++i].toUpperCase();
+    } else if (a === '--verbose' || a === '-v') {
+      isVerbose = true;
     } else if (!a.startsWith('--') && !instruction) {
       instruction = a;
     }
@@ -40,7 +43,8 @@ async function taskCommand(args) {
       sender: 'Terminal CLI',
       executor: 'cli',
       agent: agent || config.agent,
-      priority
+      priority,
+      verbose: isVerbose
     });
 
     const data = res.data;
@@ -49,6 +53,7 @@ async function taskCommand(args) {
       console.log(`\n🎉 Tugas #${taskId} berhasil ditambahkan ke antrean!`);
       console.log(`   Status   : PENDING`);
       console.log(`   Executor : CLI (Headless Worker)`);
+      if (isVerbose) console.log(`   Verbose  : AKTIF (menampilkan progres berjalan agent)`);
       console.log(`\n💡 Pantau eksekusi dengan: tele status atau tele logs -f`);
     } else {
       console.log(`\n⚠️ Respon server: ${JSON.stringify(data)}`);

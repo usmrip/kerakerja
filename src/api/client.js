@@ -94,6 +94,10 @@ class ApiClient {
     return this.request('pull');
   }
 
+  getStatus() {
+    return this.request('api_status');
+  }
+
   startTask(taskId, workerId, agentName) {
     return this.request('in_progress', {
       id: taskId,

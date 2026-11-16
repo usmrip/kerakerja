@@ -4,14 +4,21 @@ node_modules/
 # Logs & Runtime PIDs
 *.log
 logs/
-.vscode/tele-vs-code/logs/
+.vscode/tele-vs-cli/logs/
 *.pid
 tele-worker.pid
 
 # Configuration & secrets
 config.env
 .env
+*.env
 tele.config.json
+.vscode/**/config.env
+
+# Runtime attachments & test artifacts
+attachments/
+*.sqlite*
+*.db*
 
 # OS files
 .DS_Store

@@ -9,6 +9,7 @@ class CliExecutor extends BaseExecutor {
     this.agent = options.agent || 'auto';
     this.workDir = options.workDir || process.cwd();
     this.timeout = options.timeout || 600000; // 10 menit
+    this.verbose = Boolean(options.verbose || process.env.TELE_VERBOSE);
   }
 
   getRecentGitCommit(cwd) {
@@ -32,11 +33,27 @@ class CliExecutor extends BaseExecutor {
     const { adapter, binaryPath, key } = resolved;
     const initialCommit = this.getRecentGitCommit(cwd);
 
-    const promptText = `Tugas #${task.id || 'CLI'}: ${task.instruction || task.prompt}. Selesaikan dengan baik sesuai standar proyek.`;
+    const rawInstruction = task.instruction || task.prompt || '';
+    const hasVerboseFlag = /\b--verbose\b/i.test(rawInstruction) || /\b-v\b/.test(rawInstruction);
+    const isVerbose = Boolean(
+      context.verbose !== undefined ? context.verbose :
+      (task.verbose !== undefined ? task.verbose :
+      (hasVerboseFlag || this.verbose))
+    );
+
+    const cleanInstruction = rawInstruction
+      .replace(/\s*--verbose\b/gi, '')
+      .replace(/\s*-v\b/g, '')
+      .trim();
+
+    const promptText = `Tugas #${task.id || 'CLI'}: ${cleanInstruction || rawInstruction}. Selesaikan dengan baik sesuai standar proyek.`;
     const args = adapter.getArgs(promptText);
 
     console.log(`[EXECUTOR-CLI] Menjalankan agent '${adapter.name}' (${binaryPath})`);
     console.log(`[EXECUTOR-CLI] Direktori kerja: ${cwd}`);
+    if (isVerbose) {
+      console.log(`[EXECUTOR-CLI] [VERBOSE] Mode verbose aktif untuk #${task.id || 'CLI'}. Menampilkan progres berjalan...`);
+    }
 
     return new Promise((resolve, reject) => {
       let stdoutBuffer = '';
@@ -45,7 +62,7 @@ class CliExecutor extends BaseExecutor {
 
       const child = spawn(binaryPath, args, {
         cwd,
-        env: { ...process.env, TELE_TASK_ID: task.id || '' },
+        env: { ...process.env, TELE_TASK_ID: task.id || '', TELE_VERBOSE: isVerbose ? '1' : '' },
         shell: process.platform === 'win32' && binaryPath.endsWith('.cmd')
       });
 
@@ -67,6 +84,12 @@ class CliExecutor extends BaseExecutor {
         if (stdoutBuffer.length > 50000) {
           stdoutBuffer = stdoutBuffer.substring(stdoutBuffer.length - 50000);
         }
+        if (isVerbose) {
+          process.stdout.write(`[PROGRESS #${task.id || 'CLI'}] ${text}`);
+        }
+        if (typeof context.onProgress === 'function') {
+          try { context.onProgress(text, false); } catch (e) {}
+        }
       });
 
       child.stderr.on('data', (data) => {
@@ -74,6 +97,12 @@ class CliExecutor extends BaseExecutor {
         stderrBuffer += text;
         if (stderrBuffer.length > 20000) {
           stderrBuffer = stderrBuffer.substring(stderrBuffer.length - 20000);
+        }
+        if (isVerbose) {
+          process.stderr.write(`[PROGRESS-ERR #${task.id || 'CLI'}] ${text}`);
+        }
+        if (typeof context.onProgress === 'function') {
+          try { context.onProgress(text, true); } catch (e) {}
         }
       });
 

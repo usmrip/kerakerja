@@ -38,6 +38,7 @@ function loadConfig(workDir = process.cwd()) {
   const envCandidates = [
     path.join(workDir, 'config.env'),
     path.join(workDir, '.env'),
+    path.join(workDir, '.vscode', 'tele-vs-cli', 'config.env'),
     path.join(workDir, '.vscode', 'tele-vs-code', 'config.env')
   ];
 

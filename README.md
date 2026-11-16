@@ -11,7 +11,7 @@
 
 ## 🌟 Mengapa Tele-vs-CLI?
 
-Pada versi sebelumnya (*tele-vs-code*), eksekusi tugas AI Agent bergantung pada VS Code yang harus terbuka dengan ekstensi VSIX terpasang.
+Pada versi sebelumnya (*tele-vs-cli*), eksekusi tugas AI Agent bergantung pada VS Code yang harus terbuka dengan ekstensi VSIX terpasang.
 
 **Tele-vs-CLI** hadir sebagai runner mandiri (**headless agent daemon**):
 - ⚡ **Zero VSIX Dependency:** Murni berjalan di Node.js CLI runtime tanpa ekstensi editor.

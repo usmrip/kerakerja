@@ -3,6 +3,7 @@ const startCommand = require('./commands/start');
 const { stopCommand, restartCommand, logsCommand } = require('./commands/daemon_ctl');
 const taskCommand = require('./commands/task');
 const statusCommand = require('./commands/status');
+const quotaCommand = require('./commands/quota');
 const { listCommand, cancelCommand, retryCommand } = require('./commands/task_ctl');
 const { projectsCommand, useCommand } = require('./commands/projects');
 const initCommand = require('./commands/init');
@@ -18,13 +19,14 @@ PENGGUNAAN:
 
 PERINTAH UTAMA:
   init                      Setup interaktif (server URL, secret, project key, default agent)
-  start [--daemon] [--once] Jalankan worker CLI (foreground / background)
+  start [--daemon] [--verbose] Jalankan worker CLI (foreground / background)
   stop                      Hentikan background worker yang aktif
   restart                   Restart background worker
   logs [-f]                 Tampilkan atau pantau log worker secara live
   task "<instruksi>"        Kirim tugas baru ke antrean
-                            Opsi: --agent <nama> --priority <HIGH|NORMAL>
+                            Opsi: --agent <nama> --priority <HIGH|NORMAL> --verbose
   status [--json]           Cek status worker, koneksi server, dan antrean tugas
+  quota [--json]            Tampilkan kuota, model AI, dan kesiapan agent aktif
   list                      Tampilkan daftar tugas di server
   cancel <task_id>          Batalkan tugas tertentu
   retry <task_id>           Jadwalkan ulang tugas yang gagal/dibatalkan
@@ -36,8 +38,9 @@ PERINTAH UTAMA:
 
 CONTOH:
   tele doctor
-  tele start --daemon
-  tele task "Buat endpoint API login JWT" --agent claude
+  tele start --daemon --verbose
+  tele task "Buat endpoint API login JWT" --agent agy --verbose
+  tele quota
   tele status
   tele logs -f
 `);
@@ -69,6 +72,10 @@ async function main() {
       break;
     case 'status':
       await statusCommand(subArgs);
+      break;
+    case 'quota':
+    case 'kuota':
+      await quotaCommand(subArgs);
       break;
     case 'list':
       await listCommand(subArgs);
