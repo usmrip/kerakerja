@@ -10,6 +10,7 @@ const {
   writeActiveTask,
   clearActiveTask
 } = require('../utils/process');
+const { fetchReport } = require('../utils/agy_usage');
 
 const KILLED_STATUSES = new Set(['FAILED', 'CANCELLED', 'CANCELED', 'KILLED']);
 
@@ -52,11 +53,46 @@ class TeleWorker {
     this.pollTimer = null;
     this.heartbeatTimer = null;
     this.lastUpdateCheck = 0;
+    this._cachedUsage = null;
+    this._lastUsageFetch = 0;
   }
 
   log(msg) {
     const time = new Date().toISOString().replace('T', ' ').substring(0, 19);
     console.log(`[${time}] [${this.workerId}] ${msg}`);
+  }
+
+  async getAgyUsageSnapshot() {
+    const now = Date.now();
+    // Cache usage up to 5 menit agar tidak membebani Cloud Code API
+    if (this._cachedUsage && (now - this._lastUsageFetch < 5 * 60 * 1000)) {
+      return this._cachedUsage;
+    }
+    try {
+      const rep = await fetchReport();
+      this._cachedUsage = rep;
+      this._lastUsageFetch = now;
+      return rep;
+    } catch {
+      return this._cachedUsage || null;
+    }
+  }
+
+  async sendHeartbeat(extraMeta = {}) {
+    try {
+      const usage = await this.getAgyUsageSnapshot();
+      await this.api.registerWorker(this.workerId, {
+        agent: this.config.agent,
+        workDir: this.workDir,
+        pid: process.pid,
+        activeTask: this.activeTask ? this.activeTask.id : null,
+        status: this.activeTask ? 'busy' : 'idle',
+        agy_usage: usage,
+        ...extraMeta
+      });
+    } catch (e) {
+      // Non-blocking
+    }
   }
 
   async start() {
@@ -67,13 +103,9 @@ class TeleWorker {
     this.log(`Agent CLI     : ${this.config.agent}`);
     this.log(`Workdir       : ${this.workDir}`);
 
-    // Register worker
+    // Register worker with usage snapshot
     try {
-      await this.api.registerWorker(this.workerId, {
-        agent: this.config.agent,
-        workDir: this.workDir,
-        pid: process.pid
-      });
+      await this.sendHeartbeat();
       this.log(`Terkoneksi & terdaftar di Server Biru.`);
     } catch (e) {
       this.log(`[WARN] Registrasi awal worker gagal: ${e.message}`);
@@ -82,12 +114,7 @@ class TeleWorker {
     // Heartbeat every 30s
     this.heartbeatTimer = setInterval(async () => {
       if (!this.running) return;
-      try {
-        await this.api.registerWorker(this.workerId, {
-          activeTask: this.activeTask ? this.activeTask.id : null,
-          status: this.activeTask ? 'busy' : 'idle'
-        });
-      } catch (e) {}
+      await this.sendHeartbeat();
     }, 30000);
 
     // Main polling loop

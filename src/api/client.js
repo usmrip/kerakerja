@@ -150,6 +150,7 @@ class ApiClient {
       arch: process.arch,
       agent: metadata.agent || 'auto',
       executor: 'cli',
+      agy_usage: metadata.agy_usage ? (typeof metadata.agy_usage === 'string' ? metadata.agy_usage : JSON.stringify(metadata.agy_usage)) : '',
       metadata: JSON.stringify(metadata)
     }, 'POST');
   }

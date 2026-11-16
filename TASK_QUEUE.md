@@ -8,6 +8,17 @@
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-2b46
+- **Waktu:** 2026-11-16 11:04:29
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 15 menit 37 detik
+- **Instruksi:** Pelajari docs/agy-usage.js dan terapkan untuk perintah /usage (Telegram & CLI)
+- **Status:** DONE
+- **Laporan Agent:** Fitur /usage (Telegram & CLI tele usage) berhasil diimplementasikan dari docs/agy-usage.js dengan dukungan multi-OS Windows/macOS/Linux, live Cloud Code API, progress bar, sinkronisasi otomatis worker ke server, dan 35 unit test lulus 100%.
+
+
+
 ### [DONE] #TASK-8684
 - **Waktu:** 2026-11-16 09:40:10
 - **Pengirim:** IDE Chat

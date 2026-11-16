@@ -4,6 +4,7 @@ const { stopCommand, restartCommand, logsCommand } = require('./commands/daemon_
 const taskCommand = require('./commands/task');
 const statusCommand = require('./commands/status');
 const quotaCommand = require('./commands/quota');
+const usageCommand = require('./commands/usage');
 const queueCommand = require('./commands/queue');
 const updateCommand = require('./commands/update');
 const { listCommand, cancelCommand, killCommand, retryCommand } = require('./commands/task_ctl');
@@ -30,6 +31,7 @@ PERINTAH UTAMA:
                             Opsi: --agent <nama> --priority <HIGH|NORMAL> --verbose
   queue [--json] [--all]    Lihat rincian antrean tugas aktif (menunggu & dikerjakan)
   status [--json]           Cek status worker, koneksi server, dan antrean tugas
+  usage [--json] [-w]       Pantau sisa kuota Antigravity AI (Gemini, Claude, GPT, Argon)
   quota [--json]            Tampilkan kuota, model AI, dan kesiapan agent aktif
   list                      Tampilkan daftar tugas di server
   cancel <task_id>          Batalkan tugas tertentu
@@ -85,6 +87,11 @@ async function main() {
     case 'antrean':
     case 'antrian':
       await queueCommand(subArgs);
+      break;
+    case 'usage':
+    case 'agy-usage':
+    case 'pemakaian':
+      await usageCommand(subArgs);
       break;
     case 'quota':
     case 'kuota':

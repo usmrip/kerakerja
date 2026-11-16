@@ -4,6 +4,7 @@ const { loadConfig } = require('../../config/config');
 const ApiClient = require('../../api/client');
 const { resolveAgent, AGENT_ADAPTERS } = require('../../executor/adapters/registry');
 const { getRunningPid } = require('./daemon_ctl');
+const { fetchReport, fmtReset } = require('../../utils/agy_usage');
 
 const execFileAsync = promisify(execFile);
 
@@ -121,12 +122,47 @@ async function fetchAgyModels(binaryPath) {
 }
 
 async function fetchAgyQuota(binaryPath) {
-  const { stdout } = await execFileAsync(binaryPath, ['-p', '/quota', '--output-format', 'json'], {
-    encoding: 'utf-8',
-    timeout: 15000,
-    windowsHide: true
-  });
-  return parseAgyQuotaOutput(stdout);
+  try {
+    const report = await fetchReport();
+    if (report && Array.isArray(report.windows)) {
+      return {
+        description: report.plan ? `Paket: ${report.plan} ${report.email ? `(${report.email})` : ''}` : null,
+        groups: [
+          {
+            name: 'Limit & Kuota AI (Antigravity Cloud Code)',
+            description: 'Pemantauan konsumsi kuota Gemini, Claude & GPT secara real-time.',
+            buckets: report.windows.map(w => {
+              const remFrac = w.remainingFraction !== null ? w.remainingFraction : Math.max(0, (100 - (w.usedPct || 0)) / 100);
+              const remPct = w.usedPct !== null ? Math.round((100 - w.usedPct) * 10) / 10 : 0;
+              return {
+                id: w.id,
+                name: w.label,
+                window: w.id,
+                remainingFraction: remFrac,
+                remainingPercent: remPct,
+                resetTime: w.resetsAt,
+                refreshesIn: formatRefreshRemaining(w.resetsAt),
+                statusText: `Sisa ${remPct}% (reset: ${fmtReset(w.resetsAt)})`
+              };
+            })
+          }
+        ]
+      };
+    }
+  } catch (err) {
+    // Fallback to CLI flag jika Cloud Code API gagal
+  }
+
+  try {
+    const { stdout } = await execFileAsync(binaryPath, ['-p', '/quota', '--output-format', 'json'], {
+      encoding: 'utf-8',
+      timeout: 15000,
+      windowsHide: true
+    });
+    return parseAgyQuotaOutput(stdout);
+  } catch {
+    return null;
+  }
 }
 
 async function quotaCommand(args = []) {
