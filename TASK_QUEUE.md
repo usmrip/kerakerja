@@ -16,17 +16,18 @@
 
 
 
-### [IN_PROGRESS] #TASK-f047
-- **Waktu:** 2026-11-16 04:48:37
+## ✅ Riwayat Tugas Selesai
+
+### [DONE] #TASK-f047
+- **Waktu:** 2026-11-16 04:53:36
 - **Pengirim:** IDE Chat
 - **Agent:** Antigravity AI Agent
+- **Durasi:** 4 menit 59 detik
 - **Instruksi:** Periksa dan perbaiki mengapa /projects di Telegram hanya menampilkan 1 proyek padahal user punya 2 proyek
-- **Status:** IN_PROGRESS
-- **Catatan:** Sedang dikerjakan oleh AI Agent...
+- **Status:** DONE
+- **Laporan Agent:** Penyebab /projects hanya tampil 1 proyek berhasil diperbaiki: whitelist proyek disetel ke global akun (project_id = 0) dan filter webhook diperbaiki agar chat_id pemilik otomatis mengakses semua proyek miliknya (tele-vs-cli #cli & ayoke #ayo)
 
 
-
-## ✅ Riwayat Tugas Selesai
 
 ### [DONE] TASK-06f8
 - **Waktu:** 2026-11-16 04:29:03
