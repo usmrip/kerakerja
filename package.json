@@ -1,0 +1,31 @@
+{
+  "name": "tele-vs-cli",
+  "version": "1.0.0",
+  "description": "Tele-vs-CLI: Headless Telegram & Remote AI Agent Runner (Zero VSIX)",
+  "main": "src/cli/index.js",
+  "bin": {
+    "tele": "./bin/tele.js"
+  },
+  "scripts": {
+    "start": "node bin/tele.js start",
+    "test": "node --test test/**/*.test.js",
+    "doctor": "node bin/tele.js doctor"
+  },
+  "keywords": [
+    "telegram",
+    "ai-agent",
+    "headless",
+    "cli",
+    "antigravity",
+    "claude",
+    "gemini",
+    "codex",
+    "task-queue",
+    "automation"
+  ],
+  "author": "Biru Indonesia Creative <iam@usm.rip>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

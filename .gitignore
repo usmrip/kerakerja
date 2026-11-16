@@ -1,0 +1,22 @@
+# Dependency directories
+node_modules/
+
+# Logs & Runtime PIDs
+*.log
+logs/
+.vscode/tele-vs-code/logs/
+*.pid
+tele-worker.pid
+
+# Configuration & secrets
+config.env
+.env
+tele.config.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test coverage & artifacts
+coverage/
+.nyc_output/
