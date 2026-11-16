@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # Tele-vs-CLI Installer for Windows (PowerShell)
 # Usage:
 #   Local:  powershell -ExecutionPolicy Bypass -File .\install.ps1

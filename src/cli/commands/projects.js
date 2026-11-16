@@ -7,14 +7,16 @@ async function projectsCommand(args) {
   const client = new ApiClient(config.serverUrl, config.secret, config.projectId);
 
   try {
-    const res = await client.request('get_projects');
+    const res = await client.request('projects');
     const projects = (res.data && res.data.projects) ? res.data.projects : [];
     console.log(`\n🏢 Daftar Proyek di Server (${config.serverUrl}):\n`);
     for (const p of projects) {
-      const isCurrent = p.project_id === config.projectId || p.name === config.projectId;
-      console.log(`  ${isCurrent ? '👉 [AKTIF]' : '   '} ${p.name || p.project_id} (ID: ${p.project_id})`);
+      const pKey = p.project_key || String(p.id);
+      const isCurrent = pKey === config.projectId || p.name === config.projectId || (p.code && p.code.toLowerCase() === (config.projectId || '').toLowerCase());
+      const tagStr = p.code ? ` [#${p.code}]` : '';
+      console.log(`  ${isCurrent ? '👉 [AKTIF]' : '   '} ${p.name || pKey}${tagStr} (Key: ${pKey})`);
     }
-    console.log('\nGunakan `tele use <nama_atau_id>` untuk beralih proyek aktif.\n');
+    console.log('\nGunakan `tele use <kode_atau_key>` untuk beralih proyek aktif.\n');
   } catch (e) {
     console.log(`Proyek lokal saat ini: ${config.projectId}`);
   }
