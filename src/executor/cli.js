@@ -2,6 +2,7 @@ const { spawn, execSync } = require('child_process');
 const BaseExecutor = require('./base');
 const { resolveAgent } = require('./adapters/registry');
 const { maskSecrets, validateWorkDir } = require('../security/guard');
+const { killProcessTree } = require('../utils/process');
 
 class CliExecutor extends BaseExecutor {
   constructor(options = {}) {
@@ -59,6 +60,18 @@ class CliExecutor extends BaseExecutor {
       let stdoutBuffer = '';
       let stderrBuffer = '';
       let isTimedOut = false;
+      let isKilled = false;
+
+      if (context.signal && context.signal.aborted) {
+        return resolve({
+          success: false,
+          killed: true,
+          summary: `Eksekusi tugas #${task.id || 'CLI'} dihentikan paksa (/kill).`,
+          commitHash: '',
+          log: '',
+          agent: key
+        });
+      }
 
       const child = spawn(binaryPath, args, {
         cwd,
@@ -66,15 +79,37 @@ class CliExecutor extends BaseExecutor {
         shell: process.platform === 'win32' && binaryPath.endsWith('.cmd')
       });
 
+      if (typeof context.onSpawn === 'function') {
+        try { context.onSpawn(child); } catch (e) {}
+      }
+
+      const onAbort = () => {
+        if (isTimedOut || isKilled) return;
+        isKilled = true;
+        clearTimeout(timer);
+        killProcessTree(child.pid);
+        const fullLog = maskSecrets(`--- STDOUT ---\n${stdoutBuffer}\n--- STDERR ---\n${stderrBuffer}`);
+        resolve({
+          success: false,
+          killed: true,
+          summary: `Eksekusi tugas #${task.id || 'CLI'} dihentikan paksa (/kill).`,
+          commitHash: '',
+          log: fullLog,
+          agent: key
+        });
+      };
+
+      if (context.signal) {
+        context.signal.addEventListener('abort', onAbort, { once: true });
+      }
+
       const timer = setTimeout(() => {
+        if (isKilled) return;
         isTimedOut = true;
-        try {
-          if (process.platform === 'win32') {
-            execSync(`taskkill /pid ${child.pid} /T /F 2>nul`);
-          } else {
-            process.kill(-child.pid, 'SIGKILL');
-          }
-        } catch (e) {}
+        if (context.signal) {
+          context.signal.removeEventListener('abort', onAbort);
+        }
+        killProcessTree(child.pid);
         reject(new Error(`Eksekusi tugas #${task.id} timeout setelah ${this.timeout / 1000} detik`));
       }, this.timeout);
 
@@ -108,12 +143,15 @@ class CliExecutor extends BaseExecutor {
 
       child.on('error', (err) => {
         clearTimeout(timer);
+        if (context.signal) context.signal.removeEventListener('abort', onAbort);
+        if (isKilled) return;
         reject(new Error(`Gagal spawn process '${binaryPath}': ${err.message}`));
       });
 
       child.on('close', (code) => {
         clearTimeout(timer);
-        if (isTimedOut) return;
+        if (context.signal) context.signal.removeEventListener('abort', onAbort);
+        if (isTimedOut || isKilled) return;
 
         const latestCommit = this.getRecentGitCommit(cwd);
         const newCommit = (latestCommit && latestCommit !== initialCommit) ? latestCommit : '';

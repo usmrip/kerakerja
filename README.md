@@ -72,6 +72,38 @@ npm run install-cli
 
 ---
 
+## 🧹 Panduan Uninstall (Linux, Windows, macOS)
+
+Tele-vs-CLI menyediakan skrip pencopotan otomatis untuk membersihkan worker daemon, auto-start service, launcher CLI, entri PATH, dan direktori instalasi di semua OS.
+
+### 🐧 Linux & 🍎 macOS (OS X)
+```bash
+# One-liner via cURL
+curl -fsSL https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/uninstall.sh | bash
+
+# Atau dari repositori lokal
+./uninstall.sh [--yes] [--purge] [--dry-run]
+```
+
+### 🪟 Windows (PowerShell / Command Prompt)
+```powershell
+# One-liner via PowerShell
+irm https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/uninstall.ps1 | iex
+
+# Atau dari repositori lokal
+.\uninstall.ps1 [-Yes] [-Purge] [-DryRun]
+```
+*(Atau klik ganda `uninstall.cmd` untuk pengguna Command Prompt/GUI)*
+
+### 🌐 Universal Node.js / CLI (Semua OS)
+```bash
+tele uninstall [--yes] [--purge] [--dry-run]
+# atau
+npm run uninstall-cli -- --yes
+```
+
+---
+
 ### 2. Inisialisasi Proyek (`tele init`):
 ```bash
 tele init
@@ -110,11 +142,13 @@ Memeriksa kuota aktif, model AI yang tersedia (Gemini 4 Argon, Gemini 3.8 Flash,
 | `tele status [--json]` | Cek status worker, koneksi server, dan antrean tugas |
 | `tele list` | Tampilkan daftar tugas di server |
 | `tele cancel <id>` | Batalkan tugas tertentu |
+| `tele kill <id>` | Hentikan paksa tugas aktif & tandai gagal (`/kill <task_id>`) |
 | `tele retry <id>` | Jadwalkan ulang tugas yang gagal/batal |
 | `tele projects` | Tampilkan daftar proyek di server |
 | `tele use <id>` | Beralih proyek aktif lokal |
 | `tele service install` | Pasang auto-start service (Windows Task Scheduler, Linux systemd, macOS launchd) |
 | `tele service uninstall` | Hapus auto-start service |
+| `tele uninstall [--purge]` | Copot Tele-vs-CLI dari sistem (daemon, service, launcher, dan PATH) |
 
 ---
 

@@ -6,17 +6,48 @@
 
 ## ⏳ Tugas Aktif
 
-### [PENDING] #TASK-d47e
-- **Waktu:** 2026-11-16 11:52:21
-- **Pengirim:** @usmrip (Private Chat)
+### [IN_PROGRESS] #TASK-8684
+- **Waktu:** 2026-11-16 09:31:25
+- **Pengirim:** IDE Chat
 - **Agent:** Antigravity AI Agent
-- **Instruksi:** email juga tiak terkirim
-- **Status:** PENDING
-- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
+- **Instruksi:** buatkan perintah /queue untuk melihat antrian
+- **Status:** IN_PROGRESS
+- **Catatan:** Sedang dikerjakan oleh AI Agent...
 
 
 
 ## ✅ Riwayat Tugas Selesai
+
+### [DONE] TASK-e4ae
+- **Waktu:** 2026-11-16 08:47:30
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** Perintah dari IDE Chat
+- **Status:** DONE
+- **Laporan Agent:** Skrip uninstall multi-OS (scripts/uninstall.js, uninstall.sh, uninstall.ps1, uninstall.cmd), perintah CLI tele uninstall, dokumentasi README.md, dan 6 unit test di test/uninstall.test.js selesai dibuat dan lolos 26/26 unit test.
+
+
+
+### [DONE] TASK-92fe
+- **Waktu:** 2026-11-16 05:10:45
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** Perintah dari IDE Chat
+- **Status:** DONE
+- **Laporan Agent:** Fitur /kill <task_id> & tele kill <task_id> selesai diimplementasikan di CLI, Executor (AbortSignal + killProcessTree), Worker watchdog, dan ApiClient, lolos 20/20 unit test.
+
+
+
+### [DONE] TASK-d47e
+- **Waktu:** 2026-11-16 04:59:33
+- **Pengirim:** @usmrip (Private Chat)
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 0 detik
+- **Instruksi:** email juga tiak terkirim
+- **Status:** DONE
+- **Laporan Agent:** Konfigurasi SMTP server tele-vs-cli (smtp.gmail.com:587 TLS, dari@biru.click) disinkronkan ke data/saas.db, template/branding mailer.php dan pengecekan error sendSmtpEmail di auth.php diperbaiki, lolos php -l, HTTP 200, dan tes kirim email ke iam@usm.rip sukses (250 2.0.0 OK).
+
+
 
 ### [DONE] #TASK-f047
 - **Waktu:** 2026-11-16 04:53:36

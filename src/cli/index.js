@@ -4,10 +4,13 @@ const { stopCommand, restartCommand, logsCommand } = require('./commands/daemon_
 const taskCommand = require('./commands/task');
 const statusCommand = require('./commands/status');
 const quotaCommand = require('./commands/quota');
-const { listCommand, cancelCommand, retryCommand } = require('./commands/task_ctl');
+const queueCommand = require('./commands/queue');
+const updateCommand = require('./commands/update');
+const { listCommand, cancelCommand, killCommand, retryCommand } = require('./commands/task_ctl');
 const { projectsCommand, useCommand } = require('./commands/projects');
 const initCommand = require('./commands/init');
 const serviceCommand = require('./commands/service');
+const { runUninstall } = require('../../scripts/uninstall');
 
 function printHelp() {
   console.log(`
@@ -25,15 +28,19 @@ PERINTAH UTAMA:
   logs [-f]                 Tampilkan atau pantau log worker secara live
   task "<instruksi>"        Kirim tugas baru ke antrean
                             Opsi: --agent <nama> --priority <HIGH|NORMAL> --verbose
+  queue [--json] [--all]    Lihat rincian antrean tugas aktif (menunggu & dikerjakan)
   status [--json]           Cek status worker, koneksi server, dan antrean tugas
   quota [--json]            Tampilkan kuota, model AI, dan kesiapan agent aktif
   list                      Tampilkan daftar tugas di server
   cancel <task_id>          Batalkan tugas tertentu
+  kill <task_id>            Hentikan paksa tugas aktif & tandai gagal (/kill)
   retry <task_id>           Jadwalkan ulang tugas yang gagal/dibatalkan
   projects                  Lihat daftar proyek di server
   use <project_id>          Pilih proyek aktif lokal
   doctor                    Diagnostik lingkungan, koneksi, izin, dan CLI agent
-  service install|uninstall Pasang autostart service (Windows Task Scheduler / Linux systemd)
+  service install|uninstall Pasang/hapus autostart service (Windows Task Scheduler / Linux systemd / macOS launchd)
+  update [--check]          Perbarui Tele-vs-CLI ke versi terbaru dari GitHub
+  uninstall [--purge]       Copot Tele-vs-CLI dari sistem (launcher, service, PATH)
   help, --help              Tampilkan bantuan ini
 
 CONTOH:
@@ -73,15 +80,29 @@ async function main() {
     case 'status':
       await statusCommand(subArgs);
       break;
+    case 'queue':
+    case 'q':
+    case 'antrean':
+    case 'antrian':
+      await queueCommand(subArgs);
+      break;
     case 'quota':
     case 'kuota':
       await quotaCommand(subArgs);
+      break;
+    case 'update':
+    case 'upgrade':
+      await updateCommand(subArgs);
       break;
     case 'list':
       await listCommand(subArgs);
       break;
     case 'cancel':
       await cancelCommand(subArgs);
+      break;
+    case 'kill':
+    case '/kill':
+      await killCommand(subArgs);
       break;
     case 'retry':
       await retryCommand(subArgs);
@@ -97,6 +118,9 @@ async function main() {
       break;
     case 'service':
       await serviceCommand(subArgs);
+      break;
+    case 'uninstall':
+      await runUninstall(subArgs);
       break;
     case 'help':
     case '--help':

@@ -1,5 +1,11 @@
 const { loadConfig } = require('../../config/config');
 const ApiClient = require('../../api/client');
+const {
+  matchesTaskId,
+  killProcessTree,
+  readActiveTask,
+  clearActiveTask
+} = require('../../utils/process');
 
 async function listCommand(args) {
   const cwd = process.cwd();
@@ -70,8 +76,85 @@ async function retryCommand(args) {
   }
 }
 
+function parseKillArgs(args = []) {
+  let taskId = '';
+  let reason = '';
+  let force = false;
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '--force' || arg === '-f') {
+      force = true;
+    } else if (arg === '--reason' || arg === '-r') {
+      if (i + 1 < args.length) {
+        reason = args[++i];
+      }
+    } else if (!arg.startsWith('-') && !taskId) {
+      taskId = arg.trim();
+    } else if (!arg.startsWith('-') && taskId) {
+      reason = reason ? `${reason} ${arg}` : arg;
+    }
+  }
+
+  return {
+    taskId,
+    reason: reason || 'Dihentikan paksa (/kill) melalui CLI',
+    force
+  };
+}
+
+async function killCommand(args) {
+  const { taskId, reason, force } = parseKillArgs(args);
+  if (!taskId) {
+    console.log('Penggunaan: tele kill <task_id> [--reason "<alasan>"] [--force]');
+    console.log('Contoh    : tele kill TASK-92fe');
+    return;
+  }
+
+  const cwd = process.cwd();
+  const config = loadConfig(cwd);
+  const client = new ApiClient(config.serverUrl, config.secret, config.projectId);
+
+  const active = readActiveTask(cwd);
+  let killedLocalPid = null;
+  if (active && active.taskId && matchesTaskId(active.taskId, taskId)) {
+    if (killProcessTree(active.pid)) {
+      killedLocalPid = active.pid;
+      console.log(`🛑 Proses lokal agent (PID: ${active.pid}) untuk tugas ${active.taskId} dihentikan.`);
+    }
+    clearActiveTask(cwd, active.taskId);
+  }
+
+  let resolvedId = taskId;
+  try {
+    const taskRes = await client.getTask(taskId);
+    const remoteTask = taskRes && taskRes.data && taskRes.data.task;
+    if (remoteTask) {
+      resolvedId = remoteTask.id;
+      if (remoteTask.status === 'DONE' && !force) {
+        console.log(`⚠️ Tugas ${resolvedId} sudah berstatus DONE. Gunakan --force jika ingin memaksa.`);
+        return;
+      }
+    }
+  } catch (e) {}
+
+  console.log(`Menghentikan tugas ${resolvedId}...`);
+  try {
+    await client.killTask(resolvedId, reason);
+    if (killedLocalPid) {
+      console.log(`✅ Tugas ${resolvedId} berhasil di-kill (proses PID ${killedLocalPid} dihentikan & status server diperbarui).`);
+    } else {
+      console.log(`✅ Tugas ${resolvedId} berhasil di-kill di server.`);
+    }
+  } catch (e) {
+    console.error(`❌ Gagal menghentikan tugas ${resolvedId}: ${e.message}`);
+  }
+}
+
 module.exports = {
   listCommand,
   cancelCommand,
-  retryCommand
+  killCommand,
+  retryCommand,
+  parseKillArgs
 };

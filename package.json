@@ -10,7 +10,8 @@
     "start": "node bin/tele.js start",
     "test": "node --test test/**/*.test.js",
     "doctor": "node bin/tele.js doctor",
-    "install-cli": "node scripts/install.js"
+    "install-cli": "node scripts/install.js",
+    "uninstall-cli": "node scripts/uninstall.js"
   },
   "keywords": [
     "telegram",

@@ -108,3 +108,19 @@ test('Installer - Skrip instalasi multi-OS (Linux, macOS, Windows) tersedia dan 
   assert.ok(psContent.includes('TargetDir'));
   assert.ok(psContent.includes('node scripts/install.js'));
 });
+
+test('CLI - tele queue --json menghasilkan format JSON valid', () => {
+  const binPath = path.join(__dirname, '..', 'bin', 'tele.js');
+  const out = execSync(`node "${binPath}" queue --json`, { encoding: 'utf-8' });
+  const data = JSON.parse(out);
+  assert.ok(data.project);
+  assert.ok(data.summary);
+  assert.ok(Array.isArray(data.inProgress));
+  assert.ok(Array.isArray(data.pending));
+});
+
+test('CLI - tele update --check dapat dijalankan dengan aman', () => {
+  const binPath = path.join(__dirname, '..', 'bin', 'tele.js');
+  const out = execSync(`node "${binPath}" update --check`, { encoding: 'utf-8' });
+  assert.ok(out.includes('PEMBARUAN TELE-VS-CLI'));
+});

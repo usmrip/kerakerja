@@ -98,6 +98,14 @@ class ApiClient {
     return this.request('api_status');
   }
 
+  getTask(taskId) {
+    return this.request('api_get_task', { id: taskId });
+  }
+
+  killTask(taskId, reason = 'Dihentikan paksa (/kill)') {
+    return this.failTask(taskId, reason);
+  }
+
   startTask(taskId, workerId, agentName) {
     return this.request('in_progress', {
       id: taskId,
