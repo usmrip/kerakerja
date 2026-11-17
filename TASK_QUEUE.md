@@ -104,6 +104,28 @@ jangan ada sampah tele-vs-cli
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-8307
+- **Waktu:** 2026-11-17 06:38:23
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 5 menit 19 detik
+- **Instruksi:** Buatkan perintah /sampah untuk membersihkan sampah tele-vs-cli dan laporkan apa saja yang dibersihkan ke Telegram dalam bentuk tabel
+- **Status:** DONE
+- **Laporan Agent:** Perintah /sampah selesai dibuat (CLI kerakerja sampah / /sampah, Worker TeleWorker.parseSampahCommand + handleSampahInstruction, dan /help di webhook.php). Membersihkan sampah tele-vs-cli lokal & global serta mengirim laporan tabel ke Telegram (<pre>). Lolos 76/76 unit test & php -l.
+
+
+
+### [DONE] #TASK-7c5f
+- **Waktu:** 2026-11-17 06:28:18
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 1 menit 0 detik
+- **Instruksi:** Perintahkan worker melakukan update kerakerja
+- **Status:** DONE
+- **Laporan Agent:** Instalasi global KeraKerja (C:\Users\iam\AppData\Local\kerakerja\bin\kerakerja.cmd) berhasil diperbarui via kerakerja update dari b7fe776 ke 59eeaf5. Tidak ada worker daemon aktif di mesin lokal.
+
+
+
 ### [DONE] #TASK-d264
 - **Waktu:** 2026-11-17 06:26:13
 - **Pengirim:** IDE Chat

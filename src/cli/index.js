@@ -11,6 +11,7 @@ const { listCommand, cancelCommand, killCommand, retryCommand } = require('./com
 const { projectsCommand, useCommand } = require('./commands/projects');
 const initCommand = require('./commands/init');
 const serviceCommand = require('./commands/service');
+const { sampahCommand } = require('./commands/sampah');
 const { runUninstall } = require('../../scripts/uninstall');
 
 function printHelp() {
@@ -42,6 +43,7 @@ PERINTAH UTAMA:
   doctor                    Diagnostik lingkungan, koneksi, izin, dan CLI agent
   service install [--all]|uninstall Pasang/hapus autostart service (Windows Task Scheduler / Linux systemd / macOS launchd)
   update [--check]          Perbarui KeraKerja ke versi terbaru dari GitHub
+  sampah [--dry-run]        Bersihkan sampah tele-vs-cli & kirim laporan tabel ke Telegram
   uninstall, --uninstall    Copot KeraKerja dari sistem & seluruh workspace terdaftar
   help, --help              Tampilkan bantuan ini
 
@@ -125,6 +127,10 @@ async function main() {
       break;
     case 'service':
       await serviceCommand(subArgs);
+      break;
+    case 'sampah':
+    case '/sampah':
+      await sampahCommand(subArgs);
       break;
     case 'uninstall':
     case '--uninstall': {

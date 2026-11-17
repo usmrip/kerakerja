@@ -136,12 +136,13 @@ class ApiClient {
     });
   }
 
-  doneTask(taskId, resultSummary, commitHash = '', log = '') {
+  doneTask(taskId, resultSummary, commitHash = '', log = '', extra = {}) {
     return this.request('done', {
       id: taskId,
       result: resultSummary,
       commit_hash: commitHash,
-      log: log.substring(0, 10000)
+      log: log.substring(0, 10000),
+      ...(extra && typeof extra === 'object' ? extra : {})
     }, 'POST');
   }
 

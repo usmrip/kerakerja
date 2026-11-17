@@ -15,6 +15,13 @@ const {
 } = require('../utils/process');
 const { fetchReport } = require('../utils/agy_usage');
 const { formatLocalTimestamp } = require('../utils/time');
+const {
+  cleanTeleVsCliTrash,
+  formatCleanupTable,
+  formatCleanupTelegramHtml,
+  sendTelegramReport,
+  formatBytes
+} = require('../cli/commands/sampah');
 
 const KILLED_STATUSES = new Set(['FAILED', 'CANCELLED', 'CANCELED', 'KILLED']);
 const PENDING_STATUSES = new Set(['PENDING', 'WAITING', 'QUEUE']);
@@ -129,6 +136,16 @@ function parseKillCommand(instruction) {
 function parseUpdateCommand(instruction) {
   const text = String(instruction || '').trim();
   return /^\/(upgrade|update)(?:@\w+)?(?:\s+.*)?$/i.test(text) || text === 'system:update';
+}
+
+function parseSampahCommand(instruction) {
+  const text = String(instruction || '').trim();
+  const match = text.match(/^\/sampah(?:@\w+)?(?:\s+([\s\S]*))?$/i);
+  if (!match) return null;
+  const argText = (match[1] || '').trim().toLowerCase();
+  return {
+    dryRun: argText.includes('--dry-run') || argText.includes('dry-run')
+  };
 }
 
 class TeleWorker {
@@ -395,6 +412,12 @@ class TeleWorker {
       return;
     }
 
+    const parsedSampah = parseSampahCommand(pending.instruction);
+    if (parsedSampah) {
+      await this.handleSampahInstruction(pending, parsedSampah);
+      return;
+    }
+
     if (process.env.TELE_IGNORE_LOCAL_QUEUE !== '1') {
       const localQueue = hasLocalQueueInProgress(this.workDir, pending.id);
       if (localQueue.active) {
@@ -473,6 +496,31 @@ class TeleWorker {
     } catch (e) {
       this.log(`❌ Gagal update #${task.id}: ${e.message}`);
       await this.api.failTask(task.id, `Gagal auto-update: ${e.message}`);
+    }
+  }
+
+  async handleSampahInstruction(task, options = {}) {
+    this.log(`🧹 Memproses perintah /sampah (#${task.id})...`);
+    try {
+      await this.api.startTask(task.id, this.workerId, this.config.agent);
+      const report = cleanTeleVsCliTrash({
+        workDir: this.workDir,
+        dryRun: Boolean(options.dryRun)
+      });
+
+      const tableText = formatCleanupTable(report);
+      const htmlReport = formatCleanupTelegramHtml(report, { projectId: this.config.projectId });
+      const tgRes = await sendTelegramReport(this.config, htmlReport);
+
+      const summary = `Pembersihan sampah tele-vs-cli selesai (${report.cleanedCount} dihapus, ${report.migratedCount} dimigrasi, ${formatBytes(report.totalBytes)}).\n\n${tableText}`;
+      const extra = (tgRes && tgRes.ok) ? { skip_notify: '1' } : {};
+      await this.api.doneTask(task.id, summary, '', tableText, extra);
+      this.log(`✅ Pembersihan /sampah #${task.id} selesai (Telegram: ${tgRes && tgRes.ok ? 'terkirim' : 'via server'}).`);
+    } catch (e) {
+      this.log(`❌ Gagal memproses /sampah #${task.id}: ${e.message}`);
+      try {
+        await this.api.failTask(task.id, `Gagal memproses /sampah: ${e.message}`);
+      } catch (err) {}
     }
   }
 
@@ -672,6 +720,7 @@ class TeleWorker {
 }
 
 TeleWorker.parseKillCommand = parseKillCommand;
+TeleWorker.parseSampahCommand = parseSampahCommand;
 TeleWorker.normalizeExecutor = normalizeExecutor;
 TeleWorker.isCliExecutor = isCliExecutor;
 TeleWorker.isVscodeExecutor = isVscodeExecutor;
