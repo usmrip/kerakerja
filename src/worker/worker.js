@@ -22,6 +22,15 @@ const {
   sendTelegramReport,
   formatBytes
 } = require('../cli/commands/sampah');
+const {
+  resolveSnapshotInputs,
+  createSnapshot,
+  restoreSnapshot,
+  buildRestoreTelegramPayload,
+  formatSnapshotSuccessHtml,
+  formatRestoreSuccessHtml
+} = require('../cli/commands/snapshot');
+const { sendTelegramHtml } = require('../utils/telegram');
 
 const KILLED_STATUSES = new Set(['FAILED', 'CANCELLED', 'CANCELED', 'KILLED']);
 const PENDING_STATUSES = new Set(['PENDING', 'WAITING', 'QUEUE']);
@@ -145,6 +154,26 @@ function parseSampahCommand(instruction) {
   const argText = (match[1] || '').trim().toLowerCase();
   return {
     dryRun: argText.includes('--dry-run') || argText.includes('dry-run')
+  };
+}
+
+function parseSnapshotCommand(instruction) {
+  const text = String(instruction || '').trim();
+  const match = text.match(/^\/snapshot(?:@\w+)?(?:\s+([\s\S]*))?$/i);
+  if (!match) return null;
+  const rawArgs = (match[1] || '').trim();
+  return {
+    args: rawArgs ? rawArgs.split(/\s+/).filter(Boolean) : []
+  };
+}
+
+function parseRestoreCommand(instruction) {
+  const text = String(instruction || '').trim();
+  const match = text.match(/^\/restore(?:@\w+)?(?:\s+([\s\S]*))?$/i);
+  if (!match) return null;
+  const rawArgs = (match[1] || '').trim();
+  return {
+    code: rawArgs ? rawArgs.split(/\s+/)[0].trim() : ''
   };
 }
 
@@ -418,6 +447,18 @@ class TeleWorker {
       return;
     }
 
+    const parsedSnapshot = parseSnapshotCommand(pending.instruction);
+    if (parsedSnapshot) {
+      await this.handleSnapshotInstruction(pending, parsedSnapshot);
+      return;
+    }
+
+    const parsedRestore = parseRestoreCommand(pending.instruction);
+    if (parsedRestore) {
+      await this.handleRestoreInstruction(pending, parsedRestore);
+      return;
+    }
+
     if (process.env.TELE_IGNORE_LOCAL_QUEUE !== '1') {
       const localQueue = hasLocalQueueInProgress(this.workDir, pending.id);
       if (localQueue.active) {
@@ -520,6 +561,70 @@ class TeleWorker {
       this.log(`❌ Gagal memproses /sampah #${task.id}: ${e.message}`);
       try {
         await this.api.failTask(task.id, `Gagal memproses /sampah: ${e.message}`);
+      } catch (err) {}
+    }
+  }
+
+  async handleSnapshotInstruction(task, parsed) {
+    this.log(`📸 Memproses perintah /snapshot (#${task.id})...`);
+    try {
+      await this.api.startTask(task.id, this.workerId, this.config.agent);
+      const resolved = resolveSnapshotInputs(parsed.args || [], this.workDir);
+      if (!resolved.ok) {
+        await this.api.failTask(task.id, resolved.error);
+        return;
+      }
+
+      const res = createSnapshot({
+        workDir: this.workDir,
+        baseCode: resolved.baseCode,
+        paramRes: resolved.paramRes,
+        projectId: this.config.projectId
+      });
+
+      const tgRes = await sendTelegramHtml(this.config, formatSnapshotSuccessHtml(res));
+      const summary = `Snapshot '${res.meta.code}' (${res.meta.params}) berhasil dibuat di ${res.snapshotDir} (${formatBytes(res.meta.stats.totalBytes)}).`;
+      const extra = (tgRes && tgRes.ok) ? { skip_notify: '1' } : {};
+      await this.api.doneTask(task.id, summary, '', '', extra);
+      this.log(`✅ Snapshot ${res.meta.code} selesai (#${task.id}).`);
+    } catch (e) {
+      this.log(`❌ Gagal memproses /snapshot #${task.id}: ${e.message}`);
+      try {
+        await this.api.failTask(task.id, `Gagal memproses /snapshot: ${e.message}`);
+      } catch (err) {}
+    }
+  }
+
+  async handleRestoreInstruction(task, parsed) {
+    this.log(`♻️ Memproses perintah /restore (#${task.id}): target=${parsed.code || '(pilih tombol)'}`);
+    try {
+      await this.api.startTask(task.id, this.workerId, this.config.agent);
+      const res = restoreSnapshot({
+        workDir: this.workDir,
+        code: parsed.code || ''
+      });
+
+      if (!res.ok) {
+        const payload = buildRestoreTelegramPayload(res.latest, this.config.projectId);
+        const tgRes = await sendTelegramHtml(this.config, payload.html, payload.extra);
+        const listText = (res.latest && res.latest.length > 0)
+          ? res.latest.map((s) => `• ${s.code} (${s.params}, ${formatBytes(s.totalBytes)})`).join('\n')
+          : 'Belum ada snapshot tersedia.';
+        const summary = `${res.error}\n\n4 Snapshot Terakhir:\n${listText}`;
+        const extra = (tgRes && tgRes.ok) ? { skip_notify: '1' } : {};
+        await this.api.doneTask(task.id, summary, '', '', extra);
+        return;
+      }
+
+      const tgRes = await sendTelegramHtml(this.config, formatRestoreSuccessHtml(res));
+      const summary = `Restore snapshot '${res.code}' selesai (Kode ${res.restored.kodeFiles} file, DB ${res.restored.dbFiles} file, Upload ${res.restored.uploadFiles} file).`;
+      const extra = (tgRes && tgRes.ok) ? { skip_notify: '1' } : {};
+      await this.api.doneTask(task.id, summary, '', '', extra);
+      this.log(`✅ Restore ${res.code} selesai (#${task.id}).`);
+    } catch (e) {
+      this.log(`❌ Gagal memproses /restore #${task.id}: ${e.message}`);
+      try {
+        await this.api.failTask(task.id, `Gagal memproses /restore: ${e.message}`);
       } catch (err) {}
     }
   }
@@ -721,6 +826,8 @@ class TeleWorker {
 
 TeleWorker.parseKillCommand = parseKillCommand;
 TeleWorker.parseSampahCommand = parseSampahCommand;
+TeleWorker.parseSnapshotCommand = parseSnapshotCommand;
+TeleWorker.parseRestoreCommand = parseRestoreCommand;
 TeleWorker.normalizeExecutor = normalizeExecutor;
 TeleWorker.isCliExecutor = isCliExecutor;
 TeleWorker.isVscodeExecutor = isVscodeExecutor;

@@ -104,6 +104,17 @@ jangan ada sampah tele-vs-cli
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-bf9e
+- **Waktu:** 2026-11-17 06:42:21
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 2 menit 54 detik
+- **Instruksi:** Tambahkan perintah /snapshot <kode> <parameter> (full, db, kode, upload, kombinasi koma) dan /restore <kode> (dengan tombol 4 snapshot terakhir di Telegram, penomoran otomatis <kode>-01, <kode>-02, lokasi ../snapshot-kerakerja sejajar working directory)
+- **Status:** DONE
+- **Laporan Agent:** Perintah /snapshot <kode> <parameter> (full, db, kode, upload, db,kode) dan /restore <kode> (plus tombol inline 4 snapshot terakhir di Telegram & callback cb:restore: di webhook.php) selesai dibuat di ../snapshot-kerakerja. Lolos 79/79 unit test & php -l.
+
+
+
 ### [DONE] #TASK-8307
 - **Waktu:** 2026-11-17 06:38:23
 - **Pengirim:** IDE Chat
