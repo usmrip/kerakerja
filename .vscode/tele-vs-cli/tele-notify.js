@@ -238,7 +238,7 @@ async function ensureMediaUploaded() {
   if (fs.existsSync(localPath)) {
     const secretKey = process.env.AGENTS_TELE_SECRET || cfgVscode.AGENTS_TELE_SECRET || cfgLocal.AGENTS_TELE_SECRET || cfgEnv.AGENTS_TELE_SECRET || '';
     const projectKey = process.env.AGENTS_TELE_PROJECT_KEY || cfgVscode.AGENTS_TELE_PROJECT_KEY || cfgLocal.AGENTS_TELE_PROJECT_KEY || cfgEnv.AGENTS_TELE_PROJECT_KEY || '';
-    const webhookUrl = process.env.AGENTS_TELE_WEBHOOK_URL || cfgVscode.AGENTS_TELE_WEBHOOK_URL || cfgLocal.AGENTS_TELE_WEBHOOK_URL || 'https://biru.co.id/tele-vs-cli/';
+    const webhookUrl = process.env.AGENTS_TELE_WEBHOOK_URL || cfgVscode.AGENTS_TELE_WEBHOOK_URL || cfgLocal.AGENTS_TELE_WEBHOOK_URL || 'https://biru.co.id/kerakerja/';
     const baseUrl = webhookUrl.replace(/\/webhook\/?$/, '/').replace(/\/$/, '');
 
     if (secretKey) {

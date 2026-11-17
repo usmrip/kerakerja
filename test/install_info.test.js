@@ -66,7 +66,7 @@ test('app_info - testCommunication memverifikasi koneksi Workstation, Dashboard 
 
   const result = await testCommunication(
     {
-      serverUrl: 'https://biru.co.id/tele-vs-cli/',
+      serverUrl: 'https://biru.co.id/kerakerja/',
       secret: 'tvscli_testsecret',
       projectId: 'prj_abc123'
     },
@@ -95,7 +95,7 @@ test('app_info - testCommunication menangani proyek belum terdaftar di website',
 
   const result = await testCommunication(
     {
-      serverUrl: 'https://biru.co.id/tele-vs-cli/',
+      serverUrl: 'https://biru.co.id/kerakerja/',
       secret: 'tvscli_testsecret',
       projectId: 'prj_unregistered'
     },
@@ -118,7 +118,7 @@ test('app_info - testCommunication menangani kegagalan koneksi Dashboard', async
 
   const result = await testCommunication(
     {
-      serverUrl: 'https://biru.co.id/tele-vs-cli/',
+      serverUrl: 'https://biru.co.id/kerakerja/',
       secret: 'tvscli_testsecret',
       projectId: 'prj_abc123'
     },

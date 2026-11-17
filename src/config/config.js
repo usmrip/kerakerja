@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const DEFAULT_SERVER_URL = 'https://biru.co.id/tele-vs-cli/';
+const DEFAULT_SERVER_URL = 'https://biru.co.id/kerakerja/';
 const DEFAULT_TIMEOUT_MS = 600000; // 10 menit
 
 function loadEnvFile(filePath) {

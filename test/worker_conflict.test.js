@@ -170,7 +170,7 @@ test('TeleWorker - checkAndProcessNextTask menunda klaim jika summary IN_PROGRES
 
 test('ApiClient - addTask mengirim status PENDING secara default agar antrean Terminal sinkron dengan Telegram & Web', async () => {
   const ApiClient = require('../src/api/client');
-  const client = new ApiClient('https://biru.co.id/tele-vs-cli/', 'sec', 'prj_test');
+  const client = new ApiClient('https://biru.co.id/kerakerja/', 'sec', 'prj_test');
   let captured = null;
   client.request = async (endpoint, params, method) => {
     captured = { endpoint, params, method };

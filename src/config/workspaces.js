@@ -89,7 +89,7 @@ function registerWorkspace(entry, filePath = getGlobalWorkspacesPath()) {
     ...(existingMatch || {}),
     projectId: String(entry.projectId),
     workDir: resolvedWorkDir,
-    serverUrl: entry.serverUrl || (existingMatch && existingMatch.serverUrl) || 'https://biru.co.id/tele-vs-cli/',
+    serverUrl: entry.serverUrl || (existingMatch && existingMatch.serverUrl) || 'https://biru.co.id/kerakerja/',
     secret: entry.secret || (existingMatch && existingMatch.secret) || '',
     agent: entry.agent || (existingMatch && existingMatch.agent) || 'auto',
     taskTimeout: Number(entry.taskTimeout) || (existingMatch && existingMatch.taskTimeout) || 600000,

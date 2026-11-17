@@ -6,23 +6,12 @@
 
 ## ⏳ Tugas Aktif
 
-### [PENDING] #TASK-3a41
-- **Waktu:** 2026-11-17 11:39:59
+### [PENDING] #TASK-0739
+- **Waktu:** 2026-11-17 12:09:26
 - **Pengirim:** @usmrip (Private Chat)
 - **Agent:** Antigravity AI Agent
-- **Instruksi:** rubah https://biru.co.id/tele-vs-cli menjadi https://biru.co.id/kerakerja atau https://biru.click/kerakerja
-- **Status:** PENDING
-- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
-
-
-
-### [PENDING] #TASK-c214
-- **Waktu:** 2026-11-17 11:38:08
-- **Pengirim:** @usmrip (Private Chat)
-- **Agent:** Antigravity AI Agent
-- **Instruksi:** di dashboard
-1.tambahkan search task
-2. filter status tugas tambahkan failed/dibatalkan
+- **Instruksi:** 1. perintah /quota hasilnya samakan dengan /usage
+2. perintah /statistik berikan statistik terkait workspace
 - **Status:** PENDING
 - **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
 
@@ -83,6 +72,28 @@ jangan ada sampah tele-vs-cli
 
 
 ## ✅ Riwayat Tugas Selesai
+
+### [DONE] #TASK-c214
+- **Waktu:** 2026-11-17 05:10:40
+- **Pengirim:** @usmrip (Private Chat)
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 0 detik
+- **Instruksi:** di dashboard
+- **Status:** DONE
+- **Laporan Agent:** Fitur Search Task (cari berdasarkan ID, instruksi, pengirim, hasil, atau nama proyek) dan filter status FAILED (Gagal / Dibatalkan) berhasil ditambahkan di Dashboard Web (views/tab_tasks.php, includes/data.php, includes/helpers.php). Teruji langsung pada database produksi (FAILED: 6, SEARCH: 2) dan lolos php -l.
+
+
+
+### [DONE] #TASK-3a41
+- **Waktu:** 2026-11-17 05:05:06
+- **Pengirim:** @usmrip (Private Chat)
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 0 detik
+- **Instruksi:** rubah https://biru.co.id/tele-vs-cli menjadi https://biru.co.id/kerakerja atau https://biru.click/kerakerja
+- **Status:** DONE
+- **Laporan Agent:** URL server resmi dimigrasikan dari https://biru.co.id/tele-vs-cli/ ke https://biru.co.id/kerakerja/ di seluruh kode CLI, worker, konfigurasi, test, dan server remote (beserta symlink kompatibilitas public_html/kerakerja -> tele-vs-cli & .htaccess dinamis). Lolos HTTP 200, php -l, dan 68/68 unit test.
+
+
 
 ### [DONE] TASK-bf7d
 - **Waktu:** 2026-11-17 04:56:14

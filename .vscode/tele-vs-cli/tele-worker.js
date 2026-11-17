@@ -97,7 +97,7 @@ const webhookUrl = process.env.AGENTS_TELE_WEBHOOK_URL ||
                    cfgLocal.AGENTS_TELE_WEBHOOK_URL ||
                    cfgEnv.AGENTS_TELE_WEBHOOK_URL ||
                    cfgGlobal.AGENTS_TELE_WEBHOOK_URL ||
-                   'https://biru.co.id/tele-vs-cli/';
+                   'https://biru.co.id/kerakerja/';
 
 const secretKey = process.env.AGENTS_TELE_SECRET ||
                   cfgVscode.AGENTS_TELE_SECRET ||

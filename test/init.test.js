@@ -28,7 +28,7 @@ test('init - computeNextIndex memutar pilihan panah atas dan bawah dengan benar'
 });
 
 test('init - fetchServerProjects menangani API Key kosong secara aman', async () => {
-  const res = await initCommand.fetchServerProjects('https://biru.co.id/tele-vs-cli/', '');
+  const res = await initCommand.fetchServerProjects('https://biru.co.id/kerakerja/', '');
   assert.strictEqual(res.ok, false);
   assert.deepStrictEqual(res.projects, []);
 });

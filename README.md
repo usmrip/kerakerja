@@ -109,7 +109,7 @@ npm run uninstall-cli -- --yes
 tele init
 ```
 Wizard akan menanyakan:
-- Server URL Dashboard (default: `https://biru.co.id/tele-vs-cli/`)
+- Server URL Dashboard (default: `https://biru.co.id/kerakerja/`)
 - Secret API Key
 - Project ID / Project Key
 - AI Agent pilihan (`auto`, `agy`, `claude`, `gemini`, `cline`)

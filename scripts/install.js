@@ -259,7 +259,7 @@ async function runInstaller() {
   console.log('🎉 Pemasangan Tele-vs-CLI Berhasil!');
   console.log('==============================================================================');
   console.log('📌 PENTING — Daftarkan Proyek Terlebih Dahulu di Website:');
-  console.log('   👉 Buka Dashboard Website (https://biru.co.id/tele-vs-cli/)');
+  console.log('   👉 Buka Dashboard Website (https://biru.co.id/kerakerja/)');
   console.log('   👉 Daftarkan proyek Anda untuk mendapatkan Secret Key (AGENTS_TELE_SECRET) & Project ID.');
   console.log('');
   console.log('💡 Langkah Selanjutnya:');

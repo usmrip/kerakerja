@@ -16,7 +16,7 @@ test('Config - Menyimpan dan membaca tele.config.json', () => {
   if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
 
   const custom = {
-    serverUrl: 'https://biru.co.id/tele-vs-cli/',
+    serverUrl: 'https://biru.co.id/kerakerja/',
     secret: 'test_secret_123',
     projectId: 'test_project',
     agent: 'claude',
@@ -27,7 +27,7 @@ test('Config - Menyimpan dan membaca tele.config.json', () => {
   saveConfig(custom, tmpDir);
   const loaded = loadConfig(tmpDir);
 
-  assert.strictEqual(loaded.serverUrl, 'https://biru.co.id/tele-vs-cli/');
+  assert.strictEqual(loaded.serverUrl, 'https://biru.co.id/kerakerja/');
   assert.strictEqual(loaded.secret, 'test_secret_123');
   assert.strictEqual(loaded.projectId, 'test_project');
   assert.strictEqual(loaded.agent, 'claude');
