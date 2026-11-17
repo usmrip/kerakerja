@@ -15,7 +15,7 @@ class CliExecutor extends BaseExecutor {
 
   getRecentGitCommit(cwd) {
     try {
-      const hash = execSync('git log -1 --format="%h - %s"', { cwd, encoding: 'utf-8', timeout: 3000 }).trim();
+      const hash = execSync('git log -1 --format="%h - %s"', { cwd, encoding: 'utf-8', timeout: 3000, windowsHide: true }).trim();
       return hash || '';
     } catch (e) {
       return '';
@@ -76,7 +76,8 @@ class CliExecutor extends BaseExecutor {
       const child = spawn(binaryPath, args, {
         cwd,
         env: { ...process.env, TELE_TASK_ID: task.id || '', TELE_VERBOSE: isVerbose ? '1' : '' },
-        shell: process.platform === 'win32' && binaryPath.endsWith('.cmd')
+        shell: process.platform === 'win32' && binaryPath.endsWith('.cmd'),
+        windowsHide: true
       });
 
       if (typeof context.onSpawn === 'function') {

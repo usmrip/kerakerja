@@ -12,7 +12,7 @@ function findCli(binName) {
   const checkCmd = isWin ? `where.exe "${binName}" 2>nul` : `which "${binName}" 2>/dev/null`;
 
   try {
-    const out = execSync(checkCmd, { encoding: 'utf-8', timeout: 3000 }).trim();
+    const out = execSync(checkCmd, { encoding: 'utf-8', timeout: 3000, windowsHide: true }).trim();
     if (out) {
       const firstLine = out.split(/\r?\n/)[0].trim();
       if (fs.existsSync(firstLine)) return firstLine;

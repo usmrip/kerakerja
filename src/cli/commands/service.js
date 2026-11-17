@@ -1,6 +1,12 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
+
+function getWindowsHiddenVbsPath() {
+  const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
+  return path.join(localAppData, 'tele-vs-cli', 'bin', 'start-hidden.vbs');
+}
 
 async function serviceCommand(args = []) {
   const action = (args[0] || '').toLowerCase();
@@ -15,9 +21,16 @@ async function serviceCommand(args = []) {
     console.log(`Mengonfigurasi auto-start background service '${serviceName}'${isAll ? ' (Multi-Project --all)' : ''}...`);
     if (process.platform === 'win32') {
       try {
-        const cmd = `schtasks /create /tn "${serviceName}" /tr "\"${nodeBin}\" \"${scriptPath}\" ${startFlags} --daemon" /sc onlogon /f`;
-        execSync(cmd, { stdio: 'inherit' });
-        console.log(`✅ Layanan Windows Task Scheduler '${serviceName}' berhasil dipasang (aktif saat login).`);
+        const vbsPath = getWindowsHiddenVbsPath();
+        const vbsDir = path.dirname(vbsPath);
+        if (!fs.existsSync(vbsDir)) fs.mkdirSync(vbsDir, { recursive: true });
+        const targetCmd = `""${nodeBin}"" ""${scriptPath}"" ${startFlags} --daemon`;
+        const vbsContent = `Set shell = CreateObject("WScript.Shell")\r\nshell.Run "${targetCmd}", 0, False\r\n`;
+        fs.writeFileSync(vbsPath, vbsContent, 'utf-8');
+
+        const cmd = `schtasks /create /tn "${serviceName}" /tr "wscript.exe \\"${vbsPath}\\"" /sc onlogon /f`;
+        execSync(cmd, { stdio: 'inherit', windowsHide: true });
+        console.log(`✅ Layanan Windows Task Scheduler '${serviceName}' berhasil dipasang (mode tersembunyi tanpa popup).`);
       } catch (e) {
         console.error(`❌ Gagal memasang task scheduler: ${e.message}`);
       }
@@ -89,7 +102,9 @@ WantedBy=default.target
     console.log(`Menghapus background service '${serviceName}'...`);
     if (process.platform === 'win32') {
       try {
-        execSync(`schtasks /delete /tn "${serviceName}" /f`, { stdio: 'inherit' });
+        execSync(`schtasks /delete /tn "${serviceName}" /f`, { stdio: 'inherit', windowsHide: true });
+        const vbsPath = getWindowsHiddenVbsPath();
+        if (fs.existsSync(vbsPath)) fs.unlinkSync(vbsPath);
         console.log(`✅ Layanan '${serviceName}' berhasil dihapus.`);
       } catch (e) {
         console.error(`❌ Gagal menghapus service: ${e.message}`);

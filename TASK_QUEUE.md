@@ -57,6 +57,17 @@ waktu di logger dan jam workstation tidak sama
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-e95f
+- **Waktu:** 2026-11-17 03:48:53
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 2 menit 26 detik
+- **Instruksi:** Hilangkan popup jendela kosong Windows (windowsHide: true pada semua child process/daemon)
+- **Status:** DONE
+- **Laporan Agent:** Popup jendela konsol kosong Windows dihilangkan: menambahkan windowsHide: true di seluruh spawn/execSync (start.js, cli.js, finder.js, process.js, daemon_ctl.js, uninstall.js) dan menggunakan wscript.exe + start-hidden.vbs (mode tersembunyi) untuk Windows Task Scheduler di service.js. Lolos 48/48 unit test.
+
+
+
 ### [DONE] #TASK-db44
 - **Waktu:** 2026-11-17 03:45:41
 - **Pengirim:** IDE Chat

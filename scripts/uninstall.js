@@ -65,7 +65,8 @@ function getInstallPaths(platform = process.platform, homeDir = os.homedir(), lo
       launchers: [
         path.join(baseDir, 'bin', 'tele.cmd'),
         path.join(baseDir, 'bin', 'tele.ps1'),
-        path.join(baseDir, 'bin', 'tele')
+        path.join(baseDir, 'bin', 'tele'),
+        path.join(baseDir, 'bin', 'start-hidden.vbs')
       ],
       serviceName: 'TeleVsCliWorker'
     };
@@ -166,7 +167,7 @@ function stopPidFile(pidPath, dryRun, summary, label = 'Worker daemon') {
       } else {
         try {
           if (process.platform === 'win32') {
-            execSync(`taskkill /pid ${pid} /T /F`, { stdio: 'ignore' });
+            execSync(`taskkill /pid ${pid} /T /F`, { stdio: 'ignore', windowsHide: true });
           } else {
             process.kill(pid, 'SIGTERM');
           }
@@ -216,12 +217,12 @@ function cleanWorkspaces(workspaceDirs, dryRun, summary) {
 function removeAutoService(paths, dryRun, summary) {
   if (process.platform === 'win32') {
     try {
-      execSync(`schtasks /query /tn "${paths.serviceName}"`, { stdio: 'ignore' });
+      execSync(`schtasks /query /tn "${paths.serviceName}"`, { stdio: 'ignore', windowsHide: true });
       if (dryRun) {
         console.log(`   [dry-run] Akan menghapus Windows Task Scheduler: ${paths.serviceName}`);
         summary.push(`(dry-run) Hapus service ${paths.serviceName}`);
       } else {
-        execSync(`schtasks /delete /tn "${paths.serviceName}" /f`, { stdio: 'ignore' });
+        execSync(`schtasks /delete /tn "${paths.serviceName}" /f`, { stdio: 'ignore', windowsHide: true });
         console.log(`   ✅ Windows Task Scheduler '${paths.serviceName}' dihapus.`);
         summary.push(`Hapus service ${paths.serviceName}`);
       }
@@ -286,8 +287,8 @@ function removeLaunchersAndPath(paths, dryRun, summary) {
 
     try {
       const currentPath = execSync(
-        'powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable(\'Path\', \'User\')"',
-        { encoding: 'utf-8' }
+        'powershell -NoProfile -ExecutionPolicy Bypass -Command "[Environment]::GetEnvironmentVariable(\'Path\', \'User\')"',
+        { encoding: 'utf-8', windowsHide: true }
       ).trim();
       const { changed, newPath } = removeDirFromWindowsPath(currentPath, paths.binDir);
       if (changed) {
@@ -295,9 +296,9 @@ function removeLaunchersAndPath(paths, dryRun, summary) {
           console.log(`   [dry-run] Akan menghapus '${paths.binDir}' dari User PATH Windows.`);
           summary.push(`(dry-run) Hapus ${paths.binDir} dari User PATH`);
         } else {
-          const escaped = newPath.replace(/'/g, "''");
           execSync(
-            `powershell -NoProfile -Command "[Environment]::SetEnvironmentVariable('Path', '${escaped}', 'User')"`
+            'powershell -NoProfile -ExecutionPolicy Bypass -Command "[Environment]::SetEnvironmentVariable(\'Path\', $env:__TELE_NEW_PATH, \'User\')"',
+            { windowsHide: true, env: { ...process.env, __TELE_NEW_PATH: newPath } }
           );
           console.log(`   ✅ '${paths.binDir}' dihapus dari User PATH Windows.`);
           summary.push(`Hapus ${paths.binDir} dari User PATH`);

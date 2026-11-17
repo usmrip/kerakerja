@@ -38,7 +38,7 @@ function killProcessTree(pid) {
 
   try {
     if (process.platform === 'win32') {
-      execSync(`taskkill /pid ${numPid} /T /F 2>nul`, { stdio: 'ignore' });
+      execSync(`taskkill /pid ${numPid} /T /F 2>nul`, { stdio: 'ignore', windowsHide: true });
       return true;
     }
     try {
@@ -54,6 +54,77 @@ function killProcessTree(pid) {
 
 function getActiveTaskFile(workDir) {
   return path.join(workDir || process.cwd(), 'logs', 'active-task.json');
+}
+
+function isProcessAlive(pid) {
+  const numPid = Number(pid);
+  if (!Number.isInteger(numPid) || numPid <= 0) return false;
+  try {
+    process.kill(numPid, 0);
+    return true;
+  } catch (e) {
+    return e && e.code === 'EPERM';
+  }
+}
+
+function readJsonSafe(filePath) {
+  try {
+    if (!fs.existsSync(filePath)) return null;
+    return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+  } catch (e) {
+    return null;
+  }
+}
+
+function isActiveTaskLocked(workDir, currentWorkerId = null, currentPid = process.pid) {
+  const root = workDir || process.cwd();
+  const candidates = [
+    { path: getActiveTaskFile(root), own: true },
+    { path: path.join(root, '.vscode', 'tele-vs-code', 'active-task.json'), own: false },
+    { path: path.join(root, '.vscode', 'tele-vs-cli', 'active-task.json'), own: false }
+  ];
+
+  for (const candidate of candidates) {
+    const entry = readJsonSafe(candidate.path);
+    if (!entry) continue;
+
+    const pidAlive = isProcessAlive(entry.pid);
+    const workerPidAlive = isProcessAlive(entry.workerPid);
+    const hasPid = Number.isInteger(Number(entry.pid)) || Number.isInteger(Number(entry.workerPid));
+
+    if (hasPid && !pidAlive && !workerPidAlive) {
+      if (candidate.own) {
+        try { fs.unlinkSync(candidate.path); } catch (e) {}
+      }
+      continue;
+    }
+
+    const sameWorker = currentWorkerId && entry.workerId && entry.workerId === currentWorkerId;
+    const samePid = (entry.workerPid && Number(entry.workerPid) === currentPid) || (entry.pid && Number(entry.pid) === currentPid);
+    if (!sameWorker && !samePid) {
+      return { locked: true, owner: entry, filePath: candidate.path };
+    }
+  }
+
+  return { locked: false, owner: null, filePath: null };
+}
+
+function hasLocalQueueInProgress(workDir, excludeTaskId = null) {
+  const queueFile = path.join(workDir || process.cwd(), 'TASK_QUEUE.md');
+  if (!fs.existsSync(queueFile)) return { active: false, taskId: null };
+  try {
+    const content = fs.readFileSync(queueFile, 'utf-8');
+    const activeSection = content.split('## ✅ Riwayat Tugas Selesai')[0];
+    const regex = /###\s+\[IN_PROGRESS\]\s+(#?TASK-[A-Za-z0-9_-]+)/gi;
+    let match;
+    while ((match = regex.exec(activeSection)) !== null) {
+      const foundId = match[1];
+      if (!excludeTaskId || !matchesTaskId(foundId, excludeTaskId)) {
+        return { active: true, taskId: foundId };
+      }
+    }
+  } catch (e) {}
+  return { active: false, taskId: null };
 }
 
 function writeActiveTask(workDir, info) {
@@ -93,8 +164,11 @@ module.exports = {
   normalizeTaskId,
   matchesTaskId,
   killProcessTree,
+  isProcessAlive,
   getActiveTaskFile,
   writeActiveTask,
   readActiveTask,
-  clearActiveTask
+  clearActiveTask,
+  isActiveTaskLocked,
+  hasLocalQueueInProgress
 };

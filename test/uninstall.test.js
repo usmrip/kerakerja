@@ -79,7 +79,7 @@ test('Uninstaller - getInstallPaths mengembalikan path sesuai OS (win32, linux, 
   const winPaths = getInstallPaths('win32', 'C:\\Users\\test', 'C:\\Users\\test\\AppData\\Local');
   assert.strictEqual(winPaths.serviceName, 'TeleVsCliWorker');
   assert.ok(winPaths.appDir.endsWith(path.join('tele-vs-cli', 'app')));
-  assert.strictEqual(winPaths.launchers.length, 3);
+  assert.strictEqual(winPaths.launchers.length, 4);
 
   const linuxPaths = getInstallPaths('linux', '/home/test');
   assert.strictEqual(linuxPaths.appDir, path.join('/home/test', '.tele-vs-cli'));

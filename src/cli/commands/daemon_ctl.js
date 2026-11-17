@@ -27,9 +27,31 @@ function getRunningPid(cwd, isAll = false) {
   }
 }
 
+function resolveTargetAll(args = [], cwd = process.cwd(), checkLog = false) {
+  if (args.includes('--all') || args.includes('-a')) return true;
+  if (args.includes('--single')) return false;
+
+  if (checkLog) {
+    const localLog = resolveLogFile(cwd, false);
+    const multiLog = resolveLogFile(cwd, true);
+    if (!fs.existsSync(localLog) && fs.existsSync(multiLog)) {
+      return true;
+    }
+    if (getRunningPid(cwd, true) && !getRunningPid(cwd, false)) {
+      return true;
+    }
+    return false;
+  }
+
+  const localPid = getRunningPid(cwd, false);
+  if (localPid) return false;
+  const multiPid = getRunningPid(cwd, true);
+  return Boolean(multiPid);
+}
+
 async function stopCommand(args = []) {
   const cwd = process.cwd();
-  const isAll = args.includes('--all') || args.includes('-a');
+  const isAll = resolveTargetAll(args, cwd);
   const pid = getRunningPid(cwd, isAll);
 
   if (!pid) {
@@ -40,7 +62,7 @@ async function stopCommand(args = []) {
   console.log(`Menghentikan ${isAll ? 'multi-project ' : ''}worker dengan PID ${pid}...`);
   try {
     if (process.platform === 'win32') {
-      execSync(`taskkill /pid ${pid} /T /F 2>nul`);
+      execSync(`taskkill /pid ${pid} /T /F 2>nul`, { windowsHide: true });
     } else {
       process.kill(pid, 'SIGTERM');
     }
@@ -56,9 +78,10 @@ async function stopCommand(args = []) {
 }
 
 async function restartCommand(args = []) {
-  const isAll = args.includes('--all') || args.includes('-a');
+  const cwd = process.cwd();
+  const isAll = resolveTargetAll(args, cwd);
   const isVerbose = args.includes('--verbose') || args.includes('-v');
-  await stopCommand(args);
+  await stopCommand(isAll ? [...args, '--all'] : args);
   await new Promise(r => setTimeout(r, 1000));
   const startCommand = require('./start');
   const startArgs = ['--daemon'];
@@ -69,7 +92,7 @@ async function restartCommand(args = []) {
 
 async function logsCommand(args = []) {
   const cwd = process.cwd();
-  const isAll = args.includes('--all') || args.includes('-a');
+  const isAll = resolveTargetAll(args, cwd, true);
   const logFile = resolveLogFile(cwd, isAll);
 
   if (!fs.existsSync(logFile)) {
@@ -113,5 +136,8 @@ module.exports = {
   stopCommand,
   restartCommand,
   logsCommand,
-  getRunningPid
+  getRunningPid,
+  resolveTargetAll,
+  resolvePidFile,
+  resolveLogFile
 };

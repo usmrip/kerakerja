@@ -4,17 +4,54 @@ const path = require('path');
 const TeleWorker = require('../../worker/worker');
 const MultiProjectWorker = require('../../worker/multi_worker');
 const { loadConfig } = require('../../config/config');
-const { getGlobalDir, registerWorkspace } = require('../../config/workspaces');
+const { getGlobalDir, loadWorkspaces, registerWorkspace } = require('../../config/workspaces');
 
 const PID_FILE = 'tele-worker.pid';
 const MULTI_PID_FILE = 'multi-worker.pid';
+
+function isProjectConfigured(cfg) {
+  return Boolean(cfg && cfg.secret && cfg.projectId && cfg.projectId !== 'default');
+}
+
+function resolveStartMode(args = [], cwd = process.cwd(), workspacesFile = undefined) {
+  const explicitAll = args.includes('--all') || args.includes('-a');
+  const explicitSingle = args.includes('--single');
+  if (explicitAll) {
+    return { isAll: true, autoDetected: false, localConfigured: true };
+  }
+
+  const localCfg = loadConfig(cwd);
+  const localConfigured = isProjectConfigured(localCfg);
+  if (localConfigured || explicitSingle) {
+    return { isAll: false, autoDetected: false, localConfigured, localCfg };
+  }
+
+  const registered = loadWorkspaces(workspacesFile);
+  if (registered.length > 0) {
+    return { isAll: true, autoDetected: true, localConfigured: false, registeredCount: registered.length };
+  }
+
+  return { isAll: false, autoDetected: false, localConfigured: false, registeredCount: 0 };
+}
 
 async function startCommand(args = []) {
   const isDaemon = args.includes('--daemon') || args.includes('-d');
   const isOnce = args.includes('--once');
   const isVerbose = args.includes('--verbose') || args.includes('-v');
-  const isAll = args.includes('--all') || args.includes('-a');
   const cwd = process.cwd();
+
+  const mode = resolveStartMode(args, cwd);
+  const isAll = mode.isAll;
+
+  if (mode.autoDetected) {
+    console.log(`ℹ️ Direktori '${cwd}' belum dikonfigurasi sebagai proyek tunggal.`);
+    console.log(`🚀 Otomatis menjalankan Multi-Project Worker untuk ${mode.registeredCount} proyek terdaftar...\n`);
+  } else if (!isAll && !mode.localConfigured) {
+    console.error(`❌ Direktori '${cwd}' belum dikonfigurasi dan belum ada proyek di Multi-Project Registry.`);
+    console.error(`💡 Masuk ke folder proyek Anda (misal /a, /b) lalu jalankan 'tele init',`);
+    console.error(`   setelah itu jalankan 'tele start --all --daemon' (atau 'tele start --daemon' dari folder mana saja).`);
+    process.exit(1);
+  }
 
   const globalDir = getGlobalDir();
   const pidPath = isAll ? path.join(globalDir, MULTI_PID_FILE) : path.join(cwd, PID_FILE);
@@ -55,6 +92,7 @@ async function startCommand(args = []) {
     const child = spawn(nodeBin, spawnArgs, {
       cwd,
       detached: true,
+      windowsHide: true,
       stdio: ['ignore', out, err]
     });
 
@@ -114,5 +152,8 @@ async function startCommand(args = []) {
     process.exit(1);
   }
 }
+
+startCommand.resolveStartMode = resolveStartMode;
+startCommand.isProjectConfigured = isProjectConfigured;
 
 module.exports = startCommand;
