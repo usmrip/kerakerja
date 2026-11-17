@@ -147,13 +147,22 @@ class ApiClient {
   }
 
   registerWorker(workerId, metadata = {}) {
+    const isOffline = metadata.status === 'offline';
     return this.request('worker_heartbeat', {
       worker_id: workerId,
-      status: 'online',
+      status: isOffline ? 'offline' : 'online',
+      worker_status: metadata.status || 'idle',
       platform: process.platform,
       arch: process.arch,
       agent: metadata.agent || 'auto',
       executor: 'cli',
+      hostname: metadata.hostname || '',
+      work_dir: metadata.workDir || '',
+      pid: metadata.pid || process.pid,
+      active_task_id: metadata.activeTask || '',
+      active_task_title: metadata.activeTaskTitle || '',
+      task_agents_timer: metadata.taskAgentsTimer ?? 0,
+      last_task_agents_read: metadata.lastTaskAgentsRead || '',
       agy_usage: metadata.agy_usage ? (typeof metadata.agy_usage === 'string' ? metadata.agy_usage : JSON.stringify(metadata.agy_usage)) : '',
       metadata: JSON.stringify(metadata)
     }, 'POST');
@@ -162,7 +171,8 @@ class ApiClient {
   unregisterWorker(workerId) {
     return this.request('worker_heartbeat', {
       worker_id: workerId,
-      status: 'offline'
+      status: 'offline',
+      worker_status: 'offline'
     }, 'POST');
   }
 }

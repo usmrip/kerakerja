@@ -6,6 +6,38 @@
 
 ## ⏳ Tugas Aktif
 
+### [PENDING] #TASK-9094
+- **Waktu:** 2026-11-17 12:27:35
+- **Pengirim:** @usmrip (Private Chat)
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** terjadi bentrok bot, saya gunakan use di bot a, namub bot b use ikut berpindah
+- **Status:** PENDING
+- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
+
+
+
+### [PENDING] #TASK-ae20
+- **Waktu:** 2026-11-17 12:26:55
+- **Pengirim:** @usmrip (Private Chat)
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** dari telegram jika diketik /use maka berikan info saat ini dan munculkan menu button workstation mana yang bisa digunakan. beri warna beda untuk workstations aktif
+- **Status:** PENDING
+- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
+
+
+
+### [PENDING] #TASK-feb6
+- **Waktu:** 2026-11-17 12:20:08
+- **Pengirim:** @usmrip (Private Chat)
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** tambahkan perintah /where untuk memberi info working direktori.
+
+termasuk peritah use juga dengan info working direktori
+- **Status:** PENDING
+- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
+
+
+
 ### [PENDING] #TASK-0739
 - **Waktu:** 2026-11-17 12:09:26
 - **Pengirim:** @usmrip (Private Chat)
@@ -45,19 +77,6 @@ jangan ada sampah tele-vs-cli
 
 
 
-### [PENDING] #TASK-2bb7
-- **Waktu:** 2026-11-17 10:01:09
-- **Pengirim:** Dashboard User
-- **Agent:** Antigravity AI Agent
-- **Instruksi:** di dashboard : Tambahkan
-1. worker yang sedang aktif
-2. pengaturan proyek worker tambahkan status worker
-3. jika worker di klik muncul popup dan bisa setup timer membaca TASK_AGENTS.md, status saat ini menggerjakan apa, kill/stop & restart
-- **Status:** PENDING
-- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
-
-
-
 ### [PENDING] #TASK-8d9a
 - **Waktu:** 2026-11-17 09:57:37
 - **Pengirim:** Dashboard User
@@ -72,6 +91,17 @@ jangan ada sampah tele-vs-cli
 
 
 ## ✅ Riwayat Tugas Selesai
+
+### [DONE] #TASK-2bb7
+- **Waktu:** 2026-11-17 05:30:29
+- **Pengirim:** Dashboard User
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 0 detik
+- **Instruksi:** di dashboard : Tambahkan
+- **Status:** DONE
+- **Laporan Agent:** Menambahkan section Worker Aktif di Dashboard, Status Worker pada Pengaturan Proyek, serta Popup Detail & Kontrol Worker (status tugas aktif, setup timer membaca TASK_AGENTS.md, Kill/Stop & Restart) beserta sinkronisasi heartbeat CLI-Server. Terverifikasi 71/71 unit test, php -l, dan HTTP 200.
+
+
 
 ### [DONE] #TASK-dd1b
 - **Waktu:** 2026-11-17 05:12:50

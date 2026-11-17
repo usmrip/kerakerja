@@ -84,7 +84,8 @@ class MultiProjectWorker {
       const worker = new TeleWorker({
         workDir: ws.workDir,
         verbose: this.verbose,
-        workerId
+        workerId,
+        isManagedByMulti: true
       });
       this.workers.push(worker);
       this.log(`  [${i + 1}/${workspaces.length}] Proyek '${ws.projectId}' -> ${ws.workDir}`);

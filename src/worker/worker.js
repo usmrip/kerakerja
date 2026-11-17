@@ -1,9 +1,10 @@
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const { spawn } = require('child_process');
 const ApiClient = require('../api/client');
 const CliExecutor = require('../executor/cli');
-const { loadConfig } = require('../config/config');
+const { loadConfig, saveConfig } = require('../config/config');
 const { isDangerousSystemCommand } = require('../security/guard');
 const {
   matchesTaskId,
@@ -144,14 +145,20 @@ class TeleWorker {
       verbose: this.verbose
     });
     this.running = false;
+    this.isManagedByMulti = Boolean(options.isManagedByMulti);
     this.activeTask = null;
     this.activeAbortController = null;
     this.pollTimer = null;
     this.heartbeatTimer = null;
+    this.taskAgentsTimer = null;
+    this.taskAgentsTimerSec = Math.max(0, parseInt(this.config.taskAgentsTimer || 0, 10) || 0);
+    this.lastTaskAgentsRead = null;
+    this.lastTaskAgentsStatus = '';
     this.lastUpdateCheck = 0;
     this._cachedUsage = null;
     this._lastUsageFetch = 0;
     this._lastConflictLog = 0;
+    this._restarting = false;
   }
 
   logThrottled(msg, intervalMs = 30000) {
@@ -183,18 +190,125 @@ class TeleWorker {
     }
   }
 
+  startTaskAgentsTimer(intervalSec) {
+    if (this.taskAgentsTimer) {
+      clearInterval(this.taskAgentsTimer);
+      this.taskAgentsTimer = null;
+    }
+    const sec = Math.max(0, parseInt(intervalSec, 10) || 0);
+    this.taskAgentsTimerSec = sec;
+    if (sec > 0 && this.running) {
+      this.log(`⏱️ Timer membaca TASK_AGENTS.md aktif setiap ${sec} detik.`);
+      this.readTaskAgentsMd();
+      this.taskAgentsTimer = setInterval(() => {
+        if (!this.running) return;
+        this.readTaskAgentsMd();
+      }, sec * 1000);
+    }
+  }
+
+  readTaskAgentsMd() {
+    const filePath = path.join(this.workDir, 'TASK_AGENTS.md');
+    this.lastTaskAgentsRead = formatLocalTimestamp();
+    if (!fs.existsSync(filePath)) {
+      this.lastTaskAgentsStatus = 'File TASK_AGENTS.md belum ada';
+      return { exists: false, pendingCount: 0 };
+    }
+    try {
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const pendingMatches = content.match(/###\s+\[PENDING\]/gi) || [];
+      this.lastTaskAgentsStatus = pendingMatches.length > 0
+        ? `Ditemukan ${pendingMatches.length} tugas [PENDING]`
+        : `Dibaca (${content.length} byte)`;
+      if (this.verbose) {
+        this.log(`📄 [TASK_AGENTS.md] ${this.lastTaskAgentsStatus}`);
+      }
+      return { exists: true, pendingCount: pendingMatches.length };
+    } catch (e) {
+      this.lastTaskAgentsStatus = `Error: ${e.message}`;
+      return { exists: false, error: e.message };
+    }
+  }
+
+  async restartSelf() {
+    if (this._restarting) return;
+    this._restarting = true;
+    try {
+      const scriptPath = path.join(__dirname, '..', '..', 'bin', 'tele.js');
+      const args = [scriptPath, 'restart'];
+      if (this.isManagedByMulti) args.push('--all');
+      if (this.verbose) args.push('--verbose');
+      const child = spawn(process.execPath, args, {
+        cwd: this.workDir,
+        detached: true,
+        windowsHide: true,
+        stdio: 'ignore'
+      });
+      child.unref();
+    } catch (e) {
+      this.log(`⚠️ Gagal memicu restart otomatis: ${e.message}`);
+    }
+    await this.stop();
+    if (!this.isManagedByMulti) {
+      process.exit(0);
+    }
+  }
+
+  async handleHeartbeatResponse(data) {
+    if (!data || typeof data !== 'object') return;
+
+    if (data.task_agents_timer !== undefined && data.task_agents_timer !== null) {
+      const serverTimer = Math.max(0, parseInt(data.task_agents_timer, 10) || 0);
+      if (serverTimer !== this.taskAgentsTimerSec) {
+        this.log(`⏱️ Sinkronisasi timer TASK_AGENTS.md dari dashboard: ${serverTimer} detik.`);
+        this.startTaskAgentsTimer(serverTimer);
+        try {
+          saveConfig({ taskAgentsTimer: serverTimer }, this.workDir);
+        } catch {}
+      }
+    }
+
+    const cmd = String(data.command || '').trim().toLowerCase();
+    if (cmd === 'stop' || cmd === 'kill') {
+      this.log(`🛑 Menerima perintah ${cmd.toUpperCase()} dari dashboard. Menghentikan worker...`);
+      await this.stop();
+      if (!this.isManagedByMulti) {
+        process.exit(0);
+      }
+    } else if (cmd === 'restart') {
+      this.log(`🔄 Menerima perintah RESTART dari dashboard. Memulai ulang worker...`);
+      await this.restartSelf();
+    } else if (cmd === 'set_timer') {
+      const cmdData = (data.command_data && typeof data.command_data === 'object') ? data.command_data : {};
+      const timerSec = Math.max(0, parseInt(cmdData.timer ?? data.task_agents_timer ?? 0, 10) || 0);
+      this.log(`⏱️ Timer TASK_AGENTS.md diatur ke ${timerSec} detik dari dashboard.`);
+      this.startTaskAgentsTimer(timerSec);
+      try {
+        saveConfig({ taskAgentsTimer: timerSec }, this.workDir);
+      } catch {}
+    }
+  }
+
   async sendHeartbeat(extraMeta = {}) {
     try {
       const usage = await this.getAgyUsageSnapshot();
-      await this.api.registerWorker(this.workerId, {
+      const res = await this.api.registerWorker(this.workerId, {
         agent: this.config.agent,
         workDir: this.workDir,
+        hostname: os.hostname(),
         pid: process.pid,
         activeTask: this.activeTask ? this.activeTask.id : null,
+        activeTaskTitle: this.activeTask ? String(this.activeTask.instruction || '').substring(0, 140) : '',
         status: this.activeTask ? 'busy' : 'idle',
+        taskAgentsTimer: this.taskAgentsTimerSec,
+        lastTaskAgentsRead: this.lastTaskAgentsRead || '',
+        lastTaskAgentsStatus: this.lastTaskAgentsStatus || '',
         agy_usage: usage,
         ...extraMeta
       });
+      if (res && res.data) {
+        await this.handleHeartbeatResponse(res.data);
+      }
     } catch (e) {
       // Non-blocking
     }
@@ -221,6 +335,11 @@ class TeleWorker {
       if (!this.running) return;
       await this.sendHeartbeat();
     }, 30000);
+
+    // Start TASK_AGENTS.md timer if configured
+    if (this.taskAgentsTimerSec > 0) {
+      this.startTaskAgentsTimer(this.taskAgentsTimerSec);
+    }
 
     // Main polling loop
     this.pollLoop();
@@ -538,6 +657,10 @@ class TeleWorker {
     this.log(`Menghentikan worker...`);
     this.running = false;
     clearInterval(this.heartbeatTimer);
+    if (this.taskAgentsTimer) {
+      clearInterval(this.taskAgentsTimer);
+      this.taskAgentsTimer = null;
+    }
     if (this.activeAbortController) {
       this.activeAbortController.abort();
     }
