@@ -183,3 +183,42 @@ test('ApiClient - addTask mengirim status PENDING secara default agar antrean Te
   assert.strictEqual(captured.params.sender, 'Terminal CLI');
   assert.strictEqual(captured.params.executor, 'cli');
 });
+
+test('ApiClient - request POST mengirim params di body form-urlencoded (bukan query string) agar payload besar tidak HTTP 500', async () => {
+  const http = require('http');
+  const ApiClient = require('../src/api/client');
+
+  let receivedUrl = '';
+  let receivedMethod = '';
+  let receivedContentType = '';
+  let receivedBody = '';
+
+  const server = http.createServer((req, res) => {
+    receivedUrl = req.url;
+    receivedMethod = req.method;
+    receivedContentType = req.headers['content-type'] || '';
+    req.on('data', chunk => { receivedBody += chunk; });
+    req.on('end', () => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true }));
+    });
+  });
+
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const port = server.address().port;
+    const client = new ApiClient(`http://127.0.0.1:${port}/`, 'sec123', 'prj_test');
+    const longLog = 'A'.repeat(9500);
+    const res = await client.doneTask('#TASK-BIG', 'Selesai 100%', 'abc123', longLog);
+
+    assert.strictEqual(res.statusCode, 200);
+    assert.strictEqual(receivedMethod, 'POST');
+    assert.strictEqual(receivedContentType, 'application/x-www-form-urlencoded');
+    assert.ok(!receivedUrl.includes('AAAA'), 'Payload log besar tidak boleh masuk query string URL');
+    const parsedBody = new URLSearchParams(receivedBody);
+    assert.strictEqual(parsedBody.get('id'), '#TASK-BIG');
+    assert.strictEqual(parsedBody.get('log').length, 9500);
+  } finally {
+    server.close();
+  }
+});

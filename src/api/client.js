@@ -12,14 +12,32 @@ class ApiClient {
   request(endpoint, params = {}, method = 'GET', body = null) {
     return new Promise((resolve, reject) => {
       try {
+        const upperMethod = method.toUpperCase();
         const fullUrl = new URL(this.baseUrl);
         fullUrl.searchParams.set('action', endpoint);
         fullUrl.searchParams.set('secret', this.secret);
         fullUrl.searchParams.set('project_id', this.projectId);
 
-        for (const [k, v] of Object.entries(params)) {
-          if (v !== undefined && v !== null) {
-            fullUrl.searchParams.set(k, String(v));
+        let postData = null;
+        const hasExplicitBody = body !== null && body !== undefined;
+
+        if ((upperMethod === 'POST' || upperMethod === 'PUT') && !hasExplicitBody) {
+          // Kirim payload via form-urlencoded POST body agar tidak terkena batas panjang URL (HTTP 500/414)
+          const formParams = new URLSearchParams();
+          for (const [k, v] of Object.entries(params)) {
+            if (v !== undefined && v !== null) {
+              formParams.set(k, String(v));
+            }
+          }
+          postData = formParams.toString();
+        } else {
+          for (const [k, v] of Object.entries(params)) {
+            if (v !== undefined && v !== null) {
+              fullUrl.searchParams.set(k, String(v));
+            }
+          }
+          if (hasExplicitBody && (upperMethod === 'POST' || upperMethod === 'PUT')) {
+            postData = typeof body === 'string' ? body : JSON.stringify(body);
           }
         }
 
@@ -30,7 +48,7 @@ class ApiClient {
           hostname: fullUrl.hostname,
           port: fullUrl.port || (isHttps ? 443 : 80),
           path: fullUrl.pathname + fullUrl.search,
-          method: method.toUpperCase(),
+          method: upperMethod,
           headers: {
             'User-Agent': 'KeraKerja/1.0.0 (Node.js/Headless)',
             'Accept': 'application/json'
@@ -38,10 +56,10 @@ class ApiClient {
           timeout: 15000
         };
 
-        let postData = null;
-        if (body && (method === 'POST' || method === 'PUT')) {
-          postData = typeof body === 'string' ? body : JSON.stringify(body);
-          options.headers['Content-Type'] = typeof body === 'string' ? 'application/x-www-form-urlencoded' : 'application/json';
+        if (postData !== null && (upperMethod === 'POST' || upperMethod === 'PUT')) {
+          options.headers['Content-Type'] = (hasExplicitBody && typeof body !== 'string')
+            ? 'application/json'
+            : 'application/x-www-form-urlencoded';
           options.headers['Content-Length'] = Buffer.byteLength(postData);
         }
 

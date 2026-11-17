@@ -104,6 +104,17 @@ jangan ada sampah tele-vs-cli
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-bf63
+- **Waktu:** 2026-11-17 06:23:13
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 3 menit 47 detik
+- **Instruksi:** Investigasi kendala #TASK-93b4 dari workspace biru dan perbaiki penyebabnya
+- **Status:** DONE
+- **Laporan Agent:** Investigasi & perbaikan #TASK-93b4 (Server error HTTP 500 pada ApiClient POST params di URL query string): dipindah ke body form-urlencoded, 72/72 test pass.
+
+
+
 ### [DONE] #TASK-f511
 - **Waktu:** 2026-11-17 05:53:10
 - **Pengirim:** IDE Chat
