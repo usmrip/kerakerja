@@ -15,7 +15,7 @@ async function safeFetch(url, options = {}, maxRetries = 2) {
         ...options,
         headers: {
           'Connection': 'close',
-          'User-Agent': 'Tele-vs-CLI/1.0.0',
+          'User-Agent': 'KeraKerja/1.0.0',
           ...(options.headers || {})
         },
         signal: options.signal || (typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(timeoutMs) : undefined)
@@ -83,7 +83,7 @@ function parseEnvFile(filePath) {
 
 const homeDir = os.homedir();
 const globalConf = path.join(homeDir, '.config', 'tele-notify', 'config.env');
-const localVscodeConf = path.join(projectDir, '.vscode', 'tele-vs-cli', 'config.env');
+const localVscodeConf = path.join(projectDir, '.vscode', 'kerakerja', 'config.env');
 const localConf = path.join(projectDir, 'config.env');
 const localEnv = path.join(projectDir, '.env');
 
@@ -117,11 +117,11 @@ const deployDir = process.env.SERVER_DEPLOY_DIR ||
                   cfgLocal.SERVER_DEPLOY_DIR ||
                   cfgEnv.SERVER_DEPLOY_DIR ||
                   cfgGlobal.SERVER_DEPLOY_DIR ||
-                  'U:\\domains\\biru.co.id\\public_html\\tele-vs-cli';
+                  'U:\\domains\\biru.co.id\\public_html\\kerakerja';
 
 const normalizedUrl = webhookUrl.endsWith('/') ? webhookUrl : `${webhookUrl}/`;
 const queueFile = path.join(projectDir, 'TASK_QUEUE.md');
-const serverDir = path.join(projectDir, 'tele-vs-cli');
+const serverDir = path.join(projectDir, 'kerakerja');
 
 // Fungsi Auto-Update Server ke Folder U:
 function syncServerFiles() {
@@ -152,7 +152,7 @@ try {
         setTimeout(syncServerFiles, 500);
       }
     });
-    console.log(`👀 File Watcher aktif: Memantau folder tele-vs-cli/ -> auto update ke ${deployDir}`);
+    console.log(`👀 File Watcher aktif: Memantau folder kerakerja/ -> auto update ke ${deployDir}`);
   }
 } catch (e) {}
 
@@ -163,7 +163,7 @@ console.log(`📁 Target Deploy  : ${deployDir}`);
 console.log(`⏱️ Polling Setiap : ${intervalMs / 1000} detik`);
 console.log(`================================================================\n`);
 
-const CLI_ONLY_EXECUTORS = new Set(['cli', 'tele-vs-cli', 'headless', 'terminal']);
+const CLI_ONLY_EXECUTORS = new Set(['cli', 'kerakerja', 'tele-vs-cli', 'headless', 'terminal']);
 
 function isProcessAlive(pid) {
   const numPid = Number(pid);
@@ -247,7 +247,7 @@ async function markTaskDone(taskId, notes = 'Selesai dikerjakan 100%') {
 function getNotifyScript() {
   const candidates = [
     path.join(__dirname, 'tele-notify.js'),
-    path.join(projectDir, '.vscode', 'tele-vs-cli', 'tele-notify.js'),
+    path.join(projectDir, '.vscode', 'kerakerja', 'tele-notify.js'),
     path.join(projectDir, 'tele-notify.js')
   ];
   return candidates.find(p => fs.existsSync(p)) || null;

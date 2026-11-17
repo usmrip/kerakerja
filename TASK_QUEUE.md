@@ -6,7 +6,7 @@
 
 ## ⏳ Tugas Aktif
 
-### [IN_PROGRESS] #TASK-82dc
+### [DONE] #TASK-82dc
 - **Waktu:** 2026-11-17 11:09:31
 - **Pengirim:** IDE Chat
 - **Agent:** Antigravity AI Agent
@@ -81,7 +81,7 @@ termasuk peritah use juga dengan info working direktori
 
 
 
-### [IN_PROGRESS] #TASK-fbfd
+### [FAILED] #TASK-fbfd
 - **Waktu:** 2026-11-17 11:14:16
 - **Pengirim:** @usmrip (Private Chat)
 - **Agent:** Google Antigravity CLI (agy)
@@ -123,6 +123,16 @@ jangan ada sampah tele-vs-cli
 
 
 ## ✅ Riwayat Tugas Selesai
+
+### [DONE] TASK-fbfd
+- **Waktu:** 2026-11-17 11:15:17
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** Perintah dari IDE Chat
+- **Status:** DONE
+- **Laporan Agent:** Perintah /sysinfo selesai diverifikasi (info mesin, worker aktif CPU/RAM, total usage worker) beserta unit test (test/sysinfo.test.js, 91/91 pass) dan dukungan Telegram webhook/helpers. Migrasi sisa tele-vs-cli -> kerakerja di lokal (.vscode/kerakerja, rule files, sftp.json, uninstall.cmd) dan server remote (dashboard, webhook, auth, api, installer) via SFTP selesai dan terverifikasi HTTP 200.
+
+
 
 ### [DONE] #TASK-2eb1
 - **Waktu:** 2026-11-17 10:53:19

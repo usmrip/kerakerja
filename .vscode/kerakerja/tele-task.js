@@ -51,7 +51,7 @@ function parseEnvFile(filePath) {
 const cwd = process.cwd();
 const homeDir = os.homedir();
 const globalConf = path.join(homeDir, '.config', 'tele-notify', 'config.env');
-const localVscodeConf = path.join(cwd, '.vscode', 'tele-vs-cli', 'config.env');
+const localVscodeConf = path.join(cwd, '.vscode', 'kerakerja', 'config.env');
 const localConf = path.join(cwd, 'config.env');
 const localEnv = path.join(cwd, '.env');
 const configCandidates = [
@@ -111,7 +111,7 @@ const queueFile = path.join(cwd, 'TASK_QUEUE.md');
 function getNotifyScript() {
   const candidates = [
     path.join(__dirname, 'tele-notify.js'),
-    path.join(cwd, '.vscode', 'tele-vs-cli', 'tele-notify.js'),
+    path.join(cwd, '.vscode', 'kerakerja', 'tele-notify.js'),
     path.join(cwd, 'tele-notify.js')
   ];
   return candidates.find(p => fs.existsSync(p)) || null;
@@ -523,7 +523,7 @@ async function run() {
   } else if (command === 'whoami') {
     const operator = `${os.userInfo().username}@${os.hostname()}`;
     console.log(`\n============================================================`);
-    console.log(`👤 IDENTIFIKASI WORKSPACE TELE-VS-CLI`);
+    console.log(`👤 IDENTIFIKASI WORKSPACE KERAKERJA`);
     console.log(`============================================================`);
     console.log(`📂 Folder Workspace : ${cwd}`);
     console.log(`💻 Operator Host     : ${operator}`);

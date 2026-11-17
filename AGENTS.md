@@ -1,4 +1,4 @@
-# 🤖 PANDUAN KERJA OTOMATIS AI AGENT (Tele-vs-CLI)
+# 🤖 PANDUAN KERJA OTOMATIS AI AGENT (KeraKerja)
 
 ## ⚡ 1. MANDATORY TRIGGER: EKSEKUSI OTOMATIS ANTREAN TUGAS (TASK_QUEUE.md)
 Setiap kali Anda menerima giliran bicara, prompt, atau instruksi apapun dari USER di IDE Chat ini:
@@ -10,14 +10,14 @@ Setiap kali Anda menerima giliran bicara, prompt, atau instruksi apapun dari USE
      - Ubah status menjadi `[IN_PROGRESS]` saat mulai dikerjakan.
      - Kerjakan instruksinya dan uji verifikasi hingga tuntas.
      - Setelah selesai 100%, tandai selesai menggunakan perintah:
-       node .vscode/tele-vs-cli/tele-task.js done "<TASK-ID>" "<Ringkasan hasil 100% selesai>"
+       node .vscode/kerakerja/tele-task.js done "<TASK-ID>" "<Ringkasan hasil 100% selesai>"
      - Selesaikan antrean berurutan satu per satu.
 
 2. **LANGKAH 2 (PENCATATAN PERINTAH BARU):**
    - Jika antrean kosong/sudah selesai dan user memberikan perintah baru:
-     node .vscode/tele-vs-cli/tele-task.js add "<Perintah User>" --sender "IDE Chat" --status IN_PROGRESS
+     node .vscode/kerakerja/tele-task.js add "<Perintah User>" --sender "IDE Chat" --status IN_PROGRESS
    - Kerjakan tugas hingga tuntas 100%, lalu tandai selesai dengan:
-     node .vscode/tele-vs-cli/tele-task.js done "<TASK-ID>" "<Ringkasan hasil 100% selesai>"
+     node .vscode/kerakerja/tele-task.js done "<TASK-ID>" "<Ringkasan hasil 100% selesai>"
 
 3. **KATA KUNCI PEMICU INSTAN:**
    Jika user mengetik: `proses antrian`, `kerjakan queue`, `next task`, `/queue`, atau `lanjutkan`:
@@ -25,11 +25,11 @@ Setiap kali Anda menerima giliran bicara, prompt, atau instruksi apapun dari USE
 
 ## 📢 2. NOTIFIKASI TELEGRAM
 - **Jika Sukses (100% selesai & teruji):**
-  node .vscode/tele-vs-cli/tele-notify.js "<Judul Tugas>" --status SELESAI --detail "<Rincian 1>" --detail "<Rincian 2>"
+  node .vscode/kerakerja/tele-notify.js "<Judul Tugas>" --status SELESAI --detail "<Rincian 1>" --detail "<Rincian 2>"
 - **Jika Sedang Dikerjakan:**
-  node .vscode/tele-vs-cli/tele-notify.js "<Judul Tugas>" --status PROSES --detail "<Status>"
+  node .vscode/kerakerja/tele-notify.js "<Judul Tugas>" --status PROSES --detail "<Status>"
 - **Jika Ada Kendala Error:**
-  node .vscode/tele-vs-cli/tele-notify.js "<Judul Kendala>" --status KENDALA --detail "<Penyebab>"
+  node .vscode/kerakerja/tele-notify.js "<Judul Kendala>" --status KENDALA --detail "<Penyebab>"
 
 > ⚠️ **ATURAN MUTLAK:** JANGAN PERNAH mengirimkan status `SELESAI` sebelum tugas benar-benar 100% tuntas dan teruji.
 

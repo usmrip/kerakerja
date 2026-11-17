@@ -1,7 +1,7 @@
 @echo off
 setlocal
 echo ==============================================================================
-echo  Tele-vs-CLI Windows Uninstaller
+echo  KeraKerja Windows Uninstaller
 echo ==============================================================================
 echo.
 

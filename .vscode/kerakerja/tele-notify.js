@@ -87,7 +87,7 @@ if (!duration) {
 
 if (!mediaUrl) {
   for (const d of details) {
-    const m = d.match(/https?:\/\/[^\s"']+\.(?:jpg|jpeg|png|webp|mp4|mov)/i) || d.match(/https?:\/\/biru\.co\.id\/tele-vs-cli\/uploads\/[^\s"']+/i);
+    const m = d.match(/https?:\/\/[^\s"']+\.(?:jpg|jpeg|png|webp|mp4|mov)/i) || d.match(/https?:\/\/biru\.co\.id\/kerakerja\/uploads\/[^\s"']+/i);
     if (m) {
       mediaUrl = m[0];
       break;
@@ -117,7 +117,7 @@ function parseEnvFile(filePath) {
 const homeDir = os.homedir();
 const cwd = process.cwd();
 const globalConf = path.join(homeDir, '.config', 'tele-notify', 'config.env');
-const localVscodeConf = path.join(cwd, '.vscode', 'tele-vs-cli', 'config.env');
+const localVscodeConf = path.join(cwd, '.vscode', 'kerakerja', 'config.env');
 const localConf = path.join(cwd, 'config.env');
 const localEnv = path.join(cwd, '.env');
 
