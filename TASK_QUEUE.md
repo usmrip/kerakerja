@@ -57,6 +57,17 @@ waktu di logger dan jam workstation tidak sama
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-6dd1
+- **Waktu:** 2026-11-17 03:54:37
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 48 detik
+- **Instruksi:** Perbaiki error Cannot find module '../src/utils/app_info' saat instalasi tele-vs-cli
+- **Status:** DONE
+- **Laporan Agent:** Modul src/utils/app_info.js beserta seluruh pembaruan proyek (init, status, worker conflict guard, test) telah di-commit dan di-push ke origin main, serta install.ps1 diperbaiki agar memeriksa LASTEXITCODE jika node scripts/install.js gagal. Seluruh 59/59 unit test lulus.
+
+
+
 ### [DONE] #TASK-b58e
 - **Waktu:** 2026-11-17 03:52:07
 - **Pengirim:** IDE Chat

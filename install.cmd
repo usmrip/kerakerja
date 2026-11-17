@@ -25,3 +25,9 @@ echo.
 echo Pemasangan selesai dengan sukses!
 pause
 endlocal
+set "_TELE_BIN=%LOCALAPPDATA%\tele-vs-cli\bin"
+echo "%PATH%" | findstr /i /c:"%_TELE_BIN%" >nul
+if %errorlevel% neq 0 (
+    set "PATH=%PATH%;%_TELE_BIN%"
+)
+set "_TELE_BIN="

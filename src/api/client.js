@@ -90,8 +90,11 @@ class ApiClient {
     });
   }
 
-  pullTasks() {
-    return this.request('pull');
+  pullTasks(options = {}) {
+    const params = {};
+    if (options.executor) params.executor = options.executor;
+    if (options.workerId) params.worker_id = options.workerId;
+    return this.request('pull', params);
   }
 
   getStatus() {

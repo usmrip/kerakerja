@@ -163,17 +163,47 @@ console.log(`📁 Target Deploy  : ${deployDir}`);
 console.log(`⏱️ Polling Setiap : ${intervalMs / 1000} detik`);
 console.log(`================================================================\n`);
 
+const CLI_ONLY_EXECUTORS = new Set(['cli', 'tele-vs-cli', 'headless', 'terminal']);
+
+function isProcessAlive(pid) {
+  const numPid = Number(pid);
+  if (!Number.isInteger(numPid) || numPid <= 0) return false;
+  try {
+    process.kill(numPid, 0);
+    return true;
+  } catch (e) {
+    return e && e.code === 'EPERM';
+  }
+}
+
+function isCliWorkerBusy() {
+  try {
+    const lockPath = path.join(projectDir, 'logs', 'active-task.json');
+    if (!fs.existsSync(lockPath)) return false;
+    const entry = JSON.parse(fs.readFileSync(lockPath, 'utf-8'));
+    if (!entry) return false;
+    if (isProcessAlive(entry.pid) || isProcessAlive(entry.workerPid)) {
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+
 async function fetchNextTask() {
   try {
     const operator = `${os.userInfo().username}@${os.hostname()}`;
-    let url = `${normalizedUrl}?action=pull&secret=${secretKey}&limit=1&format=json&mark=0&workspace_folder=${encodeURIComponent(projectDir)}&operator=${encodeURIComponent(operator)}`;
+    let url = `${normalizedUrl}?action=pull&secret=${secretKey}&limit=5&format=json&mark=0&executor=vscode&workspace_folder=${encodeURIComponent(projectDir)}&operator=${encodeURIComponent(operator)}`;
     if (projectKey) {
       url += `&project=${encodeURIComponent(projectKey)}`;
     }
     const res = await safeFetch(url, { timeout: 15000 });
     const data = await res.json();
     if (data.ok && Array.isArray(data.tasks) && data.tasks.length > 0) {
-      const task = data.tasks[0];
+      const task = data.tasks.find(t => {
+        const execName = String(t.executor || t.target_executor || '').trim().toLowerCase();
+        return !CLI_ONLY_EXECUTORS.has(execName);
+      });
+      if (!task) return null;
       if (task.attachment_url) {
         try {
           const attachDir = path.join(projectDir, 'attachments', task.id.replace(/[^a-zA-Z0-9_-]/g, ''));
@@ -678,6 +708,12 @@ async function processActiveLocalTasks() {
 let isRunning = true;
 async function workerLoop() {
   while (isRunning) {
+    if (isCliWorkerBusy()) {
+      if (runOnce) break;
+      await new Promise(r => setTimeout(r, intervalMs));
+      continue;
+    }
+
     // 1. Eksekusi tugas lokal yang masih aktif di TASK_QUEUE.md
     await processActiveLocalTasks();
 

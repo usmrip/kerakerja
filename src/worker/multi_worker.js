@@ -64,7 +64,7 @@ class MultiProjectWorker {
     for (let i = 0; i < workspaces.length; i++) {
       const ws = workspaces[i];
       const safeId = String(ws.projectId).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 16) || `p${i + 1}`;
-      const workerId = `worker-${os.hostname()}-${process.pid}-${safeId}`;
+      const workerId = `worker-${os.hostname()}-${process.pid}-${safeId}-${i + 1}`;
       const worker = new TeleWorker({
         workDir: ws.workDir,
         verbose: this.verbose,
@@ -74,7 +74,16 @@ class MultiProjectWorker {
       this.log(`  [${i + 1}/${workspaces.length}] Proyek '${ws.projectId}' -> ${ws.workDir}`);
     }
 
-    await Promise.all(this.workers.map(w => w.start()));
+    const results = await Promise.allSettled(this.workers.map(w => w.start()));
+    const failures = results.filter(r => r.status === 'rejected');
+    if (failures.length > 0) {
+      for (const f of failures) {
+        this.log(`[WARN] Salah satu worker proyek gagal start: ${f.reason ? f.reason.message : 'unknown error'}`);
+      }
+      if (failures.length === this.workers.length) {
+        throw failures[0].reason || new Error('Semua worker proyek gagal dijalankan.');
+      }
+    }
   }
 
   async stop() {

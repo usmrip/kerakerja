@@ -64,6 +64,10 @@ if ($localScriptDir -and (Test-Path (Join-Path $localScriptDir "bin\tele.js"))) 
 Push-Location $TargetDir
 try {
     node scripts/install.js
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[ERROR] Pemasangan CLI gagal (exit code $LASTEXITCODE)." -ForegroundColor Red
+        Exit $LASTEXITCODE
+    }
 } finally {
     Pop-Location
 }

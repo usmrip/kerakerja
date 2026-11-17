@@ -103,3 +103,67 @@ test('Installer & Service - mendukung pertanyaan autostart dan flag --all', () =
   const serviceSrc = fs.readFileSync(path.join(__dirname, '..', 'src', 'cli', 'commands', 'service.js'), 'utf-8');
   assert.ok(serviceSrc.includes("isAll ? 'start --all' : 'start'"));
 });
+
+test('Start & DaemonCtl - resolveStartMode otomatis mendeteksi multi-proyek di folder tak terkonfigurasi', () => {
+  const { resolveStartMode } = require('../src/cli/commands/start');
+  const { resolveTargetAll } = require('../src/cli/commands/daemon_ctl');
+
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tele-mode-test-'));
+  const wsFile = path.join(tmpDir, 'workspaces.json');
+  const unconfiguredDir = path.join(tmpDir, 'root_empty');
+  const configuredDir = path.join(tmpDir, 'proj_a');
+  fs.mkdirSync(unconfiguredDir, { recursive: true });
+  fs.mkdirSync(configuredDir, { recursive: true });
+
+  saveConfig({ projectId: 'prj_a', secret: 'sec_a', agent: 'agy' }, configuredDir);
+  registerWorkspace({ workDir: configuredDir, projectId: 'prj_a', secret: 'sec_a', agent: 'agy' }, wsFile);
+
+  const m1 = resolveStartMode([], unconfiguredDir, wsFile);
+  assert.strictEqual(m1.isAll, true);
+  assert.strictEqual(m1.autoDetected, true);
+  assert.strictEqual(m1.registeredCount, 1);
+
+  const m2 = resolveStartMode([], configuredDir, wsFile);
+  assert.strictEqual(m2.isAll, false);
+  assert.strictEqual(m2.autoDetected, false);
+
+  const m3 = resolveStartMode(['--all'], configuredDir, wsFile);
+  assert.strictEqual(m3.isAll, true);
+
+  assert.strictEqual(resolveTargetAll(['--all'], unconfiguredDir), true);
+  assert.strictEqual(resolveTargetAll(['--single'], unconfiguredDir), false);
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('Status - showMultiStatus menghasilkan JSON multi-proyek yang valid', async () => {
+  const { showMultiStatus } = require('../src/cli/commands/status');
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tele-status-test-'));
+  const wsFile = path.join(tmpDir, 'workspaces.json');
+  const dirA = path.join(tmpDir, 'a');
+  const dirB = path.join(tmpDir, 'b');
+  fs.mkdirSync(dirA, { recursive: true });
+  fs.mkdirSync(dirB, { recursive: true });
+
+  registerWorkspace({ workDir: dirA, projectId: 'prj_a', agent: 'agy' }, wsFile);
+  registerWorkspace({ workDir: dirB, projectId: 'prj_b', agent: 'claude' }, wsFile);
+
+  const logs = [];
+  const origLog = console.log;
+  console.log = (msg) => logs.push(msg);
+  try {
+    await showMultiStatus(true, 12345, wsFile);
+  } finally {
+    console.log = origLog;
+  }
+
+  const parsed = JSON.parse(logs.join('\n'));
+  assert.strictEqual(parsed.mode, 'multi-project');
+  assert.strictEqual(parsed.multiWorker.status, 'online');
+  assert.strictEqual(parsed.multiWorker.pid, 12345);
+  assert.strictEqual(parsed.totalWorkspaces, 2);
+  assert.strictEqual(parsed.workspaces[0].projectId, 'prj_a');
+  assert.strictEqual(parsed.workspaces[1].projectId, 'prj_b');
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});

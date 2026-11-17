@@ -112,7 +112,7 @@ async function initCommand(args = []) {
 
   console.log('\n💡 Langkah berikutnya:');
   console.log('   - Jalankan `tele doctor` untuk mengecek kesiapan sistem lengkap.');
-  console.log('   - Jalankan `tele start --daemon` untuk menjalankan worker di latar belakang.');
+  console.log('   - Jalankan `tele start --daemon` (1 proyek) atau `tele start --all --daemon` (semua proyek terdaftar).');
   console.log('   - Kirim tugas dengan `tele task "instruksi..."`.\n');
 }
 

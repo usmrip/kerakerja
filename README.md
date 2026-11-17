@@ -126,6 +126,30 @@ tele quota
 ```
 Memeriksa kuota aktif, model AI yang tersedia (Gemini 4 Argon, Gemini 3.8 Flash, Claude Sonnet 3.5, dll.), dan status background worker.
 
+### 5. Multi-Proyek dalam 1 Komputer (`1x tele`):
+Jika Anda memiliki beberapa folder proyek (misal `/a` untuk Proyek A dan `/b` untuk Proyek B) dalam satu komputer:
+1. Masuk ke masing-masing folder lalu jalankan `tele init` (atau `tele use <project_id>`):
+   ```bash
+   cd /a && tele init   # otomatis terdaftar ke ~/.tele-vs-cli/workspaces.json
+   cd /b && tele init   # otomatis terdaftar ke ~/.tele-vs-cli/workspaces.json
+   ```
+2. Jalankan **1x** worker untuk semua proyek sekaligus:
+   ```bash
+   tele start --all --daemon
+   ```
+   *(Atau jalankan `tele start --daemon` dari luar folder proyek mana pun — CLI akan otomatis mendeteksi mode Multi-Project.)*
+3. Pantau, restart, atau hentikan seluruh proyek sekaligus:
+   ```bash
+   tele status --all
+   tele logs --all -f
+   tele restart --all
+   tele stop --all
+   ```
+4. Untuk autostart saat komputer dinyalakan:
+   ```bash
+   tele service install --all
+   ```
+
 ---
 
 ## 🛠️ Daftar Perintah CLI (`tele`)
@@ -133,20 +157,20 @@ Memeriksa kuota aktif, model AI yang tersedia (Gemini 4 Argon, Gemini 3.8 Flash,
 | Perintah | Deskripsi |
 |---|---|
 | `tele doctor` | Diagnostik lingkungan, koneksi server, dan deteksi CLI Agent |
-| `tele start [--daemon] [--verbose]` | Jalankan worker di foreground atau background (opsi `--verbose` untuk live progress) |
-| `tele stop` | Hentikan worker daemon yang sedang berjalan |
-| `tele restart` | Restart worker daemon |
-| `tele logs [-f]` | Lihat atau pantau log worker secara live (*follow*) |
+| `tele start [--all] [--daemon] [--verbose]` | Jalankan worker 1 proyek atau semua proyek terdaftar (`--all`) |
+| `tele stop [--all]` | Hentikan worker daemon yang sedang berjalan |
+| `tele restart [--all]` | Restart worker daemon |
+| `tele logs [--all] [-f]` | Lihat atau pantau log worker secara live (*follow*) |
 | `tele task "<instruksi>" [--verbose]` | Kirim tugas baru ke antrean dari terminal (opsi `--verbose` untuk live progress) |
 | `tele quota [--json]` | Tampilkan status kuota, model AI, dan kesiapan agent aktif |
-| `tele status [--json]` | Cek status worker, koneksi server, dan antrean tugas |
+| `tele status [--all] [--json]` | Cek status worker (1 proyek / `--all` multi-proyek), koneksi server, dan antrean |
 | `tele list` | Tampilkan daftar tugas di server |
 | `tele cancel <id>` | Batalkan tugas tertentu |
 | `tele kill <id>` | Hentikan paksa tugas aktif & tandai gagal (`/kill <task_id>`) |
 | `tele retry <id>` | Jadwalkan ulang tugas yang gagal/batal |
-| `tele projects` | Tampilkan daftar proyek di server |
-| `tele use <id>` | Beralih proyek aktif lokal |
-| `tele service install` | Pasang auto-start service (Windows Task Scheduler, Linux systemd, macOS launchd) |
+| `tele projects` | Tampilkan daftar proyek di server & multi-project registry lokal |
+| `tele use <id>` | Beralih proyek aktif lokal & daftarkan ke multi-project registry |
+| `tele service install [--all]` | Pasang auto-start service (Windows Task Scheduler, Linux systemd, macOS launchd) |
 | `tele service uninstall` | Hapus auto-start service |
 | `tele uninstall [--purge]` | Copot Tele-vs-CLI dari sistem (daemon, service, launcher, dan PATH) |
 

@@ -8,11 +8,106 @@ const { isDangerousSystemCommand } = require('../security/guard');
 const {
   matchesTaskId,
   writeActiveTask,
-  clearActiveTask
+  clearActiveTask,
+  isActiveTaskLocked,
+  hasLocalQueueInProgress
 } = require('../utils/process');
 const { fetchReport } = require('../utils/agy_usage');
 
 const KILLED_STATUSES = new Set(['FAILED', 'CANCELLED', 'CANCELED', 'KILLED']);
+const PENDING_STATUSES = new Set(['PENDING', 'WAITING', 'QUEUE']);
+const IN_PROGRESS_STATUSES = new Set(['IN_PROGRESS', 'RUNNING']);
+const CLI_EXECUTORS = new Set(['', 'all', 'any', 'cli', 'tele-vs-cli', 'headless', 'terminal']);
+const VSCODE_EXECUTORS = new Set(['vscode', 'tele-vs-code', 'code', 'ide', 'extension', 'editor']);
+
+function normalizeExecutor(executor) {
+  return String(executor || '').trim().toLowerCase();
+}
+
+function isCliExecutor(executor) {
+  return CLI_EXECUTORS.has(normalizeExecutor(executor));
+}
+
+function isVscodeExecutor(executor) {
+  return VSCODE_EXECUTORS.has(normalizeExecutor(executor));
+}
+
+function isTaskForCliExecutor(task, workerId = null) {
+  if (!task || typeof task !== 'object') return false;
+  const rawExecutor = task.executor ?? task.target_executor ?? task.assigned_executor ?? '';
+  if (!isCliExecutor(rawExecutor)) return false;
+
+  const owner = task.worker_id || task.locked_by || '';
+  if (owner && workerId && owner !== workerId) return false;
+  if (owner && !workerId) return false;
+
+  return true;
+}
+
+function isClaimAccepted(res, workerId) {
+  if (!res) return true;
+  if (typeof res.statusCode === 'number' && res.statusCode >= 400) return false;
+  const data = res.data;
+  if (!data || typeof data !== 'object') return true;
+  if (data.ok === false || data.claimed === false || data.conflict === true) return false;
+  if (String(data.status || '').toLowerCase() === 'error') return false;
+
+  const claimedTask = data.task;
+  if (claimedTask && typeof claimedTask === 'object') {
+    if (claimedTask.worker_id && workerId && claimedTask.worker_id !== workerId) {
+      return false;
+    }
+    const execName = claimedTask.executor ?? claimedTask.target_executor ?? '';
+    if (execName && !isCliExecutor(execName)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function selectNextCliTask(tasks = [], workerId = null) {
+  if (!Array.isArray(tasks) || tasks.length === 0) {
+    return { task: null, blockedBy: null, blockedReason: null };
+  }
+
+  // /kill & /update system commands for CLI take priority so stuck tasks can be aborted
+  const urgentSystemTask = tasks.find(t => {
+    const status = String(t.status || '').toUpperCase();
+    if (!PENDING_STATUSES.has(status)) return false;
+    if (!isTaskForCliExecutor(t, workerId)) return false;
+    return Boolean(parseKillCommand(t.instruction) || parseUpdateCommand(t.instruction));
+  });
+  if (urgentSystemTask) {
+    return { task: urgentSystemTask, blockedBy: null, blockedReason: null };
+  }
+
+  // Prevent concurrent execution if another worker (e.g. tele-vs-code or another CLI worker) is already IN_PROGRESS
+  const activeRemote = tasks.find(t => {
+    const status = String(t.status || '').toUpperCase();
+    if (!IN_PROGRESS_STATUSES.has(status)) return false;
+    if (workerId && t.worker_id && t.worker_id === workerId) return false;
+    return true;
+  });
+  if (activeRemote) {
+    const owner = activeRemote.executor || activeRemote.worker_id || 'worker lain';
+    return {
+      task: null,
+      blockedBy: activeRemote,
+      blockedReason: `Tugas #${activeRemote.id} sedang dikerjakan oleh ${owner}`
+    };
+  }
+
+  const pending = tasks.find(t => {
+    const status = String(t.status || '').toUpperCase();
+    return PENDING_STATUSES.has(status) && isTaskForCliExecutor(t, workerId);
+  });
+
+  return {
+    task: pending || null,
+    blockedBy: null,
+    blockedReason: null
+  };
+}
 
 /**
  * Parses a `/kill <task_id> [reason]` instruction.
@@ -55,6 +150,15 @@ class TeleWorker {
     this.lastUpdateCheck = 0;
     this._cachedUsage = null;
     this._lastUsageFetch = 0;
+    this._lastConflictLog = 0;
+  }
+
+  logThrottled(msg, intervalMs = 30000) {
+    const now = Date.now();
+    if (now - this._lastConflictLog >= intervalMs) {
+      this._lastConflictLog = now;
+      this.log(msg);
+    }
   }
 
   log(msg) {
@@ -136,7 +240,14 @@ class TeleWorker {
   }
 
   async checkAndProcessNextTask() {
-    const res = await this.api.pullTasks();
+    const localLock = isActiveTaskLocked(this.workDir, this.workerId, process.pid);
+    if (localLock.locked) {
+      const ownerLabel = (localLock.owner && (localLock.owner.executor || localLock.owner.workerId || localLock.owner.taskId)) || 'worker lain';
+      this.logThrottled(`⏳ Menunggu eksekusi lokal aktif (${ownerLabel}) selesai sebelum mengambil tugas baru...`);
+      return;
+    }
+
+    const res = await this.api.pullTasks({ executor: 'cli', workerId: this.workerId });
     if (!res || !res.data) return;
 
     let tasks = [];
@@ -146,13 +257,12 @@ class TeleWorker {
       tasks = res.data;
     }
 
-    const pending = tasks.find(t => t.status === 'PENDING' || t.status === 'WAITING' || t.status === 'QUEUE');
-    if (!pending) return;
-
-    // Check if task executor is suitable
-    if (pending.executor && pending.executor !== 'cli' && pending.executor !== 'all') {
+    const { task: pending, blockedBy, blockedReason } = selectNextCliTask(tasks, this.workerId);
+    if (blockedBy) {
+      this.logThrottled(`⏳ ${blockedReason}. Menunda eksekusi CLI untuk mencegah bentrok.`);
       return;
     }
+    if (!pending) return;
 
     const killCmd = parseKillCommand(pending.instruction);
     if (killCmd) {
@@ -163,6 +273,14 @@ class TeleWorker {
     if (parseUpdateCommand(pending.instruction)) {
       await this.handleUpdateInstruction(pending);
       return;
+    }
+
+    if (process.env.TELE_IGNORE_LOCAL_QUEUE !== '1') {
+      const localQueue = hasLocalQueueInProgress(this.workDir, pending.id);
+      if (localQueue.active) {
+        this.logThrottled(`⏳ Tugas ${localQueue.taskId} masih [IN_PROGRESS] di TASK_QUEUE.md (IDE/tele-vs-code). Menunggu selesai...`);
+        return;
+      }
     }
 
     await this.executeTask(pending);
@@ -278,8 +396,23 @@ class TeleWorker {
     this.activeAbortController = new AbortController();
 
     try {
-      // Claim task atomically
-      await this.api.startTask(task.id, this.workerId, this.config.agent);
+      // Acquire local execution lock before claiming on server to prevent local race
+      writeActiveTask(this.workDir, {
+        taskId: task.id,
+        pid: null,
+        workerPid: process.pid,
+        workerId: this.workerId,
+        executor: 'cli',
+        startedAt: new Date().toISOString()
+      });
+
+      // Claim task atomically and verify server accepted our claim
+      const claimRes = await this.api.startTask(task.id, this.workerId, this.config.agent);
+      if (!isClaimAccepted(claimRes, this.workerId)) {
+        const owner = (claimRes && claimRes.data && claimRes.data.task && (claimRes.data.task.executor || claimRes.data.task.worker_id)) || 'worker/executor lain';
+        this.log(`⚠️ Tugas #${task.id} sudah diklaim oleh ${owner}. Membatalkan eksekusi CLI untuk mencegah bentrok.`);
+        return;
+      }
       this.log(`Status tugas #${task.id} diubah menjadi IN_PROGRESS.`);
 
       const watchdogMs = Math.min(this.config.pollInterval || 5000, 5000);
@@ -300,9 +433,10 @@ class TeleWorker {
             ? pullRes.data.tasks
             : (Array.isArray(pullRes && pullRes.data) ? pullRes.data : []);
           for (const candidate of pullList) {
-            if (!['PENDING', 'WAITING', 'QUEUE'].includes(candidate.status)) continue;
+            if (!PENDING_STATUSES.has(String(candidate.status || '').toUpperCase())) continue;
             const parsedKill = parseKillCommand(candidate.instruction);
             if (!parsedKill) continue;
+            if (!parsedKill.targetTaskId && !isTaskForCliExecutor(candidate, this.workerId)) continue;
             if (!parsedKill.targetTaskId || matchesTaskId(parsedKill.targetTaskId, task.id)) {
               killedRemotely = true;
               const reason = parsedKill.reason || `Dihentikan paksa (/kill) melalui ${candidate.id}`;
@@ -339,7 +473,9 @@ class TeleWorker {
           writeActiveTask(this.workDir, {
             taskId: task.id,
             pid: child.pid,
+            workerPid: process.pid,
             workerId: this.workerId,
+            executor: 'cli',
             startedAt: new Date().toISOString()
           });
         },
@@ -392,5 +528,11 @@ class TeleWorker {
 }
 
 TeleWorker.parseKillCommand = parseKillCommand;
+TeleWorker.normalizeExecutor = normalizeExecutor;
+TeleWorker.isCliExecutor = isCliExecutor;
+TeleWorker.isVscodeExecutor = isVscodeExecutor;
+TeleWorker.isTaskForCliExecutor = isTaskForCliExecutor;
+TeleWorker.isClaimAccepted = isClaimAccepted;
+TeleWorker.selectNextCliTask = selectNextCliTask;
 
 module.exports = TeleWorker;

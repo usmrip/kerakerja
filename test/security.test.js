@@ -4,9 +4,10 @@ const path = require('path');
 const { maskSecrets, validateWorkDir, isDangerousSystemCommand } = require('../src/security/guard');
 
 test('Security Guard - maskSecrets menyamarkan token telegram dan secret key', () => {
-  const sample = 'Token 1234567890:ABCdefGhIJKlmNoPQRsTUVwxyZ1234567 dan key tvsc_abcdef1234567890abcdef123456';
+  const sample = 'Token 1234567890:ABCdefGhIJKlmNoPQRsTUVwxyZ1234567, key tvscli_abcdef1234567890abcdef123456, dan legacy tvsc_abcdef1234567890abcdef123456';
   const masked = maskSecrets(sample);
   assert.ok(!masked.includes('1234567890:ABCdefGhIJKlmNoPQRsTUVwxyZ1234567'));
+  assert.ok(!masked.includes('tvscli_abcdef1234567890abcdef123456'));
   assert.ok(!masked.includes('tvsc_abcdef1234567890abcdef123456'));
   assert.ok(masked.includes('[TELEGRAM_BOT_TOKEN_PROTECTED]'));
   assert.ok(masked.includes('[API_SECRET_PROTECTED]'));
