@@ -6,7 +6,109 @@
 
 ## ⏳ Tugas Aktif
 
+### [PENDING] #TASK-bf7d
+- **Waktu:** 2026-11-17 10:23:37
+- **Pengirim:** Dashboard User
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** [Dokumen Terlampir: image.png (https://biru.co.id/tele-vs-cli/uploads/draft_mwk4nt5a_h8x5/image.png)]
+waktu di logger dan jam workstation tidak sama
+- **Lampiran Lokal:** [image.png](file:///a:/ngodings/tele-vs-cli/attachments/TASK-bf7d/image.png) (photo)
+- **URL Lampiran:** [Buka di Browser](https://biru.co.id/tele-vs-cli/uploads/draft_mwk4nt5a_h8x5/image.png)
+- **Status:** PENDING
+- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
+
+
+
+### [PENDING] #TASK-26b1
+- **Waktu:** 2026-11-17 10:22:14
+- **Pengirim:** Dashboard User
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** bagaimana jika multi proyek dalam sebuah komputer dengan 1x pemangilan `tele`, misal folder /a untuk proyek a, folder /b yntuk proyek
+- **Status:** PENDING
+- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
+
+
+
+### [PENDING] #TASK-10d7
+- **Waktu:** 2026-11-17 10:21:05
+- **Pengirim:** Dashboard User
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** 1. di windows, tele tidak masuk path, sehingga user harus menulis lengkap direktorinya, perbaiki
+- **Status:** PENDING
+- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
+
+
+
+### [PENDING] #TASK-f592
+- **Waktu:** 2026-11-17 10:07:09
+- **Pengirim:** Dashboard User
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** perbaiki bentrok handle/eksuksi pekerjaan antar tele-vs-code dengan tele-vs-cli
+- **Status:** PENDING
+- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
+
+
+
+### [PENDING] #TASK-2bb7
+- **Waktu:** 2026-11-17 10:01:09
+- **Pengirim:** Dashboard User
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** di dashboard : Tambahkan
+1. worker yang sedang aktif
+2. pengaturan proyek worker tambahkan status worker
+3. jika worker di klik muncul popup dan bisa setup timer membaca TASK_AGENTS.md, status saat ini menggerjakan apa, kill/stop & restart
+- **Status:** PENDING
+- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
+
+
+
+### [PENDING] #TASK-8d9a
+- **Waktu:** 2026-11-17 09:57:37
+- **Pengirim:** Dashboard User
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** di wizard installasi buang default 
+1. AGENTS_TELE_SECRET prefix ganti jadi tvscli_???????
+1. Secret Key API (AGENTS_TELE_SECRET) => 2. Secret Key API (AGENTS_TELE_SECRET) [tvsc_ed2f972bf47fd5182a8fccc11f3febb2]: => tvscli_*******
+2. 3. Project ID / Key (misal: prj_xxx atau nama) [prj_61fa56314a]: => prj_*********
+- **Status:** PENDING
+- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
+
+
+
 ## ✅ Riwayat Tugas Selesai
+
+### [DONE] #TASK-491d
+- **Waktu:** 2026-11-17 03:39:16
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 3 menit 14 detik
+- **Instruksi:** Perbaiki installer Windows agar tele masuk PATH secara otomatis dan dikenali di terminal
+- **Status:** DONE
+- **Laporan Agent:** Perbaikan Windows PATH selesai: addDirToWindowsPath aman via env var, penghapusan tele.ps1 agar PowerShell ExecutionPolicy Restricted otomatis memakai tele.cmd, penambahan bash shim tele untuk Git Bash, refresh PATH langsung di install.ps1, serta 39/39 unit test lulus.
+
+
+
+### [DONE] TASK-016c
+- **Waktu:** 2026-11-17 03:36:37
+- **Pengirim:** Dashboard User
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 0 detik
+- **Instruksi:** saat install
+- **Status:** DONE
+- **Laporan Agent:** Peningkatan alur instalasi (scripts/install.js, src/cli/commands/init.js, src/utils/app_info.js): menampilkan versi & tanggal update terakhir, cek update + konfirmasi auto-update, info daftar proyek di website, test komunikasi 3-arah Workstation-Dashboard-Telegram, serta panduan ganti proyek (/use <#tag> & dropdown dashboard). 40/40 unit test lulus.
+
+
+
+### [DONE] #TASK-c7c6
+- **Waktu:** 2026-11-17 02:48:56
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 7 menit 21 detik
+- **Instruksi:** Masukkan panduan installasi di dashboard website
+- **Status:** DONE
+- **Laporan Agent:** Panduan instalasi multi-OS (Linux, macOS, Windows), tombol salin perintah 1-klik, tampilan kredensial API Key & Server URL untuk tele init, langkah aktivasi worker, serta panduan update & uninstall berhasil ditambahkan ke tab Bantuan & Panduan di dashboard website (views/tab_bantuan.php & assets/js/app.js).
+
+
 
 ### [DONE] #TASK-2b46
 - **Waktu:** 2026-11-16 11:04:29

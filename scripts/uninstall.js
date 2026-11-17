@@ -63,7 +63,8 @@ function getInstallPaths(platform = process.platform, homeDir = os.homedir(), lo
       binDir: path.join(baseDir, 'bin'),
       launchers: [
         path.join(baseDir, 'bin', 'tele.cmd'),
-        path.join(baseDir, 'bin', 'tele.ps1')
+        path.join(baseDir, 'bin', 'tele.ps1'),
+        path.join(baseDir, 'bin', 'tele')
       ],
       serviceName: 'TeleVsCliWorker'
     };

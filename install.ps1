@@ -1,4 +1,4 @@
-# ==============================================================================
+﻿# ==============================================================================
 # Tele-vs-CLI Installer for Windows (PowerShell)
 # Usage:
 #   Local:  powershell -ExecutionPolicy Bypass -File .\install.ps1
@@ -70,3 +70,17 @@ try {
 } finally {
     Pop-Location
 }
+
+# 4. Pastikan PATH di sesi PowerShell saat ini langsung aktif (tanpa perlu buka terminal baru)
+$BinDir = Join-Path $env:LOCALAPPDATA "tele-vs-cli\bin"
+$userPath = [System.Environment]::GetEnvironmentVariable("Path", "User")
+if (-not $userPath) { $userPath = "" }
+$userEntries = $userPath.Split(';') | Where-Object { $_.Trim() -ne "" }
+if ($userEntries -notcontains $BinDir) {
+    $newUserPath = (@($userEntries) + $BinDir) -join ';'
+    [System.Environment]::SetEnvironmentVariable("Path", $newUserPath, "User")
+    $userPath = $newUserPath
+}
+$machinePath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+$env:Path = (@($machinePath, $userPath) | Where-Object { $_ -and $_.Trim() -ne "" }) -join ';'
+Write-Host "💡 Perintah 'tele' sekarang aktif di sesi ini. Coba ketik: tele --help" -ForegroundColor Cyan
