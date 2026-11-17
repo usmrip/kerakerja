@@ -32,3 +32,10 @@ Setiap kali Anda menerima giliran bicara, prompt, atau instruksi apapun dari USE
   node .vscode/tele-vs-cli/tele-notify.js "<Judul Kendala>" --status KENDALA --detail "<Penyebab>"
 
 > ⚠️ **ATURAN MUTLAK:** JANGAN PERNAH mengirimkan status `SELESAI` sebelum tugas benar-benar 100% tuntas dan teruji.
+
+## 🔄 3. WAJIB PASCA PERUBAHAN (GIT PUSH & RESTART WORKER AKTIF)
+Setiap kali ada perubahan kode atau konfigurasi yang selesai diuji:
+1. **Upload ke Git:**
+   - Commit dan push seluruh perubahan ke remote (`git push origin main`).
+2. **Restart Semua Worker yang Aktif:**
+   - Periksa worker yang sedang berjalan (`tele-worker.pid` maupun `~/.tele-vs-cli/multi-worker.pid`) dan restart semuanya (`node bin/tele.js restart` / `node bin/tele.js restart --all`) agar langsung memakai kode terbaru.
