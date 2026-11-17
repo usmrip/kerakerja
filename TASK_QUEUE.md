@@ -104,6 +104,17 @@ jangan ada sampah tele-vs-cli
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-e6bf
+- **Waktu:** 2026-11-17 07:01:41
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 22 detik
+- **Instruksi:** Verifikasi end-to-end /sampah, /snapshot, /restore & uji coba snapshot full dengan kode jaran
+- **Status:** DONE
+- **Laporan Agent:** Verifikasi selesai: snapshot full kode 'jaran' berhasil dibuat sebagai jaran-01 di A:\ngodings\snapshot-kerakerja\jaran-01 (Kode 91 file, Upload 4 file, 1.34 MB) dan laporan terkirim ke Telegram. Menu /sampah, /snapshot, /restore terdaftar di getMyCommands (23 perintah) & worker biru-click (PID 1681182) aktif.
+
+
+
 ### [DONE] #TASK-0421
 - **Waktu:** 2026-11-17 07:00:01
 - **Pengirim:** IDE Chat
