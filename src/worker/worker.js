@@ -829,7 +829,16 @@ class TeleWorker {
       });
 
       // Claim task atomically and verify server accepted our claim
-      const claimRes = await this.api.startTask(task.id, this.workerId, this.config.agent);
+      let claimRes;
+      try {
+        claimRes = await this.api.startTask(task.id, this.workerId, this.config.agent);
+      } catch (claimErr) {
+        if (/Server error HTTP 5\d\d|Koneksi timeout|Gagal menghubungi server/i.test(claimErr.message || '')) {
+          this.log(`⚠️ Gagal klaim #${task.id} karena gangguan sementara server (${claimErr.message}). Tetap PENDING untuk dicoba ulang otomatis.`);
+          return;
+        }
+        throw claimErr;
+      }
       if (!isClaimAccepted(claimRes, this.workerId)) {
         const errMsg = (claimRes && claimRes.data && claimRes.data.error) ? String(claimRes.data.error) : '';
         const isSeqBlock = /IN_PROGRESS|sekuensial|sedang dikerjakan/i.test(errMsg);

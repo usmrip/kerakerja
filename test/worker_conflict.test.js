@@ -251,3 +251,49 @@ test('TeleWorker - checkAndProcessNextTask membersihkan stale IN_PROGRESS di TAS
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 });
+
+test('ApiClient - retry otomatis saat Server error HTTP 500 sementara lalu berhasil', async () => {
+  const http = require('http');
+  const ApiClient = require('../src/api/client');
+  let hitCount = 0;
+  const server = http.createServer((req, res) => {
+    hitCount += 1;
+    if (hitCount < 3) {
+      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      res.end('');
+      return;
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ok: true, attempt: hitCount }));
+  });
+
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const port = server.address().port;
+    const client = new ApiClient(`http://127.0.0.1:${port}/`, 'sec123', 'prj_test', { maxRetries: 3, retryDelayMs: 5 });
+    const res = await client.startTask('#TASK-RETRY500', 'w1', 'agy');
+    assert.strictEqual(res.statusCode, 200);
+    assert.strictEqual(res.data.ok, true);
+    assert.strictEqual(hitCount, 3);
+  } finally {
+    server.close();
+  }
+});
+
+test('TeleWorker - executeTask tidak menandai FAILED jika startTask gagal HTTP 500 sementara', async () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tele-500-pending-'));
+  try {
+    const worker = new TeleWorker({ workDir: tmpDir, workerId: 'w-cli' });
+    let failCalled = false;
+    worker.api = {
+      startTask: async () => { throw new Error('Server error HTTP 500 [in_progress]: '); },
+      failTask: async () => { failCalled = true; },
+      doneTask: async () => {}
+    };
+    await worker.executeTask({ id: 'TASK-TMP500', instruction: 'Test', executor: 'all' });
+    assert.strictEqual(failCalled, false);
+    assert.strictEqual(readActiveTask(tmpDir), null);
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});

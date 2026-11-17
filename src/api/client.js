@@ -3,13 +3,41 @@ const https = require('https');
 const { URL } = require('url');
 
 class ApiClient {
-  constructor(baseUrl, secret, projectId) {
+  constructor(baseUrl, secret, projectId, options = {}) {
     this.baseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
     this.secret = secret || '';
     this.projectId = projectId || 'default';
+    this.maxRetries = Number.isInteger(options.maxRetries) ? options.maxRetries : 3;
+    this.retryDelayMs = Number.isInteger(options.retryDelayMs) ? options.retryDelayMs : 1000;
   }
 
-  request(endpoint, params = {}, method = 'GET', body = null) {
+  _isTransientError(err) {
+    if (!err || !err.message) return false;
+    return /Server error HTTP 5\d\d|Koneksi timeout|Gagal menghubungi server/i.test(err.message);
+  }
+
+  async request(endpoint, params = {}, method = 'GET', body = null) {
+    let lastErr = null;
+    const attempts = Math.max(1, (this.maxRetries || 0) + 1);
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        return await this._requestOnce(endpoint, params, method, body);
+      } catch (err) {
+        lastErr = err;
+        if (attempt < attempts && this._isTransientError(err)) {
+          const waitMs = (this.retryDelayMs || 1000) * attempt;
+          if (waitMs > 0) {
+            await new Promise((r) => setTimeout(r, waitMs));
+          }
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw lastErr;
+  }
+
+  _requestOnce(endpoint, params = {}, method = 'GET', body = null) {
     return new Promise((resolve, reject) => {
       try {
         const upperMethod = method.toUpperCase();
@@ -83,7 +111,7 @@ class ApiClient {
                   raw: rawData
                 });
               } else {
-                reject(new Error(`Server error HTTP ${res.statusCode}: ${rawData.substring(0, 200)}`));
+                reject(new Error(`Server error HTTP ${res.statusCode} [${endpoint}]: ${rawData.substring(0, 200)}`));
               }
             }
           });
