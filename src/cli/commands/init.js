@@ -1,5 +1,6 @@
 const path = require('path');
 const readline = require('readline');
+const ApiClient = require('../../api/client');
 const { loadConfig, saveConfig, DEFAULT_SERVER_URL } = require('../../config/config');
 const { registerWorkspace } = require('../../config/workspaces');
 const {
@@ -38,6 +39,112 @@ function getWizardPrompts(currentConfig = {}) {
   };
 }
 
+function formatProjectChoices(projects = []) {
+  const choices = projects.map(p => {
+    const key = p.project_key || String(p.id || '');
+    const tag = p.code ? ` [#${p.code}]` : '';
+    const name = p.name || key;
+    return {
+      label: `📁 ${name}${tag} (Key: ${key})`,
+      value: key,
+      manual: false
+    };
+  }).filter(c => c.value);
+
+  choices.push({
+    label: '✏️  Input manual Project ID / Key...',
+    value: '__MANUAL__',
+    manual: true
+  });
+
+  return choices;
+}
+
+function computeNextIndex(current, direction, length) {
+  if (length <= 0) return 0;
+  if (direction === 'up') return (current - 1 + length) % length;
+  if (direction === 'down') return (current + 1) % length;
+  return current;
+}
+
+async function fetchServerProjects(serverUrl, secret) {
+  if (!secret) return { ok: false, projects: [], error: 'API Key kosong' };
+  try {
+    const client = new ApiClient(serverUrl, secret, '');
+    const res = await client.request('projects');
+    if (res.statusCode >= 200 && res.statusCode < 300 && res.data && Array.isArray(res.data.projects)) {
+      return { ok: true, projects: res.data.projects };
+    }
+    return {
+      ok: false,
+      projects: [],
+      error: (res.data && res.data.error) || `HTTP ${res.statusCode}`
+    };
+  } catch (err) {
+    return { ok: false, projects: [], error: err.message };
+  }
+}
+
+function selectFromListInteractive(title, choices) {
+  return new Promise((resolve) => {
+    if (!process.stdin.isTTY || typeof process.stdin.setRawMode !== 'function') {
+      // Fallback non-TTY
+      return resolve(choices[0]);
+    }
+
+    let selectedIndex = 0;
+    const totalLines = choices.length + 1;
+
+    const render = (isFirst = false) => {
+      if (!isFirst) {
+        process.stdout.write(`\x1b[${totalLines}A`);
+      }
+      process.stdout.write(`\x1b[2K${title}\n`);
+      for (let i = 0; i < choices.length; i++) {
+        const isSel = i === selectedIndex;
+        const prefix = isSel ? '\x1b[36m❯\x1b[0m' : ' ';
+        const text = isSel ? `\x1b[1m\x1b[36m${choices[i].label}\x1b[0m` : choices[i].label;
+        process.stdout.write(`\x1b[2K  ${prefix} ${text}\n`);
+      }
+    };
+
+    readline.emitKeypressEvents(process.stdin);
+    const wasRaw = process.stdin.isRaw;
+    process.stdin.setRawMode(true);
+    process.stdin.resume();
+    process.stdout.write('\x1b[?25l'); // sembunyikan kursor
+
+    render(true);
+
+    const cleanup = () => {
+      process.stdin.removeListener('keypress', onKeypress);
+      try { process.stdin.setRawMode(Boolean(wasRaw)); } catch (e) {}
+      process.stdin.pause();
+      process.stdout.write('\x1b[?25h'); // tampilkan kursor kembali
+    };
+
+    const onKeypress = (str, key = {}) => {
+      if (key.ctrl && key.name === 'c') {
+        cleanup();
+        process.exit(130);
+      }
+
+      if (key.name === 'up' || key.name === 'k') {
+        selectedIndex = computeNextIndex(selectedIndex, 'up', choices.length);
+        render(false);
+      } else if (key.name === 'down' || key.name === 'j') {
+        selectedIndex = computeNextIndex(selectedIndex, 'down', choices.length);
+        render(false);
+      } else if (key.name === 'return' || key.name === 'enter') {
+        cleanup();
+        resolve(choices[selectedIndex]);
+      }
+    };
+
+    process.stdin.on('keypress', onKeypress);
+  });
+}
+
 async function initCommand(args = []) {
   const cwd = process.cwd();
   const rootDir = path.resolve(__dirname, '..', '..', '..');
@@ -56,39 +163,73 @@ async function initCommand(args = []) {
   console.log('   untuk mendapatkan Secret Key API (AGENTS_TELE_SECRET) & Project ID / Key.');
   console.log('==============================================================================\n');
 
-  const rl = readline.createInterface({
+  let serverUrl = '';
+  let secret = '';
+  let projectId = '';
+  let agent = '';
+
+  const rl1 = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   });
-
-  let newConfig;
   try {
-    const serverUrl = await askQuestion(rl, prompts.serverUrl.query, prompts.serverUrl.defaultValue);
-    const secret = await askQuestion(rl, prompts.secret.query, prompts.secret.defaultValue);
-    const projectId = await askQuestion(rl, prompts.projectId.query, prompts.projectId.defaultValue);
-    const agent = await askQuestion(rl, prompts.agent.query, prompts.agent.defaultValue);
-
-    newConfig = {
-      serverUrl,
-      secret,
-      projectId,
-      agent,
-      taskTimeout: 600000,
-      pollInterval: 5000
-    };
-
-    const savedPath = saveConfig(newConfig, cwd);
-    console.log(`\n🎉 Konfigurasi berhasil disimpan ke: ${savedPath}`);
-
-    const regRes = registerWorkspace({ ...newConfig, workDir: cwd });
-    if (regRes.registered) {
-      if (regRes.movedFrom) {
-        console.log(`🔄 Direktori proyek '${newConfig.projectId}' dipindahkan: ${regRes.movedFrom} -> ${cwd}`);
-      }
-      console.log(`📌 Terdaftar ke Multi-Project Registry (${regRes.total} proyek): ${regRes.filePath}`);
-    }
+    serverUrl = await askQuestion(rl1, prompts.serverUrl.query, prompts.serverUrl.defaultValue);
+    secret = await askQuestion(rl1, prompts.secret.query, prompts.secret.defaultValue);
   } finally {
-    rl.close();
+    rl1.close();
+  }
+
+  // Ambil daftar proyek dari server menggunakan API Key
+  if (secret) {
+    process.stdout.write('\n🔍 Mengambil daftar proyek dari server... ');
+    const fetched = await fetchServerProjects(serverUrl, secret);
+    if (fetched.ok && fetched.projects.length > 0) {
+      console.log(`✅ Ditemukan ${fetched.projects.length} proyek.\n`);
+      const choices = formatProjectChoices(fetched.projects);
+      const picked = await selectFromListInteractive(
+        '3. Pilih Proyek (gunakan panah ↑ / ↓ lalu tekan Enter):',
+        choices
+      );
+      if (picked && !picked.manual) {
+        projectId = picked.value;
+        console.log(`   ✔ Proyek terpilih: ${projectId}\n`);
+      }
+    } else {
+      console.log(`⚠️ Tidak dapat memuat daftar proyek (${fetched.error || 'kosong'}). Lanjut input manual.\n`);
+    }
+  }
+
+  const rl2 = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  try {
+    if (!projectId) {
+      projectId = await askQuestion(rl2, prompts.projectId.query, prompts.projectId.defaultValue);
+    }
+    agent = await askQuestion(rl2, prompts.agent.query, prompts.agent.defaultValue);
+  } finally {
+    rl2.close();
+  }
+
+  const newConfig = {
+    serverUrl,
+    secret,
+    projectId,
+    agent,
+    taskTimeout: 600000,
+    pollInterval: 5000
+  };
+
+  const savedPath = saveConfig(newConfig, cwd);
+  console.log(`\n🎉 Konfigurasi berhasil disimpan ke: ${savedPath}`);
+
+  const regRes = registerWorkspace({ ...newConfig, workDir: cwd });
+  if (regRes.registered) {
+    if (regRes.movedFrom) {
+      console.log(`🔄 Direktori proyek '${newConfig.projectId}' dipindahkan: ${regRes.movedFrom} -> ${cwd}`);
+    }
+    console.log(`📌 Terdaftar ke Multi-Project Registry (${regRes.total} proyek): ${regRes.filePath}`);
   }
 
   // Test komunikasi Workstation <-> Dashboard <-> Telegram sebelum selesai instalasi
@@ -121,5 +262,8 @@ async function initCommand(args = []) {
 
 initCommand.askQuestion = askQuestion;
 initCommand.getWizardPrompts = getWizardPrompts;
+initCommand.formatProjectChoices = formatProjectChoices;
+initCommand.computeNextIndex = computeNextIndex;
+initCommand.fetchServerProjects = fetchServerProjects;
 
 module.exports = initCommand;

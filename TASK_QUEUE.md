@@ -57,6 +57,17 @@ waktu di logger dan jam workstation tidak sama
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-896b
+- **Waktu:** 2026-11-17 04:08:48
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 1 menit 55 detik
+- **Instruksi:** Tambahkan fetch daftar proyek dari server setelah input API Key di tele init dan pemilihan interaktif dengan panah naik/turun
+- **Status:** DONE
+- **Laporan Agent:** Wizard tele init kini otomatis mengambil seluruh daftar proyek dari server setelah API Key dimasukkan dan menyediakan pemilih interaktif dengan tombol panah naik/turun + Enter (beserta fallback input manual jika diperlukan). Lolos 64/64 unit test.
+
+
+
 ### [DONE] #TASK-0d70
 - **Waktu:** 2026-11-17 04:05:03
 - **Pengirim:** IDE Chat
