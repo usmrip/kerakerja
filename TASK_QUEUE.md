@@ -114,6 +114,17 @@ jangan ada sampah tele-vs-cli
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-dbe5
+- **Waktu:** 2026-11-17 10:48:46
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 2 menit 27 detik
+- **Instruksi:** Rapikan tampilan daftar task di kerakerja status, /status, dan /lapo Telegram (format [#TASK-***] + newline detail pekerjaan, dan tampilkan detail task yang sedang IN_PROGRESS)
+- **Status:** DONE
+- **Laporan Agent:** Tampilan daftar task di kerakerja status, /status, dan /lapo Telegram kini rapi: format [#TASK-***] + newline detail pekerjaan, serta menampilkan seluruh task IN_PROGRESS beserta detailnya (didukung in_progress_tasks di api.php & formatTelegramTaskBlock di helpers.php). Lolos 82/82 unit test & php -l.
+
+
+
 ### [DONE] #TASK-70e3
 - **Waktu:** 2026-11-17 10:45:17
 - **Pengirim:** IDE Chat

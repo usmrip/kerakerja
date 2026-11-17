@@ -5,6 +5,41 @@ const ApiClient = require('../../api/client');
 const { getRunningPid } = require('./daemon_ctl');
 const { isProjectConfigured } = require('./start');
 
+function formatTaskId(id) {
+  const clean = String(id || '').trim().replace(/^#+/, '');
+  return clean ? `#${clean}` : '#TASK';
+}
+
+function formatTaskBlock(t, { indent = '  ', detailIndent = '    ', includeMeta = false, maxLines = 5 } = {}) {
+  const tid = formatTaskId(t && t.id);
+  const metaParts = [];
+  if (includeMeta) {
+    const agent = (t && (t.assigned_agent || t.agent)) || 'auto';
+    metaParts.push(`Agent: ${agent}`);
+    if (t && t.sender) metaParts.push(`Pengirim: ${t.sender}`);
+    if (t && (t.updated_at || t.created_at)) metaParts.push(`Waktu: ${t.updated_at || t.created_at}`);
+  }
+  const header = metaParts.length > 0
+    ? `${indent}- [${tid}] (${metaParts.join(' | ')})`
+    : `${indent}- [${tid}]`;
+
+  const rawLines = String((t && t.instruction) || '')
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  if (rawLines.length === 0) {
+    return `${header}\n${detailIndent}(Tidak ada detail instruksi)`;
+  }
+
+  const shown = rawLines.slice(0, maxLines);
+  if (rawLines.length > maxLines) {
+    shown.push(`... (+${rawLines.length - maxLines} baris lagi)`);
+  }
+  return `${header}\n${shown.map((l) => `${detailIndent}${l}`).join('\n')}`;
+}
+
 async function fetchProjectStatus(cfg) {
   const client = new ApiClient(cfg.serverUrl, cfg.secret, cfg.projectId);
   let tasks = [];
@@ -18,10 +53,14 @@ async function fetchProjectStatus(cfg) {
     client.request('pull', { limit: 10 })
   ]);
 
+  let serverInProgress = [];
   if (statusRes.status === 'fulfilled' && statusRes.value && statusRes.value.data && statusRes.value.data.ok) {
     serverOk = true;
     summary = statusRes.value.data.summary || null;
     projectInfo = statusRes.value.data.project || null;
+    if (Array.isArray(statusRes.value.data.in_progress_tasks)) {
+      serverInProgress = statusRes.value.data.in_progress_tasks;
+    }
   } else if (statusRes.status === 'rejected') {
     serverMsg = statusRes.reason ? statusRes.reason.message : 'Gagal menghubungi server';
   }
@@ -35,7 +74,8 @@ async function fetchProjectStatus(cfg) {
   }
 
   const pendingTasks = tasks.filter(t => t.status === 'PENDING' || t.status === 'WAITING' || t.status === 'QUEUE');
-  const runningTasks = tasks.filter(t => t.status === 'IN_PROGRESS' || t.status === 'RUNNING');
+  const pullRunning = tasks.filter(t => t.status === 'IN_PROGRESS' || t.status === 'RUNNING');
+  const runningTasks = serverInProgress.length > 0 ? serverInProgress : pullRunning;
   const doneTasks = tasks.filter(t => t.status === 'DONE' || t.status === 'SELESAI');
 
   const pendingCount = summary && typeof summary.PENDING === 'number' ? summary.PENDING : pendingTasks.length;
@@ -203,16 +243,16 @@ async function statusCommand(args = []) {
   }
 
   if (runningTasks.length > 0) {
-    console.log(`\n⚡ Tugas Sedang Berjalan:`);
+    console.log(`\n⚙️ Tugas Sedang Dikerjakan (${runningTasks.length}):`);
     for (const t of runningTasks) {
-      console.log(`  [#${t.id}] "${t.instruction}" (Agent: ${t.assigned_agent || t.agent || 'auto'})`);
+      console.log(formatTaskBlock(t, { includeMeta: true }));
     }
   }
 
   if (pendingTasks.length > 0) {
     console.log(`\n⏳ 3 Tugas Antrean Berikutnya:`);
     for (const t of pendingTasks.slice(0, 3)) {
-      console.log(`  - [#${t.id}] "${t.instruction}"`);
+      console.log(formatTaskBlock(t, { includeMeta: false }));
     }
   }
 
@@ -220,4 +260,6 @@ async function statusCommand(args = []) {
 }
 
 statusCommand.showMultiStatus = showMultiStatus;
+statusCommand.formatTaskId = formatTaskId;
+statusCommand.formatTaskBlock = formatTaskBlock;
 module.exports = statusCommand;
