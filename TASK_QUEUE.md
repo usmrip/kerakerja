@@ -6,6 +6,18 @@
 
 ## ⏳ Tugas Aktif
 
+### [PENDING] #TASK-dda6
+- **Waktu:** 2026-11-17 12:29:11
+- **Pengirim:** @usmrip (Private Chat)
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** rubah nama repositori git menjadi kera kerja dengan ikon seperti web
+
+alihkan web /tele-vs-cli ke /kerakerja
+- **Status:** PENDING
+- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
+
+
+
 ### [PENDING] #TASK-9094
 - **Waktu:** 2026-11-17 12:27:35
 - **Pengirim:** @usmrip (Private Chat)
@@ -91,6 +103,17 @@ jangan ada sampah tele-vs-cli
 
 
 ## ✅ Riwayat Tugas Selesai
+
+### [DONE] #TASK-22c2
+- **Waktu:** 2026-11-17 05:39:46
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 2 menit 0 detik
+- **Instruksi:** Isolasi sesi Telegram per akun bot (bot_token) agar perintah /use di Bot A tidak memengaruhi Bot B
+- **Status:** DONE
+- **Laporan Agent:** Sesi chat Telegram di includes/webhook.php kini diisolasi per akun bot (bot_<bot_id>:<chat_id>) dan proyek default memakai proyek pemilik bot penerima webhook (), sehingga perintah /use maupun /agent di Bot A tidak memengaruhi Bot B. Lolos php -l.
+
+
 
 ### [DONE] #TASK-6b35
 - **Waktu:** 2026-11-17 05:34:12
