@@ -51,29 +51,61 @@ function registerWorkspace(entry, filePath = getGlobalWorkspacesPath()) {
   }
 
   const resolvedWorkDir = path.resolve(entry.workDir);
-  const normTarget = normalizeWorkDir(resolvedWorkDir);
+  const normTargetDir = normalizeWorkDir(resolvedWorkDir);
+  const normTargetProject = String(entry.projectId).trim().toLowerCase();
   const list = loadWorkspaces(filePath);
 
+  let updated = false;
+  let movedFrom = null;
+  let existingMatch = null;
+  const prunedList = [];
+
+  for (const w of list) {
+    const wDirNorm = normalizeWorkDir(w.workDir);
+    const wProjNorm = String(w.projectId || '').trim().toLowerCase();
+
+    if (wDirNorm === normTargetDir) {
+      updated = true;
+      existingMatch = w;
+      continue;
+    }
+
+    if (wProjNorm === normTargetProject) {
+      updated = true;
+      movedFrom = w.workDir;
+      existingMatch = existingMatch || w;
+      continue;
+    }
+
+    // Auto-prune entri lama yang foldernya sudah dihapus/dipindah dari disk
+    if (!fs.existsSync(w.workDir)) {
+      continue;
+    }
+
+    prunedList.push(w);
+  }
+
   const newRecord = {
+    ...(existingMatch || {}),
     projectId: String(entry.projectId),
     workDir: resolvedWorkDir,
-    serverUrl: entry.serverUrl || 'https://biru.co.id/tele-vs-cli/',
-    secret: entry.secret || '',
-    agent: entry.agent || 'auto',
-    taskTimeout: Number(entry.taskTimeout) || 600000,
-    pollInterval: Number(entry.pollInterval) || 5000,
+    serverUrl: entry.serverUrl || (existingMatch && existingMatch.serverUrl) || 'https://biru.co.id/tele-vs-cli/',
+    secret: entry.secret || (existingMatch && existingMatch.secret) || '',
+    agent: entry.agent || (existingMatch && existingMatch.agent) || 'auto',
+    taskTimeout: Number(entry.taskTimeout) || (existingMatch && existingMatch.taskTimeout) || 600000,
+    pollInterval: Number(entry.pollInterval) || (existingMatch && existingMatch.pollInterval) || 5000,
     updatedAt: new Date().toISOString()
   };
 
-  const idx = list.findIndex(w => normalizeWorkDir(w.workDir) === normTarget);
-  if (idx >= 0) {
-    list[idx] = { ...list[idx], ...newRecord };
-  } else {
-    list.push(newRecord);
-  }
-
-  saveWorkspaces(list, filePath);
-  return { registered: true, updated: idx >= 0, total: list.length, filePath };
+  prunedList.push(newRecord);
+  saveWorkspaces(prunedList, filePath);
+  return {
+    registered: true,
+    updated,
+    movedFrom,
+    total: prunedList.length,
+    filePath
+  };
 }
 
 function unregisterWorkspace(targetOrDir, filePath = getGlobalWorkspacesPath()) {

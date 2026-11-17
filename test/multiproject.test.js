@@ -50,9 +50,12 @@ test('Workspaces - registerWorkspace mendaftarkan multi-proyek (/a dan /b) dan m
 
   const list = loadWorkspaces(wsFile);
   assert.strictEqual(list.length, 2);
-  assert.strictEqual(list[0].projectId, 'prj_a_updated');
-  assert.strictEqual(list[0].agent, 'gemini');
-  assert.strictEqual(list[1].projectId, 'prj_b');
+  const itemA = list.find(w => w.workDir === path.resolve(dirA));
+  const itemB = list.find(w => w.workDir === path.resolve(dirB));
+  assert.ok(itemA && itemB);
+  assert.strictEqual(itemA.projectId, 'prj_a_updated');
+  assert.strictEqual(itemA.agent, 'gemini');
+  assert.strictEqual(itemB.projectId, 'prj_b');
 
   // Invalid default projectId tidak didaftarkan
   const rInvalid = registerWorkspace({ workDir: dirA, projectId: 'default' }, wsFile);
@@ -164,6 +167,57 @@ test('Status - showMultiStatus menghasilkan JSON multi-proyek yang valid', async
   assert.strictEqual(parsed.totalWorkspaces, 2);
   assert.strictEqual(parsed.workspaces[0].projectId, 'prj_a');
   assert.strictEqual(parsed.workspaces[1].projectId, 'prj_b');
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('Workspaces - memindahkan 1 proyek ke direktori baru menggantikan direktori lama (deduplikasi projectId)', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tele-move-ws-'));
+  const wsFile = path.join(tmpDir, 'workspaces.json');
+
+  const dirA = path.join(tmpDir, 'a');
+  const dirC = path.join(tmpDir, 'c');
+  fs.mkdirSync(dirA, { recursive: true });
+  fs.mkdirSync(dirC, { recursive: true });
+
+  registerWorkspace({ workDir: dirA, projectId: 'prj_move', secret: 'sec1', agent: 'agy' }, wsFile);
+  const moveRes = registerWorkspace({ workDir: dirC, projectId: 'prj_move', secret: 'sec1', agent: 'claude' }, wsFile);
+
+  assert.strictEqual(moveRes.registered, true);
+  assert.strictEqual(moveRes.updated, true);
+  assert.strictEqual(moveRes.movedFrom, path.resolve(dirA));
+  assert.strictEqual(moveRes.total, 1);
+
+  const list = loadWorkspaces(wsFile);
+  assert.strictEqual(list.length, 1);
+  assert.strictEqual(list[0].workDir, path.resolve(dirC));
+  assert.strictEqual(list[0].agent, 'claude');
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('MultiProjectWorker - resolveValidWorkspaces melakukan auto-prune direktori hilang dari workspaces.json', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tele-prune-ws-'));
+  const wsFile = path.join(tmpDir, 'workspaces.json');
+
+  const dirValid = path.join(tmpDir, 'valid');
+  const dirGone = path.join(tmpDir, 'gone');
+  fs.mkdirSync(dirValid, { recursive: true });
+
+  saveConfig({ projectId: 'prj_valid', secret: 'sec_valid', agent: 'agy' }, dirValid);
+  registerWorkspace({ workDir: dirValid, projectId: 'prj_valid', secret: 'sec_valid', agent: 'agy' }, wsFile);
+  registerWorkspace({ workDir: dirGone, projectId: 'prj_gone', secret: 'sec_gone', agent: 'agy' }, wsFile);
+
+  const mw = new MultiProjectWorker({ workspacesFile: wsFile });
+  const valid = mw.resolveValidWorkspaces();
+
+  assert.strictEqual(valid.length, 1);
+  assert.strictEqual(valid[0].projectId, 'prj_valid');
+
+  // Pastikan workspaces.json sudah bersih dari dirGone
+  const persisted = loadWorkspaces(wsFile);
+  assert.strictEqual(persisted.length, 1);
+  assert.strictEqual(persisted[0].workDir, path.resolve(dirValid));
 
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });

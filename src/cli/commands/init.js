@@ -82,6 +82,9 @@ async function initCommand(args = []) {
 
     const regRes = registerWorkspace({ ...newConfig, workDir: cwd });
     if (regRes.registered) {
+      if (regRes.movedFrom) {
+        console.log(`🔄 Direktori proyek '${newConfig.projectId}' dipindahkan: ${regRes.movedFrom} -> ${cwd}`);
+      }
       console.log(`📌 Terdaftar ke Multi-Project Registry (${regRes.total} proyek): ${regRes.filePath}`);
     }
   } finally {

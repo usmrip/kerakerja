@@ -57,6 +57,17 @@ waktu di logger dan jam workstation tidak sama
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-0d70
+- **Waktu:** 2026-11-17 04:05:03
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 1 menit 30 detik
+- **Instruksi:** Deduplikasi projectId dan auto-prune direktori hilang di workspaces.json saat proyek pindah direktori
+- **Status:** DONE
+- **Laporan Agent:** Deduplikasi projectId dan auto-prune direktori hilang di workspaces.json & MultiProjectWorker selesai diterapkan. Jika 1 proyek berpindah direktori (/a -> /c), entri lama otomatis diganti tanpa bentrok dan folder hilang dibersihkan otomatis. Lolos 61/61 unit test.
+
+
+
 ### [DONE] #TASK-6dd1
 - **Waktu:** 2026-11-17 03:54:37
 - **Pengirim:** IDE Chat

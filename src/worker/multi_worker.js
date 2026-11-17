@@ -1,7 +1,7 @@
 const fs = require('fs');
 const os = require('os');
 const TeleWorker = require('./worker');
-const { loadWorkspaces, getGlobalWorkspacesPath } = require('../config/workspaces');
+const { loadWorkspaces, saveWorkspaces, getGlobalWorkspacesPath } = require('../config/workspaces');
 const { loadConfig } = require('../config/config');
 
 class MultiProjectWorker {
@@ -20,10 +20,13 @@ class MultiProjectWorker {
   resolveValidWorkspaces() {
     const registered = loadWorkspaces(this.workspacesFile);
     const valid = [];
+    const seenProjects = new Set();
+    let prunedCount = 0;
 
     for (const entry of registered) {
       if (!entry.workDir || !fs.existsSync(entry.workDir)) {
-        this.log(`[SKIP] Folder workspace tidak ditemukan: ${entry.workDir}`);
+        this.log(`[PRUNE] Folder workspace tidak ditemukan, dihapus dari registry: ${entry.workDir}`);
+        prunedCount++;
         continue;
       }
       // Gabungkan dengan config lokal folder agar selalu up-to-date
@@ -36,11 +39,23 @@ class MultiProjectWorker {
         continue;
       }
 
+      const projKey = String(projectId).trim().toLowerCase();
+      if (seenProjects.has(projKey)) {
+        this.log(`[PRUNE] Duplikasi proyek '${projectId}' di ${entry.workDir} dilewati.`);
+        prunedCount++;
+        continue;
+      }
+      seenProjects.add(projKey);
+
       valid.push({
         ...entry,
         projectId,
         secret
       });
+    }
+
+    if (prunedCount > 0) {
+      saveWorkspaces(valid, this.workspacesFile);
     }
 
     return valid;
