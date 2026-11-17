@@ -58,14 +58,14 @@ test('Snapshot & Restore - penomoran otomatis (-01, -02), lokasi sejajar snapsho
     assert.strictEqual(s1.meta.code, 'rilis-01');
     const tgHtml = formatSnapshotSuccessHtml(s1);
     assert.ok(tgHtml.includes('rilis-01'));
+    assert.ok(tgHtml.includes('rilis-01.tar.gz'));
     assert.ok(tgHtml.includes('Folder:'));
-    assert.ok(tgHtml.includes('File Snapshot:'));
+    assert.ok(tgHtml.includes('Archive:'));
     assert.ok(tgHtml.includes('meta.json'));
     assert.strictEqual(s1.snapshotRoot, path.join(parentDir, 'snapshot-kerakerja'));
     assert.strictEqual(getSnapshotRoot(workDir), path.join(parentDir, 'snapshot-kerakerja'));
-    assert.strictEqual(fs.existsSync(path.join(s1.snapshotDir, 'kode', 'app.js')), true);
-    assert.strictEqual(fs.existsSync(path.join(s1.snapshotDir, 'db', 'sqlite', 'data', 'app.db')), true);
-    assert.strictEqual(fs.existsSync(path.join(s1.snapshotDir, 'upload', 'uploads', 'pic.png')), true);
+    assert.strictEqual(fs.existsSync(path.join(s1.snapshotDir, 'rilis-01.tar.gz')), true);
+    assert.strictEqual(fs.existsSync(path.join(s1.snapshotDir, 'kode')), false);
 
     // Ubah file lalu buat snapshot kedua tanpa menulis ulang kode -> otomatis rilis-02 (db,kode)
     fs.writeFileSync(path.join(workDir, 'app.js'), 'v2');
@@ -74,9 +74,10 @@ test('Snapshot & Restore - penomoran otomatis (-01, -02), lokasi sejajar snapsho
     assert.strictEqual(r2.ok, true);
     const s2 = createSnapshot({ workDir, baseCode: r2.baseCode, paramRes: r2.paramRes, projectId: 'prj_test' });
     assert.strictEqual(s2.meta.code, 'rilis-02');
-    assert.strictEqual(fs.existsSync(path.join(s2.snapshotDir, 'kode', 'app.js')), true);
-    assert.strictEqual(fs.existsSync(path.join(s2.snapshotDir, 'db', 'sqlite', 'data', 'app.db')), true);
-    assert.strictEqual(fs.existsSync(path.join(s2.snapshotDir, 'upload')), false);
+    assert.strictEqual(fs.existsSync(path.join(s2.snapshotDir, 'rilis-02.tar.gz')), true);
+    assert.strictEqual(s2.meta.stats.kodeFiles, 3);
+    assert.strictEqual(s2.meta.stats.dbFiles, 1);
+    assert.strictEqual(s2.meta.stats.uploadFiles, 0);
 
     // Tambah snapshot 03, 04, 05 untuk uji batas 4 tombol terakhir
     for (const p of ['db', 'kode', 'upload']) {

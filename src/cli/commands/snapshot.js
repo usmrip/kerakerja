@@ -1,4 +1,5 @@
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const { loadConfig } = require('../../config/config');
@@ -385,10 +386,36 @@ function createSnapshot({ workDir = process.cwd(), baseCode, paramRes, projectId
 
   fs.writeFileSync(path.join(snapshotDir, 'meta.json'), JSON.stringify(meta, null, 2) + '\n', 'utf-8');
 
+  const archiveFile = `${fullCode}.tar.gz`;
+  const archivePath = path.join(snapshotDir, archiveFile);
+  const tarEntries = ['meta.json', 'kode', 'db', 'upload'].filter((name) => fs.existsSync(path.join(snapshotDir, name)));
+  if (tarEntries.length > 0) {
+    execFileSync('tar', ['-czf', archivePath, '-C', snapshotDir, ...tarEntries], {
+      stdio: 'ignore',
+      windowsHide: true,
+      timeout: 120000
+    });
+    for (const dirName of ['kode', 'db', 'upload']) {
+      const p = path.join(snapshotDir, dirName);
+      if (fs.existsSync(p)) {
+        fs.rmSync(p, { recursive: true, force: true });
+      }
+    }
+    meta.archiveFile = archiveFile;
+    try {
+      meta.archiveBytes = fs.statSync(archivePath).size || 0;
+    } catch (e) {
+      meta.archiveBytes = 0;
+    }
+    fs.writeFileSync(path.join(snapshotDir, 'meta.json'), JSON.stringify(meta, null, 2) + '\n', 'utf-8');
+  }
+
   return {
     ok: true,
     snapshotRoot,
     snapshotDir,
+    archiveFile,
+    archivePath,
     meta
   };
 }
@@ -420,29 +447,48 @@ function restoreSnapshot({ workDir = process.cwd(), code }) {
   }
 
   const restored = { kodeFiles: 0, dbFiles: 0, uploadFiles: 0, totalBytes: 0 };
+  const archiveCandidate = path.join(matched.dirPath, `${matched.code}.tar.gz`);
+  let sourceRoot = matched.dirPath;
+  let tempExtractDir = null;
 
-  const kodeSrc = path.join(matched.dirPath, 'kode');
-  if (fs.existsSync(kodeSrc)) {
-    const s = copyTreeFiltered(kodeSrc, resolvedWorkDir, {
-      excludeDirs: CODE_EXCLUDE_DIRS,
-      excludeFiles: CODE_EXCLUDE_FILES
-    });
-    restored.kodeFiles = s.files;
-    restored.totalBytes += s.bytes;
-  }
+  try {
+    if (fs.existsSync(archiveCandidate)) {
+      tempExtractDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kerakerja-restore-'));
+      execFileSync('tar', ['-xzf', archiveCandidate, '-C', tempExtractDir], {
+        stdio: 'ignore',
+        windowsHide: true,
+        timeout: 120000
+      });
+      sourceRoot = tempExtractDir;
+    }
 
-  const sqliteSrc = path.join(matched.dirPath, 'db', 'sqlite');
-  if (fs.existsSync(sqliteSrc)) {
-    const s = copyTreeFiltered(sqliteSrc, resolvedWorkDir, {});
-    restored.dbFiles = s.files;
-    restored.totalBytes += s.bytes;
-  }
+    const kodeSrc = path.join(sourceRoot, 'kode');
+    if (fs.existsSync(kodeSrc)) {
+      const s = copyTreeFiltered(kodeSrc, resolvedWorkDir, {
+        excludeDirs: CODE_EXCLUDE_DIRS,
+        excludeFiles: CODE_EXCLUDE_FILES
+      });
+      restored.kodeFiles = s.files;
+      restored.totalBytes += s.bytes;
+    }
 
-  const uploadSrc = path.join(matched.dirPath, 'upload');
-  if (fs.existsSync(uploadSrc)) {
-    const s = copyTreeFiltered(uploadSrc, resolvedWorkDir, {});
-    restored.uploadFiles = s.files;
-    restored.totalBytes += s.bytes;
+    const sqliteSrc = path.join(sourceRoot, 'db', 'sqlite');
+    if (fs.existsSync(sqliteSrc)) {
+      const s = copyTreeFiltered(sqliteSrc, resolvedWorkDir, {});
+      restored.dbFiles = s.files;
+      restored.totalBytes += s.bytes;
+    }
+
+    const uploadSrc = path.join(sourceRoot, 'upload');
+    if (fs.existsSync(uploadSrc)) {
+      const s = copyTreeFiltered(uploadSrc, resolvedWorkDir, {});
+      restored.uploadFiles = s.files;
+      restored.totalBytes += s.bytes;
+    }
+  } finally {
+    if (tempExtractDir && fs.existsSync(tempExtractDir)) {
+      fs.rmSync(tempExtractDir, { recursive: true, force: true });
+    }
   }
 
   return {
@@ -520,18 +566,25 @@ function listSnapshotArtifacts(snapshotDir) {
 
 function formatSnapshotSuccessHtml(res) {
   const m = res.meta;
+  const archiveName = m.archiveFile || res.archiveFile || `${m.code}.tar.gz`;
+  const archiveSize = m.archiveBytes ? ` (${formatBytes(m.archiveBytes)})` : '';
   const artifacts = listSnapshotArtifacts(res.snapshotDir);
   const fileLines = artifacts.length > 0
     ? artifacts.map((f) => `• <code>${escapeTelegramHtml(f)}</code>`).join('\n')
-    : '• <code>meta.json</code>';
+    : `• <code>${escapeTelegramHtml(archiveName)}</code>`;
 
   return `📸 <b>SNAPSHOT BERHASIL DIBUAT</b>\n`
        + `🏷️ <b>Kode:</b> <code>${escapeTelegramHtml(m.code)}</code>\n`
        + `⚙️ <b>Parameter:</b> <code>${escapeTelegramHtml(m.params)}</code>\n`
        + `📁 <b>Folder:</b> <code>${escapeTelegramHtml(res.snapshotDir)}</code>\n`
+       + `🗜️ <b>Archive:</b> <code>${escapeTelegramHtml(archiveName)}</code>${escapeHtmlBytes(archiveSize)}\n`
        + `🕒 <b>Waktu:</b> ${escapeTelegramHtml(m.createdAt)}\n`
        + `📊 <b>Ringkasan:</b> Kode ${m.stats.kodeFiles} file | DB ${m.stats.dbFiles} file | Upload ${m.stats.uploadFiles} file (${formatBytes(m.stats.totalBytes)})\n`
        + `📄 <b>File Snapshot:</b>\n${fileLines}`;
+}
+
+function escapeHtmlBytes(s) {
+  return escapeTelegramHtml(s);
 }
 
 function formatRestoreSuccessHtml(res) {

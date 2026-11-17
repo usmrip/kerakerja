@@ -104,6 +104,17 @@ jangan ada sampah tele-vs-cli
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-a396
+- **Waktu:** 2026-11-17 07:06:13
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 1 menit 36 detik
+- **Instruksi:** Arsipkan hasil snapshot ke file .tar.gz bernama sesuai kode generate (<kode>-01.tar.gz) dan dukung restore dari .tar.gz
+- **Status:** DONE
+- **Laporan Agent:** Snapshot kini otomatis diarsipkan menjadi <kode>-01.tar.gz (<kode>-02.tar.gz, dst) di folder snapshot-kerakerja/<kode>-01/, mendukung restore dari .tar.gz, dan menampilkan nama archive serta ukuran di laporan Telegram. Terverifikasi jaran-02.tar.gz (997 KB) & 79/79 test pass.
+
+
+
 ### [DONE] #TASK-e6bf
 - **Waktu:** 2026-11-17 07:01:41
 - **Pengirim:** IDE Chat
