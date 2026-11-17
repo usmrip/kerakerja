@@ -309,6 +309,14 @@ function formatWorkersTable(workers) {
   return lines.join('\n');
 }
 
+function formatMemorySize(bytes) {
+  const num = Number(bytes) || 0;
+  if (num >= 1024 * 1024 * 1024) {
+    return `${(num / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+  }
+  return formatBytes(num);
+}
+
 function formatSysinfoText(info) {
   const m = info.machine;
   const t = info.workerTotals;
@@ -319,7 +327,7 @@ function formatSysinfoText(info) {
     `Hostname   : ${m.hostname}`,
     `OS         : ${m.platform} ${m.release} (${m.arch})`,
     `CPU        : ${m.cpuModel} (${m.cpuCores} core)`,
-    `Memory     : ${formatBytes(m.usedMemBytes)} / ${formatBytes(m.totalMemBytes)} (${m.memUsedPercent}% terpakai, ${formatBytes(m.freeMemBytes)} bebas)`,
+    `Memory     : ${formatMemorySize(m.usedMemBytes)} / ${formatMemorySize(m.totalMemBytes)} (${m.memUsedPercent}% terpakai, ${formatMemorySize(m.freeMemBytes)} bebas)`,
     ...(m.platform !== 'win32' ? [`Load Avg   : ${m.loadAvg.join(', ')}`] : []),
     `Uptime     : ${formatUptime(m.uptimeSeconds)}`,
     `Node.js    : ${m.nodeVersion}`,
@@ -330,7 +338,7 @@ function formatSysinfoText(info) {
     '📊 TOTAL USAGE SYSTEM WORKER KERAKERJA:',
     `   • Worker Running : ${t.runningCount} proses`,
     `   • Total CPU      : ${t.totalCpuPercent.toFixed(1)}%`,
-    `   • Total Memory   : ${formatBytes(t.totalMemoryBytes)} (${t.totalMemoryPercent.toFixed(2)}% dari RAM mesin)`
+    `   • Total Memory   : ${formatMemorySize(t.totalMemoryBytes)} (${t.totalMemoryPercent.toFixed(2)}% dari RAM mesin)`
   ];
   return lines.join('\n');
 }
@@ -338,26 +346,36 @@ function formatSysinfoText(info) {
 function formatSysinfoTelegramHtml(info, options = {}) {
   const m = info.machine;
   const t = info.workerTotals;
-  const table = formatWorkersTable(info.workers);
-  const projectLine = options.projectId
-    ? `📁 <b>Proyek:</b> <code>${escapeTelegramHtml(options.projectId)}</code>\n`
-    : '';
+  const projectBlock = options.projectId
+    ? `📁 <b>Proyek:</b> <code>${escapeTelegramHtml(options.projectId)}</code>\n\n`
+    : '\n';
+
+  const workerBlock = (info.workers && info.workers.length > 0)
+    ? info.workers.map((w, idx) => {
+        const label = escapeTelegramHtml(w.label || w.mode || 'worker');
+        const mem = escapeTelegramHtml(formatMemorySize(w.memoryBytes));
+        return `${idx + 1}. <b>${label}</b> · <code>PID ${w.pid}</code>\n`
+             + `   └ CPU <code>${w.cpuPercent.toFixed(1)}%</code> · RAM <code>${mem}</code> (<code>${w.memoryPercent.toFixed(2)}%</code>)`;
+      }).join('\n')
+    : '• <i>Tidak ada worker KeraKerja yang sedang berjalan.</i>';
 
   return [
     '🖥️ <b>SYSTEM INFO &amp; WORKER USAGE (KERAKERJA)</b>',
     '━━━━━━━━━━━━━━━━━━━━━━',
-    projectLine +
-    `💻 <b>Mesin:</b> <code>${escapeTelegramHtml(m.hostname)}</code> (${escapeTelegramHtml(m.platform)} ${escapeTelegramHtml(m.arch)})`,
-    `🧠 <b>CPU:</b> ${escapeTelegramHtml(m.cpuModel)} (<code>${m.cpuCores}</code> core)`,
-    `💾 <b>RAM Mesin:</b> <code>${escapeTelegramHtml(formatBytes(m.usedMemBytes))}</code> / <code>${escapeTelegramHtml(formatBytes(m.totalMemBytes))}</code> (<code>${m.memUsedPercent}%</code>)`,
-    `⏱️ <b>Uptime:</b> <code>${escapeTelegramHtml(formatUptime(m.uptimeSeconds))}</code> | <b>Node:</b> <code>${escapeTelegramHtml(m.nodeVersion)}</code>`,
+    projectBlock +
+    '💻 <b>Mesin &amp; Sistem</b>',
+    `• <b>Host:</b> <code>${escapeTelegramHtml(m.hostname)}</code> (<code>${escapeTelegramHtml(m.platform)} ${escapeTelegramHtml(m.arch)}</code>)`,
+    `• <b>CPU:</b> ${escapeTelegramHtml(m.cpuModel)} (<code>${m.cpuCores}</code> core)`,
+    `• <b>RAM:</b> <code>${escapeTelegramHtml(formatMemorySize(m.usedMemBytes))}</code> / <code>${escapeTelegramHtml(formatMemorySize(m.totalMemBytes))}</code> (<code>${m.memUsedPercent}%</code>)`,
+    `• <b>Uptime:</b> <code>${escapeTelegramHtml(formatUptime(m.uptimeSeconds))}</code> · <b>Node:</b> <code>${escapeTelegramHtml(m.nodeVersion)}</code>`,
     '',
     `⚙️ <b>Worker Running (${t.runningCount}):</b>`,
-    `<pre>${escapeTelegramHtml(table)}</pre>`,
+    workerBlock,
+    '',
     '📊 <b>Total Usage Worker KeraKerja:</b>',
     `• <b>Worker Aktif:</b> <code>${t.runningCount}</code> proses`,
     `• <b>Total CPU:</b> <code>${t.totalCpuPercent.toFixed(1)}%</code>`,
-    `• <b>Total Memory:</b> <code>${escapeTelegramHtml(formatBytes(t.totalMemoryBytes))}</code> (<code>${t.totalMemoryPercent.toFixed(2)}%</code> RAM mesin)`
+    `• <b>Total Memory:</b> <code>${escapeTelegramHtml(formatMemorySize(t.totalMemoryBytes))}</code> (<code>${t.totalMemoryPercent.toFixed(2)}%</code> RAM mesin)`
   ].join('\n');
 }
 

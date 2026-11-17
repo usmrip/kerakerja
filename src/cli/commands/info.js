@@ -25,14 +25,20 @@ function buildInfoData(cwd = process.cwd(), rootDir = path.resolve(__dirname, '.
 }
 
 function formatInfoTelegramHtml(info) {
-  return `ℹ️ <b>INFORMASI VERSI KERAKERJA</b>\n`
-       + `📦 <b>Versi:</b> <code>v${escapeTelegramHtml(info.version)}</code>`
-       + (info.commitHash && info.commitHash !== '-' ? ` (<code>${escapeTelegramHtml(info.commitHash)}</code>)` : '') + `\n`
-       + `🕒 <b>Update Terakhir:</b> <code>${escapeTelegramHtml(info.lastUpdateDate)}</code>\n`
-       + `🏢 <b>Proyek Aktif:</b> <code>${escapeTelegramHtml(info.projectId)}</code>\n`
-       + `🤖 <b>Agent:</b> <code>${escapeTelegramHtml(info.agent)}</code>\n`
-       + `🖥️ <b>Host / OS:</b> <code>${escapeTelegramHtml(info.hostname)}</code> (${escapeTelegramHtml(info.platform)})\n`
-       + `📂 <b>WorkDir:</b> <code>${escapeTelegramHtml(info.workDir)}</code>`;
+  const versionStr = `<code>v${escapeTelegramHtml(info.version)}</code>`
+    + (info.commitHash && info.commitHash !== '-' ? ` (<code>${escapeTelegramHtml(info.commitHash)}</code>)` : '');
+
+  return [
+    'ℹ️ <b>INFORMASI VERSI KERAKERJA</b>',
+    '━━━━━━━━━━━━━━━━━━━━━━',
+    `📦 <b>Versi:</b> ${versionStr}`,
+    `🕒 <b>Update Terakhir:</b> <code>${escapeTelegramHtml(info.lastUpdateDate)}</code>`,
+    '',
+    `🏢 <b>Proyek Aktif:</b> <code>${escapeTelegramHtml(info.projectId)}</code>`,
+    `🤖 <b>Agent:</b> <code>${escapeTelegramHtml(info.agent)}</code>`,
+    `🖥️ <b>Host / OS:</b> <code>${escapeTelegramHtml(info.hostname)}</code> (<code>${escapeTelegramHtml(info.platform)}</code>)`,
+    `📂 <b>WorkDir:</b> <code>${escapeTelegramHtml(info.workDir)}</code>`
+  ].join('\n');
 }
 
 async function infoCommand(args = []) {
