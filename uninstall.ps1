@@ -1,9 +1,7 @@
-﻿# ==============================================================================
 # Tele-vs-CLI Uninstaller for Windows (PowerShell)
 # Usage:
 #   Local:  powershell -ExecutionPolicy Bypass -File .\uninstall.ps1 [-Yes] [-Purge] [-DryRun]
 #   Remote: irm https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/uninstall.ps1 | iex
-# ==============================================================================
 
 param(
     [switch]$Purge,
@@ -18,17 +16,17 @@ $InstallDir = Join-Path $BaseDir "app"
 $BinDir = Join-Path $BaseDir "bin"
 
 Write-Host "==============================================================================" -ForegroundColor Cyan
-Write-Host "🧹 Tele-vs-CLI Uninstaller (Windows)" -ForegroundColor Cyan
+Write-Host " Tele-vs-CLI Uninstaller (Windows)" -ForegroundColor Cyan
 Write-Host "==============================================================================" -ForegroundColor Cyan
 
 # 1. Tentukan Direktori Target
 $localScriptDir = $PSScriptRoot
 if ($localScriptDir -and (Test-Path (Join-Path $localScriptDir "scripts\uninstall.js"))) {
     $TargetDir = $localScriptDir
-    Write-Host "📌 Menggunakan direktori lokal : $TargetDir" -ForegroundColor Green
+    Write-Host "[OK] Menggunakan direktori lokal : $TargetDir" -ForegroundColor Green
 } else {
     $TargetDir = $InstallDir
-    Write-Host "📌 Direktori target instalasi  : $TargetDir" -ForegroundColor Green
+    Write-Host "[OK] Direktori target instalasi  : $TargetDir" -ForegroundColor Green
 }
 
 $nodeCmd = Get-Command node -ErrorAction SilentlyContinue
@@ -51,7 +49,7 @@ if ($nodeCmd -and (Test-Path $nodeUninstaller)) {
 }
 
 # Fallback jika Node.js atau scripts/uninstall.js tidak tersedia
-Write-Host "⚠️ Node.js atau scripts/uninstall.js tidak ditemukan, menjalankan pembersihan fallback..." -ForegroundColor Yellow
+Write-Host "[WARN] Node.js atau scripts/uninstall.js tidak ditemukan, menjalankan pembersihan fallback..." -ForegroundColor Yellow
 
 if ($DryRun) {
     Write-Host "[dry-run] Akan menghapus Task Scheduler TeleVsCliWorker, '$BinDir', dan '$InstallDir'." -ForegroundColor Yellow
@@ -62,13 +60,13 @@ try {
     schtasks /query /tn "TeleVsCliWorker" 2>$null | Out-Null
     if ($LASTEXITCODE -eq 0) {
         schtasks /delete /tn "TeleVsCliWorker" /f | Out-Null
-        Write-Host "✅ Windows Task Scheduler 'TeleVsCliWorker' dihapus." -ForegroundColor Green
+        Write-Host "[OK] Windows Task Scheduler 'TeleVsCliWorker' dihapus." -ForegroundColor Green
     }
 } catch {}
 
 if (Test-Path $BinDir) {
     Remove-Item -Recurse -Force $BinDir -ErrorAction SilentlyContinue
-    Write-Host "✅ Direktori launcher dihapus: $BinDir" -ForegroundColor Green
+    Write-Host "[OK] Direktori launcher dihapus: $BinDir" -ForegroundColor Green
 }
 
 $currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
@@ -78,7 +76,7 @@ if ($currentPath) {
     $newPath = $parts -join ';'
     if ($newPath -ne $currentPath) {
         [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
-        Write-Host "✅ '$BinDir' dihapus dari User PATH." -ForegroundColor Green
+        Write-Host "[OK] '$BinDir' dihapus dari User PATH." -ForegroundColor Green
     }
 }
 
@@ -86,7 +84,7 @@ if (Test-Path $InstallDir) {
     Push-Location $env:TEMP
     try {
         Remove-Item -Recurse -Force $InstallDir -ErrorAction SilentlyContinue
-        Write-Host "✅ Direktori instalasi dihapus: $InstallDir" -ForegroundColor Green
+        Write-Host "[OK] Direktori instalasi dihapus: $InstallDir" -ForegroundColor Green
     } finally {
         Pop-Location
     }
@@ -100,5 +98,5 @@ if (Test-Path $BaseDir) {
 }
 
 Write-Host "==============================================================================" -ForegroundColor Cyan
-Write-Host "✅ Tele-vs-CLI Berhasil Dicopot!" -ForegroundColor Green
+Write-Host "[OK] Tele-vs-CLI Berhasil Dicopot!" -ForegroundColor Green
 Write-Host "==============================================================================" -ForegroundColor Cyan

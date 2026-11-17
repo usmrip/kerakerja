@@ -57,6 +57,17 @@ waktu di logger dan jam workstation tidak sama
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-b58e
+- **Waktu:** 2026-11-17 03:52:07
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 2 menit 9 detik
+- **Instruksi:** Perbaiki error irm install.ps1 | iex di PowerShell 5.1 (The term '#' is not recognized)
+- **Status:** DONE
+- **Laporan Agent:** Error irm install.ps1 | iex di PowerShell 5.1 ('The term # is not recognized') diperbaiki dengan menghapus UTF-8 BOM (0xFEFF) dan mengonversi install.ps1 & uninstall.ps1 menjadi murni ASCII tanpa komentar # di baris pertama. Lolos 49/49 unit test.
+
+
+
 ### [DONE] #TASK-e95f
 - **Waktu:** 2026-11-17 03:48:53
 - **Pengirim:** IDE Chat

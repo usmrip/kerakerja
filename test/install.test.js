@@ -82,3 +82,12 @@ test('Windows - Tidak memunculkan popup konsol kosong (windowsHide: true & wscri
   assert.ok(serviceSrc.includes('start-hidden.vbs'));
   assert.ok(serviceSrc.includes('wscript.exe'));
 });
+
+test('PowerShell - install.ps1 dan uninstall.ps1 murni ASCII agar aman dijalankan via irm | iex di PowerShell 5.1', () => {
+  const installPs1 = fs.readFileSync(path.join(__dirname, '..', 'install.ps1'), 'utf-8');
+  const uninstallPs1 = fs.readFileSync(path.join(__dirname, '..', 'uninstall.ps1'), 'utf-8');
+
+  assert.ok(!installPs1.startsWith('#'), 'install.ps1 tidak boleh diawali komentar # agar aman untuk irm | iex');
+  assert.strictEqual(/[^\x00-\x7F]/.test(installPs1), false, 'install.ps1 harus murni ASCII');
+  assert.strictEqual(/[^\x00-\x7F]/.test(uninstallPs1), false, 'uninstall.ps1 harus murni ASCII');
+});
