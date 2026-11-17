@@ -6,6 +6,28 @@
 
 ## ⏳ Tugas Aktif
 
+### [PENDING] #TASK-3a41
+- **Waktu:** 2026-11-17 11:39:59
+- **Pengirim:** @usmrip (Private Chat)
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** rubah https://biru.co.id/tele-vs-cli menjadi https://biru.co.id/kerakerja atau https://biru.click/kerakerja
+- **Status:** PENDING
+- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
+
+
+
+### [PENDING] #TASK-c214
+- **Waktu:** 2026-11-17 11:38:08
+- **Pengirim:** @usmrip (Private Chat)
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** di dashboard
+1.tambahkan search task
+2. filter status tugas tambahkan failed/dibatalkan
+- **Status:** PENDING
+- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
+
+
+
 ### [PENDING] #TASK-fbfd
 - **Waktu:** 2026-11-17 11:14:16
 - **Pengirim:** @usmrip (Private Chat)
@@ -19,19 +41,6 @@ berikan infomasi  system mesin terpasang termasuk jumlah worker runinning dan ma
 ganti semua tele-vs-cli dengan kerakerja termasuk di git, dashboard dan folder
 
 jangan ada sampah tele-vs-cli
-- **Status:** PENDING
-- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
-
-
-
-### [PENDING] #TASK-bf7d
-- **Waktu:** 2026-11-17 10:23:37
-- **Pengirim:** Dashboard User
-- **Agent:** Antigravity AI Agent
-- **Instruksi:** [Dokumen Terlampir: image.png (https://biru.co.id/tele-vs-cli/uploads/draft_mwk4nt5a_h8x5/image.png)]
-waktu di logger dan jam workstation tidak sama
-- **Lampiran Lokal:** [image.png](file:///a:/ngodings/tele-vs-cli/attachments/TASK-bf7d/image.png) (photo)
-- **URL Lampiran:** [Buka di Browser](https://biru.co.id/tele-vs-cli/uploads/draft_mwk4nt5a_h8x5/image.png)
 - **Status:** PENDING
 - **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
 
@@ -74,6 +83,17 @@ waktu di logger dan jam workstation tidak sama
 
 
 ## ✅ Riwayat Tugas Selesai
+
+### [DONE] TASK-bf7d
+- **Waktu:** 2026-11-17 04:56:14
+- **Pengirim:** Dashboard User
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 0 detik
+- **Instruksi:** [Dokumen Terlampir: image.png (https://biru.co.id/tele-vs-cli/uploads/draft_mwk4nt5a_h8x5/image.png)]
+- **Status:** DONE
+- **Laporan Agent:** Memperbaiki timestamp logger worker agar menggunakan jam lokal workstation via formatLocalTimestamp() di src/utils/time.js (68/68 test lulus).
+
+
 
 ### [DONE] #TASK-c663
 - **Waktu:** 2026-11-17 04:35:30

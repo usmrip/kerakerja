@@ -13,6 +13,7 @@ const {
   hasLocalQueueInProgress
 } = require('../utils/process');
 const { fetchReport } = require('../utils/agy_usage');
+const { formatLocalTimestamp } = require('../utils/time');
 
 const KILLED_STATUSES = new Set(['FAILED', 'CANCELLED', 'CANCELED', 'KILLED']);
 const PENDING_STATUSES = new Set(['PENDING', 'WAITING', 'QUEUE']);
@@ -162,7 +163,7 @@ class TeleWorker {
   }
 
   log(msg) {
-    const time = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const time = formatLocalTimestamp();
     console.log(`[${time}] [${this.workerId}] ${msg}`);
   }
 

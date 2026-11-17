@@ -3,6 +3,7 @@ const os = require('os');
 const TeleWorker = require('./worker');
 const { loadWorkspaces, saveWorkspaces, getGlobalWorkspacesPath } = require('../config/workspaces');
 const { loadConfig } = require('../config/config');
+const { formatLocalTimestamp } = require('../utils/time');
 
 class MultiProjectWorker {
   constructor(options = {}) {
@@ -13,7 +14,7 @@ class MultiProjectWorker {
   }
 
   log(msg) {
-    const time = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const time = formatLocalTimestamp();
     console.log(`[${time}] [multi-worker] ${msg}`);
   }
 

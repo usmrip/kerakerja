@@ -3,6 +3,7 @@ const path = require('path');
 const os = require('os');
 const { execSync } = require('child_process');
 const ApiClient = require('../api/client');
+const { formatLocalTimestamp } = require('./time');
 
 /**
  * Mengambil informasi versi aplikasi dan tanggal pembaruan terakhir.
@@ -44,7 +45,7 @@ function getAppInfo(rootDir = path.resolve(__dirname, '..', '..')) {
   if (!lastUpdateDate && fs.existsSync(pkgPath)) {
     try {
       const stat = fs.statSync(pkgPath);
-      lastUpdateDate = stat.mtime.toISOString().replace('T', ' ').substring(0, 19);
+      lastUpdateDate = formatLocalTimestamp(stat.mtime);
     } catch (e) {
       lastUpdateDate = '-';
     }
