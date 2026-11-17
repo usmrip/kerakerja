@@ -95,12 +95,20 @@ function selectNextCliTask(tasks = [], workerId = null) {
     return { task: null, blockedBy: null, blockedReason: null };
   }
 
-  // /kill & /update system commands for CLI take priority so stuck tasks can be aborted
+  // System commands for CLI take priority so they execute immediately without waiting behind AI tasks
   const urgentSystemTask = tasks.find(t => {
     const status = String(t.status || '').toUpperCase();
     if (!PENDING_STATUSES.has(status)) return false;
     if (!isTaskForCliExecutor(t, workerId)) return false;
-    return Boolean(parseKillCommand(t.instruction) || parseUpdateCommand(t.instruction));
+    return Boolean(
+      parseKillCommand(t.instruction) ||
+      parseUpdateCommand(t.instruction) ||
+      parseInfoCommand(t.instruction) ||
+      parseSysinfoCommand(t.instruction) ||
+      parseSampahCommand(t.instruction) ||
+      parseSnapshotCommand(t.instruction) ||
+      parseRestoreCommand(t.instruction)
+    );
   });
   if (urgentSystemTask) {
     return { task: urgentSystemTask, blockedBy: null, blockedReason: null };

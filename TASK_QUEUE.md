@@ -124,6 +124,27 @@ jangan ada sampah tele-vs-cli
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-0d61
+- **Waktu:** 2026-11-17 11:31:32
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 1 menit 35 detik
+- **Instruksi:** Perbaiki webhook.php agar merespon /info, /sysinfo, /update, /sampah, /snapshot, /restore sebagai perintah (dan prioritas worker) serta cek HTTP 500 api_in_progress
+- **Status:** DONE
+- **Laporan Agent:** Webhook dan worker diperbaiki: webhook.php kini merespon perintah sistem (/info, /sysinfo, /sampah, /snapshot, /restore, /update, /upgrade, /kill) dengan respons perintah & prioritas HIGH, dan selectNextCliTask() di worker.js memprioritaskan seluruh perintah sistem agar langsung dieksekusi meski ada antrean lain. Lolos 86/86 unit test & php -l.
+
+
+
+### [FAILED] #TASK-fbfd
+- **Waktu:** 2026-11-17 11:15:58
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** Perintah dari IDE Chat
+- **Status:** FAILED
+- **Laporan Agent:** <Penyebab kendala>
+
+
+
 ### [DONE] TASK-fbfd
 - **Waktu:** 2026-11-17 11:15:17
 - **Pengirim:** IDE Chat
