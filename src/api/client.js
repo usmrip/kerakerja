@@ -139,6 +139,7 @@ class ApiClient {
     return this.request('push', {
       instruction,
       sender: options.sender || 'CLI',
+      status: options.status || 'PENDING',
       executor: options.executor || 'cli',
       agent: options.agent || 'auto',
       priority: options.priority || 'NORMAL'

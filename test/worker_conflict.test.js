@@ -167,3 +167,19 @@ test('TeleWorker - checkAndProcessNextTask menunda klaim jika summary IN_PROGRES
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 });
+
+test('ApiClient - addTask mengirim status PENDING secara default agar antrean Terminal sinkron dengan Telegram & Web', async () => {
+  const ApiClient = require('../src/api/client');
+  const client = new ApiClient('https://biru.co.id/tele-vs-cli/', 'sec', 'prj_test');
+  let captured = null;
+  client.request = async (endpoint, params, method) => {
+    captured = { endpoint, params, method };
+    return { statusCode: 200, data: { status: 'success', id: 'TASK-123' } };
+  };
+
+  await client.addTask('Tes sinkronisasi 3 jalur', { sender: 'Terminal CLI', executor: 'cli' });
+  assert.strictEqual(captured.endpoint, 'push');
+  assert.strictEqual(captured.params.status, 'PENDING');
+  assert.strictEqual(captured.params.sender, 'Terminal CLI');
+  assert.strictEqual(captured.params.executor, 'cli');
+});
