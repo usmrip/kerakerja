@@ -114,6 +114,17 @@ jangan ada sampah tele-vs-cli
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-70e3
+- **Waktu:** 2026-11-17 10:45:17
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 1 menit 57 detik
+- **Instruksi:** Tambahkan menu pilihan panah naik/turun (selesaikan pekerjaan, lakukan sekarang, batal) saat kerakerja stop/restart ketika ada pekerjaan aktif
+- **Status:** DONE
+- **Laporan Agent:** Menu interaktif panah naik/turun saat kerakerja stop atau restart ketika ada pekerjaan aktif selesai dibuat (selesaikan pekerjaan, lakukan sekarang, batal) di daemon_ctl.js + src/utils/prompt.js. Lolos 82/82 unit test.
+
+
+
 ### [DONE] #TASK-eca4
 - **Waktu:** 2026-11-17 10:41:24
 - **Pengirim:** IDE Chat

@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const { loadConfig } = require('../../config/config');
-const { loadWorkspaces, getGlobalWorkspacesPath, getMultiPidPath } = require('../../config/workspaces');
+const { loadWorkspaces, getGlobalWorkspacesPath, getGlobalDir } = require('../../config/workspaces');
 const { sendTelegramHtml, escapeTelegramHtml } = require('../../utils/telegram');
 const { formatBytes } = require('./sampah');
 
@@ -59,7 +59,7 @@ function isWorkerCommandLine(cmdLine = '') {
 function collectKnownWorkerPids(workDir, workspacesFile = getGlobalWorkspacesPath()) {
   const known = new Map();
 
-  const multiPid = readPidSafe(getMultiPidPath());
+  const multiPid = readPidSafe(path.join(getGlobalDir(), 'multi-worker.pid'));
   if (multiPid && isProcessAlive(multiPid)) {
     known.set(multiPid, {
       pid: multiPid,
