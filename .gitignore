@@ -7,11 +7,14 @@ logs/
 .vscode/tele-vs-cli/logs/
 *.pid
 tele-worker.pid
+kerakerja-worker.pid
 
 # Configuration & secrets
+.config/
 config.env
 .env
 *.env
+kerakerja.config.json
 tele.config.json
 .vscode/**/config.env
 

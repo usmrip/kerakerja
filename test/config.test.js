@@ -11,7 +11,7 @@ test('Config - Memuat konfigurasi default dengan benar', () => {
   assert.ok(cfg.pollInterval > 0);
 });
 
-test('Config - Menyimpan dan membaca kerakerja.config.json', () => {
+test('Config - Menyimpan dan membaca .config/kerakerja.config.json', () => {
   const tmpDir = path.join(__dirname, 'tmp_cfg');
   if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
 
@@ -24,13 +24,17 @@ test('Config - Menyimpan dan membaca kerakerja.config.json', () => {
     pollInterval: 3000
   };
 
-  saveConfig(custom, tmpDir);
+  const savedPath = saveConfig(custom, tmpDir);
+  assert.strictEqual(savedPath, path.join(tmpDir, '.config', 'kerakerja.config.json'));
+  assert.strictEqual(fs.existsSync(savedPath), true);
+
   const loaded = loadConfig(tmpDir);
 
   assert.strictEqual(loaded.serverUrl, 'https://biru.co.id/kerakerja/');
   assert.strictEqual(loaded.secret, 'test_secret_123');
   assert.strictEqual(loaded.projectId, 'test_project');
   assert.strictEqual(loaded.agent, 'claude');
+  assert.strictEqual(loaded.jsonConfigPath, savedPath);
 
   // Bersihkan folder sementara
   fs.rmSync(tmpDir, { recursive: true, force: true });

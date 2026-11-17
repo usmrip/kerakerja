@@ -136,10 +136,11 @@ test('Uninstaller - cleanWorkspaces menghapus file KeraKerja di semua workspace 
   const dirA = path.join(tmpDir, 'a');
   const dirB = path.join(tmpDir, 'b');
   fs.mkdirSync(path.join(dirA, 'logs'), { recursive: true });
+  fs.mkdirSync(path.join(dirA, '.config'), { recursive: true });
   fs.mkdirSync(path.join(dirB, 'logs'), { recursive: true });
 
   // File milik KeraKerja
-  fs.writeFileSync(path.join(dirA, 'kerakerja.config.json'), '{}');
+  fs.writeFileSync(path.join(dirA, '.config', 'kerakerja.config.json'), '{}');
   fs.writeFileSync(path.join(dirA, 'kerakerja-worker.pid'), '99999');
   fs.writeFileSync(path.join(dirA, 'logs', 'worker.log'), 'log');
   fs.writeFileSync(path.join(dirB, 'kerakerja.config.json'), '{}');
@@ -151,7 +152,7 @@ test('Uninstaller - cleanWorkspaces menghapus file KeraKerja di semua workspace 
   const summary = [];
   cleanWorkspaces([dirA, dirB], false, summary);
 
-  assert.strictEqual(fs.existsSync(path.join(dirA, 'kerakerja.config.json')), false);
+  assert.strictEqual(fs.existsSync(path.join(dirA, '.config', 'kerakerja.config.json')), false);
   assert.strictEqual(fs.existsSync(path.join(dirA, 'kerakerja-worker.pid')), false);
   assert.strictEqual(fs.existsSync(path.join(dirA, 'logs')), false);
   assert.strictEqual(fs.existsSync(path.join(dirB, 'kerakerja.config.json')), false);

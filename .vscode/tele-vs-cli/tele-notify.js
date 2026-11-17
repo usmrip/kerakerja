@@ -127,8 +127,13 @@ const cfgLocal = parseEnvFile(localConf);
 const cfgEnv = parseEnvFile(localEnv);
 
 let teleJson = {};
-const teleJsonPath = path.join(cwd, 'tele.config.json');
-if (fs.existsSync(teleJsonPath)) {
+const configCandidates = [
+  path.join(cwd, '.config', 'kerakerja.config.json'),
+  path.join(cwd, 'kerakerja.config.json'),
+  path.join(cwd, 'tele.config.json')
+];
+const teleJsonPath = configCandidates.find((p) => fs.existsSync(p));
+if (teleJsonPath) {
   try {
     teleJson = JSON.parse(fs.readFileSync(teleJsonPath, 'utf-8'));
   } catch (e) {}

@@ -54,7 +54,12 @@ const globalConf = path.join(homeDir, '.config', 'tele-notify', 'config.env');
 const localVscodeConf = path.join(cwd, '.vscode', 'tele-vs-cli', 'config.env');
 const localConf = path.join(cwd, 'config.env');
 const localEnv = path.join(cwd, '.env');
-const teleJsonPath = path.join(cwd, 'tele.config.json');
+const configCandidates = [
+  path.join(cwd, '.config', 'kerakerja.config.json'),
+  path.join(cwd, 'kerakerja.config.json'),
+  path.join(cwd, 'tele.config.json')
+];
+const teleJsonPath = configCandidates.find((p) => fs.existsSync(p));
 
 const cfgGlobal = parseEnvFile(globalConf);
 const cfgVscode = parseEnvFile(localVscodeConf);
@@ -62,7 +67,7 @@ const cfgLocal = parseEnvFile(localConf);
 const cfgEnv = parseEnvFile(localEnv);
 
 let teleJson = {};
-if (fs.existsSync(teleJsonPath)) {
+if (teleJsonPath) {
   try {
     teleJson = JSON.parse(fs.readFileSync(teleJsonPath, 'utf-8'));
   } catch (e) {}

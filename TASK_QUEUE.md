@@ -104,6 +104,17 @@ jangan ada sampah tele-vs-cli
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-d264
+- **Waktu:** 2026-11-17 06:26:13
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 2 menit 2 detik
+- **Instruksi:** Pindahkan kerakerja.config.json ke .config/kerakerja.config.json di working directory (beserta gitignore, migrasi, dan perbaiki di semua pengguna/referensi)
+- **Status:** DONE
+- **Laporan Agent:** Memindahkan kerakerja.config.json ke .config/kerakerja.config.json di working directory, menambahkannya ke .gitignore, memperbarui seluruh pengguna & script (config.js, projects.js, uninstall.js, tele-notify.js, tele-task.js, test), serta lolos 72/72 unit test.
+
+
+
 ### [DONE] #TASK-bf63
 - **Waktu:** 2026-11-17 06:23:13
 - **Pengirim:** IDE Chat

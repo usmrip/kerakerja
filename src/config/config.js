@@ -24,12 +24,19 @@ function loadEnvFile(filePath) {
   return env;
 }
 
+function getConfigPath(workDir = process.cwd()) {
+  return path.join(workDir, '.config', 'kerakerja.config.json');
+}
+
 function loadConfig(workDir = process.cwd()) {
-  const kerakerjaJsonPath = path.join(workDir, 'kerakerja.config.json');
-  const legacyJsonPath = path.join(workDir, 'tele.config.json');
-  const jsonConfigPath = fs.existsSync(kerakerjaJsonPath)
-    ? kerakerjaJsonPath
-    : (fs.existsSync(legacyJsonPath) ? legacyJsonPath : kerakerjaJsonPath);
+  const dotConfigJsonPath = getConfigPath(workDir);
+  const legacyKerakerjaJsonPath = path.join(workDir, 'kerakerja.config.json');
+  const legacyTeleJsonPath = path.join(workDir, 'tele.config.json');
+  const jsonConfigPath = fs.existsSync(dotConfigJsonPath)
+    ? dotConfigJsonPath
+    : (fs.existsSync(legacyKerakerjaJsonPath)
+        ? legacyKerakerjaJsonPath
+        : (fs.existsSync(legacyTeleJsonPath) ? legacyTeleJsonPath : dotConfigJsonPath));
 
   let jsonConfig = {};
   if (fs.existsSync(jsonConfigPath)) {
@@ -109,12 +116,17 @@ function loadConfig(workDir = process.cwd()) {
 }
 
 function saveConfig(config, workDir = process.cwd()) {
-  const jsonConfigPath = path.join(workDir, 'kerakerja.config.json');
+  const jsonConfigPath = getConfigPath(workDir);
+  const configDir = path.dirname(jsonConfigPath);
+  if (!fs.existsSync(configDir)) {
+    fs.mkdirSync(configDir, { recursive: true });
+  }
   fs.writeFileSync(jsonConfigPath, JSON.stringify(config, null, 2) + '\n', 'utf-8');
   return jsonConfigPath;
 }
 
 module.exports = {
+  getConfigPath,
   loadConfig,
   saveConfig,
   DEFAULT_SERVER_URL
