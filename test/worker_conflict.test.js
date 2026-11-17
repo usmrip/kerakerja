@@ -135,3 +135,35 @@ test('TeleWorker - membatalkan eksekusi jika klaim startTask ditolak server', as
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 });
+
+test('TeleWorker - checkAndProcessNextTask menunda klaim jika summary IN_PROGRESS > 0 di server', async () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tele-seq-test-'));
+  const prevIgnore = process.env.TELE_IGNORE_LOCAL_QUEUE;
+  process.env.TELE_IGNORE_LOCAL_QUEUE = '1';
+  try {
+    const worker = new TeleWorker({ workDir: tmpDir, workerId: 'w-cli' });
+    let startCalled = false;
+
+    worker.api = {
+      pullTasks: async () => ({
+        statusCode: 200,
+        data: { tasks: [{ id: 'TASK-NEXT', instruction: 'Tugas berikutnya', status: 'PENDING', executor: 'cli' }] }
+      }),
+      getStatus: async () => ({
+        statusCode: 200,
+        data: { ok: true, summary: { PENDING: 3, IN_PROGRESS: 1, DONE: 28, FAILED: 0 } }
+      }),
+      startTask: async () => {
+        startCalled = true;
+        return { statusCode: 200, data: { ok: true } };
+      }
+    };
+
+    await worker.checkAndProcessNextTask();
+    assert.strictEqual(startCalled, false, 'startTask tidak boleh dipanggil saat masih ada IN_PROGRESS di server');
+  } finally {
+    if (prevIgnore === undefined) delete process.env.TELE_IGNORE_LOCAL_QUEUE;
+    else process.env.TELE_IGNORE_LOCAL_QUEUE = prevIgnore;
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});

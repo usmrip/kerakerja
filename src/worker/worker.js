@@ -283,6 +283,20 @@ class TeleWorker {
       }
     }
 
+    // Pastikan tidak ada tugas lain yang sedang IN_PROGRESS di server (aturan sekuensial per proyek)
+    if (typeof this.api.getStatus === 'function') {
+      try {
+        const statusRes = await this.api.getStatus();
+        const inProgCount = statusRes && statusRes.data && statusRes.data.summary
+          ? Number(statusRes.data.summary.IN_PROGRESS || 0)
+          : 0;
+        if (inProgCount > 0) {
+          this.logThrottled(`⏳ Masih ada ${inProgCount} tugas [IN_PROGRESS] di server. Menunda #${pending.id} (tetap PENDING).`);
+          return;
+        }
+      } catch (e) {}
+    }
+
     await this.executeTask(pending);
   }
 
@@ -409,8 +423,14 @@ class TeleWorker {
       // Claim task atomically and verify server accepted our claim
       const claimRes = await this.api.startTask(task.id, this.workerId, this.config.agent);
       if (!isClaimAccepted(claimRes, this.workerId)) {
-        const owner = (claimRes && claimRes.data && claimRes.data.task && (claimRes.data.task.executor || claimRes.data.task.worker_id)) || 'worker/executor lain';
-        this.log(`⚠️ Tugas #${task.id} sudah diklaim oleh ${owner}. Membatalkan eksekusi CLI untuk mencegah bentrok.`);
+        const errMsg = (claimRes && claimRes.data && claimRes.data.error) ? String(claimRes.data.error) : '';
+        const isSeqBlock = /IN_PROGRESS|sekuensial|sedang dikerjakan/i.test(errMsg);
+        if (isSeqBlock) {
+          this.logThrottled(`⏳ Tugas #${task.id} ditunda (${errMsg}). Tetap berada di antrean PENDING.`);
+        } else {
+          const owner = (claimRes && claimRes.data && claimRes.data.task && (claimRes.data.task.executor || claimRes.data.task.worker_id)) || 'worker/executor lain';
+          this.log(`⚠️ Tugas #${task.id} sudah diklaim oleh ${owner}. Membatalkan eksekusi CLI untuk mencegah bentrok.`);
+        }
         return;
       }
       this.log(`Status tugas #${task.id} diubah menjadi IN_PROGRESS.`);

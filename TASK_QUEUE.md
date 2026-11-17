@@ -6,6 +6,24 @@
 
 ## ⏳ Tugas Aktif
 
+### [PENDING] #TASK-fbfd
+- **Waktu:** 2026-11-17 11:14:16
+- **Pengirim:** @usmrip (Private Chat)
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** 1. tambahkan perintah /sysinfo
+
+berikan infomasi  system mesin terpasang termasuk jumlah worker runinning dan masing2 memakan cpu serta memory beberapa. tambahkan juga total usage system darer worker tele
+
+2. karena 'tele' tidak indektik dengan worker ganti perintah tele denga 'kerakerja'
+
+ganti semua tele-vs-cli dengan kerakerja termasuk di git, dashboard dan folder
+
+jangan ada sampah tele-vs-cli
+- **Status:** PENDING
+- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
+
+
+
 ### [PENDING] #TASK-bf7d
 - **Waktu:** 2026-11-17 10:23:37
 - **Pengirim:** Dashboard User
@@ -56,6 +74,17 @@ waktu di logger dan jam workstation tidak sama
 
 
 ## ✅ Riwayat Tugas Selesai
+
+### [DONE] #TASK-03e8
+- **Waktu:** 2026-11-17 04:30:08
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 3 menit 48 detik
+- **Instruksi:** Perbaiki sinkronisasi tele status vs /queue Telegram dan bug klaim task worker (isClaimAccepted)
+- **Status:** DONE
+- **Laporan Agent:** Sinkronisasi tele status dengan /queue Telegram (menggunakan api_status + pull limit=10) serta perbaikan log & pengecekan sekuensial di TeleWorker (memeriksa summary IN_PROGRESS sebelum klaim startTask) selesai diterapkan. Lolos 65/65 unit test.
+
+
 
 ### [DONE] #TASK-896b
 - **Waktu:** 2026-11-17 04:08:48

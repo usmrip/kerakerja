@@ -8,30 +8,57 @@ const { isProjectConfigured } = require('./start');
 async function fetchProjectStatus(cfg) {
   const client = new ApiClient(cfg.serverUrl, cfg.secret, cfg.projectId);
   let tasks = [];
+  let summary = null;
+  let projectInfo = null;
   let serverOk = false;
   let serverMsg = '';
 
-  try {
-    const res = await client.pullTasks();
+  const [statusRes, pullRes] = await Promise.allSettled([
+    client.getStatus(),
+    client.request('pull', { limit: 10 })
+  ]);
+
+  if (statusRes.status === 'fulfilled' && statusRes.value && statusRes.value.data && statusRes.value.data.ok) {
     serverOk = true;
-    if (res && res.data) {
-      tasks = Array.isArray(res.data.tasks) ? res.data.tasks : (Array.isArray(res.data) ? res.data : []);
-    }
-  } catch (e) {
-    serverMsg = e.message;
+    summary = statusRes.value.data.summary || null;
+    projectInfo = statusRes.value.data.project || null;
+  } else if (statusRes.status === 'rejected') {
+    serverMsg = statusRes.reason ? statusRes.reason.message : 'Gagal menghubungi server';
+  }
+
+  if (pullRes.status === 'fulfilled' && pullRes.value && pullRes.value.data) {
+    serverOk = true;
+    const d = pullRes.value.data;
+    tasks = Array.isArray(d.tasks) ? d.tasks : (Array.isArray(d) ? d : []);
+  } else if (!serverOk && pullRes.status === 'rejected') {
+    serverMsg = pullRes.reason ? pullRes.reason.message : serverMsg;
   }
 
   const pendingTasks = tasks.filter(t => t.status === 'PENDING' || t.status === 'WAITING' || t.status === 'QUEUE');
   const runningTasks = tasks.filter(t => t.status === 'IN_PROGRESS' || t.status === 'RUNNING');
   const doneTasks = tasks.filter(t => t.status === 'DONE' || t.status === 'SELESAI');
 
+  const pendingCount = summary && typeof summary.PENDING === 'number' ? summary.PENDING : pendingTasks.length;
+  const runningCount = summary && typeof summary.IN_PROGRESS === 'number' ? summary.IN_PROGRESS : runningTasks.length;
+  const doneCount = summary && typeof summary.DONE === 'number' ? summary.DONE : doneTasks.length;
+  const failedCount = summary && typeof summary.FAILED === 'number' ? summary.FAILED : 0;
+
   return {
     tasks,
+    summary,
+    projectInfo,
     serverOk,
     serverMsg,
     pendingTasks,
     runningTasks,
-    doneTasks
+    doneTasks,
+    counts: {
+      pending: pendingCount,
+      running: runningCount,
+      done: doneCount,
+      failed: failedCount,
+      total: pendingCount + runningCount + doneCount + failedCount
+    }
   };
 }
 
@@ -50,10 +77,12 @@ async function showMultiStatus(isJson, multiPid, workspacesFile = getGlobalWorks
     };
     const st = (exists && isProjectConfigured(effectiveCfg))
       ? await fetchProjectStatus(effectiveCfg)
-      : { tasks: [], serverOk: false, serverMsg: exists ? 'Konfigurasi belum lengkap' : 'Folder tidak ditemukan', pendingTasks: [], runningTasks: [], doneTasks: [] };
+      : { tasks: [], projectInfo: null, serverOk: false, serverMsg: exists ? 'Konfigurasi belum lengkap' : 'Folder tidak ditemukan', pendingTasks: [], runningTasks: [], doneTasks: [], counts: { pending: 0, running: 0, done: 0, failed: 0, total: 0 } };
 
     results.push({
       projectId: effectiveCfg.projectId,
+      projectName: st.projectInfo ? st.projectInfo.name : null,
+      projectCode: st.projectInfo ? st.projectInfo.code : null,
       workDir: ws.workDir,
       exists,
       agent: effectiveCfg.agent,
@@ -61,10 +90,11 @@ async function showMultiStatus(isJson, multiPid, workspacesFile = getGlobalWorks
       connected: st.serverOk,
       error: st.serverMsg || null,
       tasks: {
-        total: st.tasks.length,
-        pending: st.pendingTasks.length,
-        running: st.runningTasks.length,
-        done: st.doneTasks.length,
+        total: st.counts.total,
+        pending: st.counts.pending,
+        running: st.counts.running,
+        done: st.counts.done,
+        failed: st.counts.failed,
         active: st.runningTasks[0] || null
       }
     });
@@ -118,7 +148,7 @@ async function statusCommand(args = []) {
     return;
   }
 
-  const { tasks, serverOk, serverMsg, pendingTasks, runningTasks, doneTasks } = await fetchProjectStatus(config);
+  const { projectInfo, serverOk, serverMsg, pendingTasks, runningTasks, counts } = await fetchProjectStatus(config);
 
   if (isJson) {
     console.log(JSON.stringify({
@@ -132,13 +162,16 @@ async function statusCommand(args = []) {
         url: config.serverUrl,
         connected: serverOk,
         error: serverMsg || null,
-        projectId: config.projectId
+        projectId: config.projectId,
+        projectName: projectInfo ? projectInfo.name : null,
+        projectCode: projectInfo ? projectInfo.code : null
       },
       tasks: {
-        total: tasks.length,
-        pending: pendingTasks.length,
-        running: runningTasks.length,
-        done: doneTasks.length,
+        total: counts.total,
+        pending: counts.pending,
+        running: counts.running,
+        done: counts.done,
+        failed: counts.failed,
         active: runningTasks[0] || null
       }
     }, null, 2));
@@ -152,16 +185,22 @@ async function statusCommand(args = []) {
   const workerLabel = workerPid
     ? `🟢 AKTIF (PID: ${workerPid})`
     : (multiPid ? `🟢 AKTIF via Multi-Project Worker (PID: ${multiPid})` : '⚪ MATI (Gunakan `tele start --daemon` / `tele start --all --daemon`)');
+  const prjDisplay = projectInfo && projectInfo.name
+    ? `${projectInfo.name}${projectInfo.code ? ` (#${projectInfo.code})` : ''} [${config.projectId}]`
+    : config.projectId;
   console.log(`\n🤖 Status Worker CLI : ${workerLabel}`);
   console.log(`📂 Direktori Kerja   : ${cwd}`);
   console.log(`🧠 AI Agent Dipakai  : ${config.agent}`);
   console.log(`🌐 Server Dashboard  : ${config.serverUrl} (${serverOk ? '✅ Terhubung' : '❌ ' + serverMsg})`);
-  console.log(`🏢 Proyek Aktif      : ${config.projectId}`);
+  console.log(`🏢 Proyek Aktif      : ${prjDisplay}`);
 
   console.log(`\n📋 Ringkasan Antrean:`);
-  console.log(`  - ⏳ Menunggu (Pending) : ${pendingTasks.length}`);
-  console.log(`  - ⚙️ Sedang Dikerjakan  : ${runningTasks.length}`);
-  console.log(`  - ✅ Selesai (Done)     : ${doneTasks.length}`);
+  console.log(`  - ⏳ Menunggu (Pending) : ${counts.pending}`);
+  console.log(`  - ⚙️ Sedang Dikerjakan  : ${counts.running}`);
+  console.log(`  - ✅ Selesai (Done)     : ${counts.done}`);
+  if (counts.failed > 0) {
+    console.log(`  - ❌ Gagal (Failed)     : ${counts.failed}`);
+  }
 
   if (runningTasks.length > 0) {
     console.log(`\n⚡ Tugas Sedang Berjalan:`);
