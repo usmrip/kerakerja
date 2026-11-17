@@ -1,32 +1,43 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const { getGlobalDir } = require('../../config/workspaces');
 
 const PID_FILE = 'tele-worker.pid';
+const MULTI_PID_FILE = 'multi-worker.pid';
 
-function getRunningPid(cwd) {
-  const pidPath = path.join(cwd, PID_FILE);
+function resolvePidFile(cwd, isAll = false) {
+  return isAll ? path.join(getGlobalDir(), MULTI_PID_FILE) : path.join(cwd, PID_FILE);
+}
+
+function resolveLogFile(cwd, isAll = false) {
+  return isAll ? path.join(getGlobalDir(), 'multi-worker.log') : path.join(cwd, 'logs', 'worker.log');
+}
+
+function getRunningPid(cwd, isAll = false) {
+  const pidPath = resolvePidFile(cwd, isAll);
   if (!fs.existsSync(pidPath)) return null;
   const pid = parseInt(fs.readFileSync(pidPath, 'utf-8').trim(), 10);
   try {
     process.kill(pid, 0);
     return pid;
   } catch (e) {
-    fs.unlinkSync(pidPath);
+    try { fs.unlinkSync(pidPath); } catch (_) {}
     return null;
   }
 }
 
-async function stopCommand(args) {
+async function stopCommand(args = []) {
   const cwd = process.cwd();
-  const pid = getRunningPid(cwd);
+  const isAll = args.includes('--all') || args.includes('-a');
+  const pid = getRunningPid(cwd, isAll);
 
   if (!pid) {
-    console.log('⚪ Tidak ada background worker yang sedang berjalan.');
+    console.log(`⚪ Tidak ada background ${isAll ? 'multi-project ' : ''}worker yang sedang berjalan.`);
     return;
   }
 
-  console.log(`Menghentikan worker dengan PID ${pid}...`);
+  console.log(`Menghentikan ${isAll ? 'multi-project ' : ''}worker dengan PID ${pid}...`);
   try {
     if (process.platform === 'win32') {
       execSync(`taskkill /pid ${pid} /T /F 2>nul`);
@@ -38,22 +49,28 @@ async function stopCommand(args) {
     console.log(`⚠️ Gagal mengirim sinyal berhenti: ${e.message}`);
   }
 
-  const pidPath = path.join(cwd, PID_FILE);
+  const pidPath = resolvePidFile(cwd, isAll);
   if (fs.existsSync(pidPath)) {
     try { fs.unlinkSync(pidPath); } catch (e) {}
   }
 }
 
-async function restartCommand(args) {
+async function restartCommand(args = []) {
+  const isAll = args.includes('--all') || args.includes('-a');
+  const isVerbose = args.includes('--verbose') || args.includes('-v');
   await stopCommand(args);
   await new Promise(r => setTimeout(r, 1000));
   const startCommand = require('./start');
-  await startCommand(['--daemon']);
+  const startArgs = ['--daemon'];
+  if (isAll) startArgs.push('--all');
+  if (isVerbose) startArgs.push('--verbose');
+  await startCommand(startArgs);
 }
 
-async function logsCommand(args) {
+async function logsCommand(args = []) {
   const cwd = process.cwd();
-  const logFile = path.join(cwd, 'logs', 'worker.log');
+  const isAll = args.includes('--all') || args.includes('-a');
+  const logFile = resolveLogFile(cwd, isAll);
 
   if (!fs.existsSync(logFile)) {
     console.log(`⚪ Belum ada berkas log di ${logFile}`);

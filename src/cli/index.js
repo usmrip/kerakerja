@@ -23,10 +23,10 @@ PENGGUNAAN:
 
 PERINTAH UTAMA:
   init                      Setup interaktif (server URL, secret, project key, default agent)
-  start [--daemon] [--verbose] Jalankan worker CLI (foreground / background)
-  stop                      Hentikan background worker yang aktif
-  restart                   Restart background worker
-  logs [-f]                 Tampilkan atau pantau log worker secara live
+  start [--all] [--daemon] [--verbose] Jalankan worker CLI (1 proyek / --all semua proyek)
+  stop [--all]              Hentikan background worker yang aktif
+  restart [--all]           Restart background worker
+  logs [--all] [-f]         Tampilkan atau pantau log worker secara live
   task "<instruksi>"        Kirim tugas baru ke antrean
                             Opsi: --agent <nama> --priority <HIGH|NORMAL> --verbose
   queue [--json] [--all]    Lihat rincian antrean tugas aktif (menunggu & dikerjakan)
@@ -40,7 +40,7 @@ PERINTAH UTAMA:
   projects                  Lihat daftar proyek di server
   use <project_id>          Pilih proyek aktif lokal
   doctor                    Diagnostik lingkungan, koneksi, izin, dan CLI agent
-  service install|uninstall Pasang/hapus autostart service (Windows Task Scheduler / Linux systemd / macOS launchd)
+  service install [--all]|uninstall Pasang/hapus autostart service (Windows Task Scheduler / Linux systemd / macOS launchd)
   update [--check]          Perbarui Tele-vs-CLI ke versi terbaru dari GitHub
   uninstall [--purge]       Copot Tele-vs-CLI dari sistem (launcher, service, PATH)
   help, --help              Tampilkan bantuan ini

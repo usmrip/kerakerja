@@ -39,16 +39,6 @@ waktu di logger dan jam workstation tidak sama
 
 
 
-### [PENDING] #TASK-f592
-- **Waktu:** 2026-11-17 10:07:09
-- **Pengirim:** Dashboard User
-- **Agent:** Antigravity AI Agent
-- **Instruksi:** perbaiki bentrok handle/eksuksi pekerjaan antar tele-vs-code dengan tele-vs-cli
-- **Status:** PENDING
-- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
-
-
-
 ### [PENDING] #TASK-2bb7
 - **Waktu:** 2026-11-17 10:01:09
 - **Pengirim:** Dashboard User
@@ -76,6 +66,28 @@ waktu di logger dan jam workstation tidak sama
 
 
 ## ✅ Riwayat Tugas Selesai
+
+### [DONE] #TASK-bd98
+- **Waktu:** 2026-11-17 03:42:47
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 2 menit 38 detik
+- **Instruksi:** Implementasikan dukungan multi-proyek dalam 1x tele (global registry ~/.tele-vs-cli/workspaces.json, auto-register saat tele init / tele use, tele start --all) dan tanyakan autostart saat install
+- **Status:** DONE
+- **Laporan Agent:** Dukungan multi-proyek dalam 1x tele (src/config/workspaces.js, src/worker/multi_worker.js, auto-register di tele init / tele use / tele start, serta tele start|stop|restart|logs|service install --all) dan konfirmasi autostart saat install selesai diimplementasikan, lolos 42/42 unit test.
+
+
+
+### [DONE] TASK-f592
+- **Waktu:** 2026-11-17 03:41:00
+- **Pengirim:** Dashboard User
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 0 detik
+- **Instruksi:** perbaiki bentrok handle/eksuksi pekerjaan antar tele-vs-code dengan tele-vs-cli
+- **Status:** DONE
+- **Laporan Agent:** Perbaikan bentrok handle/eksekusi pekerjaan antara tele-vs-code dan tele-vs-cli: isolasi routing executor, seleksi antrean non-blocking, verifikasi klaim atomik startTask, lock eksekusi lokal (logs/active-task.json + TASK_QUEUE.md), serta koordinasi .vscode/tele-vs-cli/tele-worker.js. 49/49 unit test lulus.
+
+
 
 ### [DONE] #TASK-491d
 - **Waktu:** 2026-11-17 03:39:16

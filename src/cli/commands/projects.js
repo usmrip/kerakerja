@@ -1,7 +1,8 @@
 const { loadConfig, saveConfig } = require('../../config/config');
+const { registerWorkspace, loadWorkspaces, getGlobalWorkspacesPath } = require('../../config/workspaces');
 const ApiClient = require('../../api/client');
 
-async function projectsCommand(args) {
+async function projectsCommand(args = []) {
   const cwd = process.cwd();
   const config = loadConfig(cwd);
   const client = new ApiClient(config.serverUrl, config.secret, config.projectId);
@@ -20,6 +21,15 @@ async function projectsCommand(args) {
   } catch (e) {
     console.log(`Proyek lokal saat ini: ${config.projectId}`);
   }
+
+  const localWorkspaces = loadWorkspaces();
+  if (localWorkspaces.length > 0) {
+    console.log(`📂 Multi-Project Registry Lokal (${getGlobalWorkspacesPath()}):`);
+    for (const ws of localWorkspaces) {
+      console.log(`   • ${ws.projectId} -> ${ws.workDir} (agent: ${ws.agent || 'auto'})`);
+    }
+    console.log('   💡 Jalankan `tele start --all --daemon` untuk menjalankan semua proyek sekaligus.\n');
+  }
 }
 
 async function useCommand(args) {
@@ -34,6 +44,11 @@ async function useCommand(args) {
   config.projectId = target;
   saveConfig(config, cwd);
   console.log(`✅ Proyek aktif lokal berhasil diubah menjadi: '${target}' (disimpan di tele.config.json)`);
+
+  const regRes = registerWorkspace({ ...config, workDir: cwd });
+  if (regRes.registered) {
+    console.log(`📌 Multi-Project Registry diperbarui (${regRes.total} proyek): ${regRes.filePath}`);
+  }
 }
 
 module.exports = {

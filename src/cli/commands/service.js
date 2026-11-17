@@ -2,18 +2,20 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-async function serviceCommand(args) {
+async function serviceCommand(args = []) {
   const action = (args[0] || '').toLowerCase();
+  const isAll = args.includes('--all') || args.includes('-a');
   const cwd = process.cwd();
   const nodeBin = process.execPath;
   const scriptPath = path.join(__dirname, '..', '..', '..', 'bin', 'tele.js');
   const serviceName = 'TeleVsCliWorker';
+  const startFlags = isAll ? 'start --all' : 'start';
 
   if (action === 'install') {
-    console.log(`Mengonfigurasi auto-start background service '${serviceName}'...`);
+    console.log(`Mengonfigurasi auto-start background service '${serviceName}'${isAll ? ' (Multi-Project --all)' : ''}...`);
     if (process.platform === 'win32') {
       try {
-        const cmd = `schtasks /create /tn "${serviceName}" /tr "\"${nodeBin}\" \"${scriptPath}\" start --daemon" /sc onlogon /f`;
+        const cmd = `schtasks /create /tn "${serviceName}" /tr "\"${nodeBin}\" \"${scriptPath}\" ${startFlags} --daemon" /sc onlogon /f`;
         execSync(cmd, { stdio: 'inherit' });
         console.log(`✅ Layanan Windows Task Scheduler '${serviceName}' berhasil dipasang (aktif saat login).`);
       } catch (e) {
@@ -30,7 +32,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=${cwd}
-ExecStart=${nodeBin} ${scriptPath} start
+ExecStart=${nodeBin} ${scriptPath} ${startFlags}
 Restart=always
 RestartSec=10
 
@@ -58,7 +60,7 @@ WantedBy=default.target
     <array>
         <string>${nodeBin}</string>
         <string>${scriptPath}</string>
-        <string>start</string>
+        <string>start</string>${isAll ? '\n        <string>--all</string>' : ''}
     </array>
     <key>WorkingDirectory</key>
     <string>${cwd}</string>

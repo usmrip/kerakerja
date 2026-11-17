@@ -18,6 +18,7 @@ const {
   testCommunication
 } = require('../src/utils/app_info');
 const { loadConfig } = require('../src/config/config');
+const serviceCommand = require('../src/cli/commands/service');
 
 function normalizeWinPathEntry(entry) {
   return String(entry || '').trim().replace(/[\\/]+$/, '').toLowerCase();
@@ -236,6 +237,24 @@ async function runInstaller() {
     }
   }
 
+  // 6. Tanyakan apakah user ingin mengaktifkan autostart service (multi-proyek --all)
+  if (!cliArgs.includes('--no-service')) {
+    let enableAutostart = false;
+    if (cliArgs.includes('--autostart') || cliArgs.includes('--service')) {
+      enableAutostart = true;
+    } else if (process.stdin.isTTY) {
+      console.log('');
+      enableAutostart = await askYesNo(
+        '❓ Apakah Anda ingin mengaktifkan auto-start service saat sistem dinyalakan (boot/login)?',
+        true
+      );
+    }
+
+    if (enableAutostart) {
+      await serviceCommand(['install', '--all']);
+    }
+  }
+
   console.log('\n==============================================================================');
   console.log('🎉 Pemasangan Tele-vs-CLI Berhasil!');
   console.log('==============================================================================');
@@ -245,9 +264,9 @@ async function runInstaller() {
   console.log('');
   console.log('💡 Langkah Selanjutnya:');
   console.log('   1. Buka terminal baru atau muat ulang shell.');
-  console.log('   2. Ketik: tele init           (Setup server URL, secret, project & test komunikasi)');
-  console.log('   3. Ketik: tele start --daemon (Menjalankan background worker)');
-  console.log('   4. Ketik: tele quota          (Melihat kuota & kesiapan model AI)');
+  console.log('   2. Ketik: tele init                  (Setup & daftarkan folder proyek ke registry global)');
+  console.log('   3. Ketik: tele start --all --daemon  (Jalankan 1 worker untuk semua proyek terdaftar)');
+  console.log('   4. Ketik: tele usage / tele quota    (Melihat kuota & kesiapan model AI)');
   console.log('');
   for (const line of getProjectSwitchGuideLines(commResult ? commResult.projectTag : '')) {
     console.log(line);

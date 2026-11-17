@@ -1,0 +1,89 @@
+const fs = require('fs');
+const os = require('os');
+const TeleWorker = require('./worker');
+const { loadWorkspaces, getGlobalWorkspacesPath } = require('../config/workspaces');
+const { loadConfig } = require('../config/config');
+
+class MultiProjectWorker {
+  constructor(options = {}) {
+    this.verbose = Boolean(options.verbose || process.env.TELE_VERBOSE);
+    this.workspacesFile = options.workspacesFile || getGlobalWorkspacesPath();
+    this.workers = [];
+    this.running = false;
+  }
+
+  log(msg) {
+    const time = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    console.log(`[${time}] [multi-worker] ${msg}`);
+  }
+
+  resolveValidWorkspaces() {
+    const registered = loadWorkspaces(this.workspacesFile);
+    const valid = [];
+
+    for (const entry of registered) {
+      if (!entry.workDir || !fs.existsSync(entry.workDir)) {
+        this.log(`[SKIP] Folder workspace tidak ditemukan: ${entry.workDir}`);
+        continue;
+      }
+      // Gabungkan dengan config lokal folder agar selalu up-to-date
+      const localCfg = loadConfig(entry.workDir);
+      const secret = localCfg.secret || entry.secret;
+      const projectId = (localCfg.projectId && localCfg.projectId !== 'default') ? localCfg.projectId : entry.projectId;
+
+      if (!secret || !projectId || projectId === 'default') {
+        this.log(`[SKIP] Konfigurasi belum lengkap di: ${entry.workDir}`);
+        continue;
+      }
+
+      valid.push({
+        ...entry,
+        projectId,
+        secret
+      });
+    }
+
+    return valid;
+  }
+
+  async start() {
+    const workspaces = this.resolveValidWorkspaces();
+    if (workspaces.length === 0) {
+      throw new Error(
+        `Belum ada proyek terdaftar di ${this.workspacesFile}.\n` +
+        `Masuk ke masing-masing folder proyek lalu jalankan 'tele init' atau 'tele use <project_id>'.`
+      );
+    }
+
+    this.running = true;
+    this.log(`====================================================================`);
+    this.log(`Memulai Tele-vs-CLI Multi-Project Worker (${workspaces.length} proyek)`);
+    this.log(`Registry: ${this.workspacesFile}`);
+    this.log(`====================================================================`);
+
+    for (let i = 0; i < workspaces.length; i++) {
+      const ws = workspaces[i];
+      const safeId = String(ws.projectId).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 16) || `p${i + 1}`;
+      const workerId = `worker-${os.hostname()}-${process.pid}-${safeId}`;
+      const worker = new TeleWorker({
+        workDir: ws.workDir,
+        verbose: this.verbose,
+        workerId
+      });
+      this.workers.push(worker);
+      this.log(`  [${i + 1}/${workspaces.length}] Proyek '${ws.projectId}' -> ${ws.workDir}`);
+    }
+
+    await Promise.all(this.workers.map(w => w.start()));
+  }
+
+  async stop() {
+    this.running = false;
+    this.log(`Menghentikan ${this.workers.length} worker proyek...`);
+    await Promise.allSettled(this.workers.map(w => w.stop()));
+    this.workers = [];
+    this.log(`Semua worker proyek berhasil dihentikan.`);
+  }
+}
+
+module.exports = MultiProjectWorker;
