@@ -79,9 +79,7 @@ function readJsonSafe(filePath) {
 function isActiveTaskLocked(workDir, currentWorkerId = null, currentPid = process.pid) {
   const root = workDir || process.cwd();
   const candidates = [
-    { path: getActiveTaskFile(root), own: true },
-    { path: path.join(root, '.vscode', 'tele-vs-code', 'active-task.json'), own: false },
-    { path: path.join(root, '.vscode', 'tele-vs-cli', 'active-task.json'), own: false }
+    { path: getActiveTaskFile(root), own: true }
   ];
 
   for (const candidate of candidates) {

@@ -25,7 +25,7 @@ test('Worker - parseSysinfoCommand mem-parsing /sysinfo dengan berbagai format',
 test('Sysinfo - isWorkerCommandLine mengenali proses worker KeraKerja', () => {
   assert.equal(isWorkerCommandLine('node /opt/kerakerja/bin/kerakerja.js start --daemon'), true);
   assert.equal(isWorkerCommandLine('node C:\\app\\src\\worker\\multi_worker.js'), true);
-  assert.equal(isWorkerCommandLine('node /home/user/.vscode/kerakerja/tele-worker.js'), true);
+  assert.equal(isWorkerCommandLine('node /home/user/.kerakerja/tele-worker.js'), true);
   assert.equal(isWorkerCommandLine('node server.js'), false);
 });
 

@@ -44,7 +44,6 @@ const KILLED_STATUSES = new Set(['FAILED', 'CANCELLED', 'CANCELED', 'KILLED']);
 const PENDING_STATUSES = new Set(['PENDING', 'WAITING', 'QUEUE']);
 const IN_PROGRESS_STATUSES = new Set(['IN_PROGRESS', 'RUNNING']);
 const CLI_EXECUTORS = new Set(['', 'all', 'any', 'cli', 'kerakerja', 'tele-vs-cli', 'headless', 'terminal']);
-const VSCODE_EXECUTORS = new Set(['vscode', 'tele-vs-code', 'code', 'ide', 'extension', 'editor']);
 
 function normalizeExecutor(executor) {
   return String(executor || '').trim().toLowerCase();
@@ -52,10 +51,6 @@ function normalizeExecutor(executor) {
 
 function isCliExecutor(executor) {
   return CLI_EXECUTORS.has(normalizeExecutor(executor));
-}
-
-function isVscodeExecutor(executor) {
-  return VSCODE_EXECUTORS.has(normalizeExecutor(executor));
 }
 
 function isTaskForCliExecutor(task, workerId = null) {
@@ -116,7 +111,7 @@ function selectNextCliTask(tasks = [], workerId = null) {
     return { task: urgentSystemTask, blockedBy: null, blockedReason: null };
   }
 
-  // Prevent concurrent execution if another worker (e.g. tele-vs-code or another CLI worker) is already IN_PROGRESS
+  // Prevent concurrent execution if another CLI worker is already IN_PROGRESS
   const activeRemote = tasks.find(t => {
     const status = String(t.status || '').toUpperCase();
     if (!IN_PROGRESS_STATUSES.has(status)) return false;
@@ -543,7 +538,7 @@ class TeleWorker {
           } catch (_) {}
         }
         if (shouldWait) {
-          this.logThrottled(`⏳ Tugas ${localQueue.taskId} masih [IN_PROGRESS] di TASK_QUEUE.md (IDE/tele-vs-code). Menunggu selesai...`);
+          this.logThrottled(`⏳ Tugas ${localQueue.taskId} masih [IN_PROGRESS] di TASK_QUEUE.md (worker lain). Menunggu selesai...`);
           return;
         }
       }
@@ -973,7 +968,6 @@ TeleWorker.parseRestoreCommand = parseRestoreCommand;
 TeleWorker.parseSysinfoCommand = parseSysinfoCommand;
 TeleWorker.normalizeExecutor = normalizeExecutor;
 TeleWorker.isCliExecutor = isCliExecutor;
-TeleWorker.isVscodeExecutor = isVscodeExecutor;
 TeleWorker.isTaskForCliExecutor = isTaskForCliExecutor;
 TeleWorker.isClaimAccepted = isClaimAccepted;
 TeleWorker.selectNextCliTask = selectNextCliTask;

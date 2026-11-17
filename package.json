@@ -1,7 +1,7 @@
 {
   "name": "kerakerja",
   "version": "1.0.0",
-  "description": "KeraKerja: Headless Telegram & Remote AI Agent Runner (Zero VSIX)",
+  "description": "KeraKerja: Headless Telegram & Remote AI Agent Runner (CLI)",
   "main": "src/cli/index.js",
   "bin": {
     "kerakerja": "./bin/kerakerja.js"

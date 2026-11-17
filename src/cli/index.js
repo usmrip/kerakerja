@@ -21,7 +21,7 @@ const { runUninstall } = require('../../scripts/uninstall');
 
 function printHelp() {
   console.log(`
-KeraKerja — Headless Telegram & Remote AI Agent Runner (Zero VSIX)
+KeraKerja — Headless Telegram & Remote AI Agent Runner (CLI)
 Versi: 1.0.0
 
 PENGGUNAAN:

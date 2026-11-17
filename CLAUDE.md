@@ -1,7 +1,7 @@
-# 🤖 PANDUAN KERJA OTOMATIS AI AGENT (KeraKerja)
+# 🤖 PANDUAN KERJA OTOMATIS AI AGENT (KeraKerja CLI)
 
 ## ⚡ 1. MANDATORY TRIGGER: EKSEKUSI OTOMATIS ANTREAN TUGAS (TASK_QUEUE.md)
-Setiap kali Anda menerima giliran bicara, prompt, atau instruksi apapun dari USER di IDE Chat ini:
+Setiap kali Anda menerima giliran bicara, prompt, atau instruksi apapun dari USER di sesi CLI ini:
 
 1. **LANGKAH 1 (PRIORITAS UTAMA - PERIKSA TASK_QUEUE.md):**
    - Periksa file `TASK_QUEUE.md` di root proyek.
@@ -9,26 +9,18 @@ Setiap kali Anda menerima giliran bicara, prompt, atau instruksi apapun dari USE
      👉 **ANDA WAJIB OTOMATIS MENGEKSEKUSI TUGAS TERSEBUT SAMPAI SELESAI 100%!**
      - Ubah status menjadi `[IN_PROGRESS]` saat mulai dikerjakan.
      - Kerjakan instruksinya dan uji verifikasi hingga tuntas.
-     - Setelah selesai 100%, tandai selesai menggunakan perintah:
-       node .vscode/kerakerja/tele-task.js done "<TASK-ID>" "<Ringkasan hasil 100% selesai>"
+     - Setelah selesai 100%, perbarui status tugas dan lanjutkan antrean berikutnya.
      - Selesaikan antrean berurutan satu per satu.
 
 2. **LANGKAH 2 (PENCATATAN PERINTAH BARU):**
    - Jika antrean kosong/sudah selesai dan user memberikan perintah baru:
-     node .vscode/kerakerja/tele-task.js add "<Perintah User>" --sender "IDE Chat" --status IN_PROGRESS
-   - Kerjakan tugas hingga tuntas 100%, lalu tandai selesai dengan:
-     node .vscode/kerakerja/tele-task.js done "<TASK-ID>" "<Ringkasan hasil 100% selesai>"
+     `node bin/kerakerja.js task "<Perintah User>"` (atau `kerakerja task "<Perintah User>"`)
+   - Kerjakan tugas hingga tuntas 100%, lalu verifikasi hasilnya.
 
 3. **KATA KUNCI PEMICU INSTAN:**
    Jika user mengetik: `proses antrian`, `kerjakan queue`, `next task`, `/queue`, atau `lanjutkan`:
-   👉 Langsung baca `TASK_QUEUE.md` dan selesaikan tugas berikutnya tanpa menunggu konfirmasi!
+   👉 Langsung baca `TASK_QUEUE.md` (atau jalankan `node bin/kerakerja.js queue`) dan selesaikan tugas berikutnya tanpa menunggu konfirmasi!
 
-## 📢 2. NOTIFIKASI TELEGRAM
-- **Jika Sukses (100% selesai & teruji):**
-  node .vscode/kerakerja/tele-notify.js "<Judul Tugas>" --status SELESAI --detail "<Rincian 1>" --detail "<Rincian 2>"
-- **Jika Sedang Dikerjakan:**
-  node .vscode/kerakerja/tele-notify.js "<Judul Tugas>" --status PROSES --detail "<Status>"
-- **Jika Ada Kendala Error:**
-  node .vscode/kerakerja/tele-notify.js "<Judul Kendala>" --status KENDALA --detail "<Penyebab>"
-
-> ⚠️ **ATURAN MUTLAK:** JANGAN PERNAH mengirimkan status `SELESAI` sebelum tugas benar-benar 100% tuntas dan teruji.
+## 📢 2. STATUS & KOMUNIKASI WORKER CLI
+- Gunakan perintah CLI `node bin/kerakerja.js status` / `kerakerja queue` / `kerakerja logs -f` untuk memantau eksekusi worker.
+- > ⚠️ **ATURAN MUTLAK:** JANGAN PERNAH melaporkan tugas `SELESAI` sebelum tugas benar-benar 100% tuntas dan teruji.

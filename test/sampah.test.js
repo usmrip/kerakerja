@@ -27,7 +27,6 @@ test('Sampah - cleanTeleVsCliTrash membersihkan sampah tele-vs-cli lokal & globa
 
   try {
     fs.mkdirSync(path.join(workDir, 'logs'), { recursive: true });
-    fs.mkdirSync(path.join(workDir, '.vscode', 'tele-vs-cli', 'logs'), { recursive: true });
     fs.mkdirSync(path.join(homeDir, '.tele-vs-cli'), { recursive: true });
     fs.mkdirSync(path.join(homeDir, '.config', 'tele-notify'), { recursive: true });
     fs.mkdirSync(path.join(localAppData, 'tele-vs-cli', 'bin'), { recursive: true });
@@ -38,7 +37,6 @@ test('Sampah - cleanTeleVsCliTrash membersihkan sampah tele-vs-cli lokal & globa
     fs.writeFileSync(path.join(workDir, 'tele-worker.pid'), '999999');
     fs.writeFileSync(path.join(workDir, 'tele-worker.log'), 'old log');
     fs.writeFileSync(path.join(workDir, 'logs', 'tele-worker.log'), 'old log 2');
-    fs.writeFileSync(path.join(workDir, '.vscode', 'tele-vs-cli', 'logs', 'notify.log'), 'notify log');
 
     // Sampah global
     fs.writeFileSync(path.join(homeDir, '.tele-vs-cli', 'workspaces.json'), '[]');
@@ -70,7 +68,6 @@ test('Sampah - cleanTeleVsCliTrash membersihkan sampah tele-vs-cli lokal & globa
     assert.strictEqual(fs.existsSync(path.join(workDir, 'tele-worker.pid')), false);
     assert.strictEqual(fs.existsSync(path.join(workDir, 'tele-worker.log')), false);
     assert.strictEqual(fs.existsSync(path.join(workDir, 'logs', 'tele-worker.log')), false);
-    assert.strictEqual(fs.existsSync(path.join(workDir, '.vscode', 'tele-vs-cli', 'logs')), false);
     assert.strictEqual(fs.existsSync(path.join(homeDir, '.tele-vs-cli')), false);
     assert.strictEqual(fs.existsSync(path.join(homeDir, '.config', 'tele-notify')), false);
     assert.strictEqual(fs.existsSync(path.join(localAppData, 'tele-vs-cli')), false);

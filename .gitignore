@@ -4,7 +4,6 @@ node_modules/
 # Logs & Runtime PIDs
 *.log
 logs/
-.vscode/kerakerja/logs/
 *.pid
 tele-worker.pid
 kerakerja-worker.pid
@@ -16,7 +15,6 @@ config.env
 *.env
 kerakerja.config.json
 tele.config.json
-.vscode/**/config.env
 
 # Runtime attachments & test artifacts
 attachments/

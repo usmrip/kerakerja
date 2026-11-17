@@ -1,20 +1,18 @@
-# 🚀 Tele-vs-CLI
+# 🚀 KeraKerja
 
-> **Headless Telegram & Remote AI Agent Runner (Zero VSIX)**  
-> Eksekusi perintah dan tugas AI Agent dari Telegram, Dashboard Web, atau Terminal tanpa perlu membuka aplikasi VS Code.
+> **Headless Telegram & Remote AI Agent Runner (CLI)**  
+> Eksekusi perintah dan tugas AI Agent dari Telegram, Dashboard Web, atau Terminal CLI secara headless.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18.0.0-green.svg)](https://nodejs.org/)
-[![VSIX Free](https://img.shields.io/badge/VSIX-None-blue.svg)](#arsitektur)
+[![CLI Native](https://img.shields.io/badge/CLI-Native-blue.svg)](#arsitektur)
 
 ---
 
-## 🌟 Mengapa Tele-vs-CLI?
+## 🌟 Mengapa KeraKerja?
 
-Pada versi sebelumnya (*tele-vs-cli*), eksekusi tugas AI Agent bergantung pada VS Code yang harus terbuka dengan ekstensi VSIX terpasang.
-
-**Tele-vs-CLI** hadir sebagai runner mandiri (**headless agent daemon**):
-- ⚡ **Zero VSIX Dependency:** Murni berjalan di Node.js CLI runtime tanpa ekstensi editor.
+**KeraKerja** hadir sebagai runner mandiri berbasis CLI (**headless agent daemon**) yang berjalan ringan langsung di terminal atau sebagai background service:
+- ⚡ **Pure Node.js CLI:** Murni berjalan di Node.js CLI runtime tanpa bergantung pada aplikasi editor.
 - 🐧 **Cocok untuk Server & VPS Headless:** Dapat berjalan di Linux server, Docker, Mac, maupun Windows background daemon.
 - 🤖 **Multi AI Agent:** Mendukung **Google Antigravity (`agy`)**, **Claude Code (`claude`)**, **Gemini CLI (`gemini`)**, **Codex (`codex`)**, dan **Cline (`cline`)**.
 - 🛡️ **Keamanan Tingkat Tinggi:** Perlindungan dari path traversal, penyaringan perintah sistem berbahaya (*dangerous command filter*), dan penyamaran token sensitif (*mask secrets*).
@@ -24,7 +22,7 @@ Pada versi sebelumnya (*tele-vs-cli*), eksekusi tugas AI Agent bergantung pada V
 
 ## 📦 Panduan Instalasi (Linux, Windows, macOS)
 
-Tele-vs-CLI menyediakan skrip instalasi otomatis untuk **Linux**, **Windows**, dan **macOS (OS X)**.
+KeraKerja menyediakan skrip instalasi otomatis untuk **Linux**, **Windows**, dan **macOS (OS X)**.
 
 ### 🐧 Linux & 🍎 macOS (OS X)
 

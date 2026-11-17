@@ -154,7 +154,6 @@ function cleanTeleVsCliTrash(options = {}) {
     removeFileItem(path.join(resolved, 'tele-worker.pid'), 'tele-worker.pid', scope, dryRun, items);
     removeFileItem(path.join(resolved, 'tele-worker.log'), 'tele-worker.log', scope, dryRun, items);
     removeFileItem(path.join(resolved, 'logs', 'tele-worker.log'), 'logs/tele-worker.log', scope, dryRun, items);
-    removeDirItem(path.join(resolved, '.vscode', 'tele-vs-cli', 'logs'), '.vscode/tele-vs-cli/logs', scope, dryRun, items);
 
     migrateOrDeleteLegacyConfig(
       path.join(resolved, 'kerakerja.config.json'),
