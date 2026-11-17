@@ -12,7 +12,8 @@ const {
   createSnapshot,
   listSnapshots,
   restoreSnapshot,
-  buildRestoreTelegramPayload
+  buildRestoreTelegramPayload,
+  formatSnapshotSuccessHtml
 } = require('../src/cli/commands/snapshot');
 
 test('Worker - parseSnapshotCommand dan parseRestoreCommand mem-parsing berbagai format', () => {
@@ -55,6 +56,11 @@ test('Snapshot & Restore - penomoran otomatis (-01, -02), lokasi sejajar snapsho
     assert.strictEqual(r1.ok, true);
     const s1 = createSnapshot({ workDir, baseCode: r1.baseCode, paramRes: r1.paramRes, projectId: 'prj_test' });
     assert.strictEqual(s1.meta.code, 'rilis-01');
+    const tgHtml = formatSnapshotSuccessHtml(s1);
+    assert.ok(tgHtml.includes('rilis-01'));
+    assert.ok(tgHtml.includes('Folder:'));
+    assert.ok(tgHtml.includes('File Snapshot:'));
+    assert.ok(tgHtml.includes('meta.json'));
     assert.strictEqual(s1.snapshotRoot, path.join(parentDir, 'snapshot-kerakerja'));
     assert.strictEqual(getSnapshotRoot(workDir), path.join(parentDir, 'snapshot-kerakerja'));
     assert.strictEqual(fs.existsSync(path.join(s1.snapshotDir, 'kode', 'app.js')), true);

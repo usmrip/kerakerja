@@ -489,14 +489,49 @@ function buildRestoreTelegramPayload(latest, projectId = '') {
   };
 }
 
+function listSnapshotArtifacts(snapshotDir) {
+  const items = [];
+  if (!snapshotDir || !fs.existsSync(snapshotDir)) return items;
+  try {
+    for (const entry of fs.readdirSync(snapshotDir, { withFileTypes: true })) {
+      if (entry.isFile()) {
+        items.push(entry.name);
+      } else if (entry.isDirectory()) {
+        const subDir = path.join(snapshotDir, entry.name);
+        if (entry.name === 'db') {
+          const sqliteDir = path.join(subDir, 'sqlite');
+          if (fs.existsSync(sqliteDir)) {
+            const dbFiles = findSqliteFiles(sqliteDir);
+            for (const f of dbFiles.slice(0, 5)) {
+              items.push(`db/sqlite/${f}`);
+            }
+          }
+          for (const f of fs.readdirSync(subDir)) {
+            if (f.endsWith('.sql')) items.push(`db/${f}`);
+          }
+        } else {
+          items.push(`${entry.name}/`);
+        }
+      }
+    }
+  } catch (e) {}
+  return items;
+}
+
 function formatSnapshotSuccessHtml(res) {
   const m = res.meta;
+  const artifacts = listSnapshotArtifacts(res.snapshotDir);
+  const fileLines = artifacts.length > 0
+    ? artifacts.map((f) => `• <code>${escapeTelegramHtml(f)}</code>`).join('\n')
+    : '• <code>meta.json</code>';
+
   return `📸 <b>SNAPSHOT BERHASIL DIBUAT</b>\n`
        + `🏷️ <b>Kode:</b> <code>${escapeTelegramHtml(m.code)}</code>\n`
        + `⚙️ <b>Parameter:</b> <code>${escapeTelegramHtml(m.params)}</code>\n`
-       + `📂 <b>Lokasi:</b> <code>${escapeTelegramHtml(res.snapshotDir)}</code>\n`
+       + `📁 <b>Folder:</b> <code>${escapeTelegramHtml(res.snapshotDir)}</code>\n`
        + `🕒 <b>Waktu:</b> ${escapeTelegramHtml(m.createdAt)}\n`
-       + `📊 <b>Isi:</b> Kode ${m.stats.kodeFiles} file | DB ${m.stats.dbFiles} file | Upload ${m.stats.uploadFiles} file (${formatBytes(m.stats.totalBytes)})`;
+       + `📊 <b>Ringkasan:</b> Kode ${m.stats.kodeFiles} file | DB ${m.stats.dbFiles} file | Upload ${m.stats.uploadFiles} file (${formatBytes(m.stats.totalBytes)})\n`
+       + `📄 <b>File Snapshot:</b>\n${fileLines}`;
 }
 
 function formatRestoreSuccessHtml(res) {

@@ -104,6 +104,17 @@ jangan ada sampah tele-vs-cli
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-0421
+- **Waktu:** 2026-11-17 07:00:01
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 3 menit 18 detik
+- **Instruksi:** Investigasi #TASK-84cb (error 500), perbaiki deteksi menu /sampah & /restore di Telegram, dan lengkapi info kode/folder/nama file snapshot di Telegram
+- **Status:** DONE
+- **Laporan Agent:** Investigasi #TASK-84cb (/restore HTTP 500 karena worker server biru masih versi lama), perbaiki info kode/folder/file snapshot di Telegram, tambahkan /snapshot & /restore ke getDefaultCommands + setMyCommands & group chat webhook.php. Lolos 79/79 test & php -l.
+
+
+
 ### [DONE] #TASK-bf9e
 - **Waktu:** 2026-11-17 06:42:21
 - **Pengirim:** IDE Chat
