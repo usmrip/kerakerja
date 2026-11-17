@@ -32,6 +32,7 @@ const {
   formatRestoreSuccessHtml
 } = require('../cli/commands/snapshot');
 const { buildInfoData, formatInfoTelegramHtml } = require('../cli/commands/info');
+const { buildWhereData, formatWhereTelegramHtml } = require('../cli/commands/where');
 const { sendTelegramHtml } = require('../utils/telegram');
 const {
   collectSysinfo,
@@ -104,6 +105,7 @@ function selectNextCliTask(tasks = [], workerId = null) {
       parseKillCommand(t.instruction) ||
       parseUpdateCommand(t.instruction) ||
       parseInfoCommand(t.instruction) ||
+      parseWhereCommand(t.instruction) ||
       parseSysinfoCommand(t.instruction) ||
       parseSampahCommand(t.instruction) ||
       parseSnapshotCommand(t.instruction) ||
@@ -195,6 +197,11 @@ function parseRestoreCommand(instruction) {
 function parseInfoCommand(instruction) {
   const text = String(instruction || '').trim();
   return /^\/info(?:@\w+)?(?:\s+.*)?$/i.test(text);
+}
+
+function parseWhereCommand(instruction) {
+  const text = String(instruction || '').trim();
+  return /^\/where(?:@\w+)?(?:\s+.*)?$/i.test(text);
 }
 
 function parseSysinfoCommand(instruction) {
@@ -310,8 +317,8 @@ class TeleWorker {
     if (this._restarting) return;
     this._restarting = true;
     try {
-      const scriptPath = path.join(__dirname, '..', '..', 'bin', 'tele.js');
-      const args = [scriptPath, 'restart'];
+      const scriptPath = path.join(__dirname, '..', '..', 'bin', 'kerakerja.js');
+      const args = [scriptPath, 'restart', '--force'];
       if (this.isManagedByMulti) args.push('--all');
       if (this.verbose) args.push('--verbose');
       const child = spawn(process.execPath, args, {
@@ -354,6 +361,9 @@ class TeleWorker {
     } else if (cmd === 'restart') {
       this.log(`🔄 Menerima perintah RESTART dari dashboard. Memulai ulang worker...`);
       await this.restartSelf();
+    } else if (cmd === 'wakeup') {
+      this.log(`🔔 Menerima perintah WAKEUP dari Telegram/Dashboard. Memeriksa antrean segera...`);
+      await this.checkAndProcessNextTask();
     } else if (cmd === 'set_timer') {
       const cmdData = (data.command_data && typeof data.command_data === 'object') ? data.command_data : {};
       const timerSec = Math.max(0, parseInt(cmdData.timer ?? data.task_agents_timer ?? 0, 10) || 0);
@@ -491,6 +501,11 @@ class TeleWorker {
 
     if (parseInfoCommand(pending.instruction)) {
       await this.handleInfoInstruction(pending);
+      return;
+    }
+
+    if (parseWhereCommand(pending.instruction)) {
+      await this.handleWhereInstruction(pending);
       return;
     }
 
@@ -736,6 +751,24 @@ class TeleWorker {
     }
   }
 
+  async handleWhereInstruction(task) {
+    this.log(`📂 Memproses perintah /where (#${task.id})...`);
+    try {
+      await this.api.startTask(task.id, this.workerId, this.config.agent);
+      const data = buildWhereData(this.workDir);
+      const tgRes = await sendTelegramHtml(this.config, formatWhereTelegramHtml(data));
+      const summary = `Direktori kerja aktif: ${data.workDir} (Proyek: ${data.projectId})`;
+      const extra = (tgRes && tgRes.ok) ? { skip_notify: '1' } : {};
+      await this.api.doneTask(task.id, summary, '', '', extra);
+      this.log(`✅ Info direktori kerja terkirim (#${task.id}): ${data.workDir}`);
+    } catch (e) {
+      this.log(`❌ Gagal memproses /where #${task.id}: ${e.message}`);
+      try {
+        await this.api.failTask(task.id, `Gagal memproses /where: ${e.message}`);
+      } catch (err) {}
+    }
+  }
+
   async handleKillInstruction(killTask, parsed) {
     this.log(`🛑 Memproses perintah /kill (#${killTask.id}): target=${parsed.targetTaskId || '(tidak disebutkan)'}`);
     try {
@@ -934,6 +967,7 @@ class TeleWorker {
 TeleWorker.parseKillCommand = parseKillCommand;
 TeleWorker.parseSampahCommand = parseSampahCommand;
 TeleWorker.parseInfoCommand = parseInfoCommand;
+TeleWorker.parseWhereCommand = parseWhereCommand;
 TeleWorker.parseSnapshotCommand = parseSnapshotCommand;
 TeleWorker.parseRestoreCommand = parseRestoreCommand;
 TeleWorker.parseSysinfoCommand = parseSysinfoCommand;

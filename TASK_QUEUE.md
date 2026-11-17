@@ -124,6 +124,17 @@ jangan ada sampah tele-vs-cli
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-bed5
+- **Waktu:** 2026-11-17 11:39:00
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 1 menit 55 detik
+- **Instruksi:** Tambahkan perintah Telegram /wakeup, /restart, /stop (worker control), /kill, dan /retry di webhook.php, helpers.php, dan worker.js
+- **Status:** DONE
+- **Laporan Agent:** Perintah Telegram /wakeup, /restart, /stop (worker control), /kill, dan /retry (beserta tombol inline cb:retry:) selesai dibuat di webhook.php, helpers.php (setMyCommands 31 perintah), dan worker.js (termasuk perbaikan bin/kerakerja.js di restartSelf + --force). Lolos 96/96 unit test & php -l.
+
+
+
 ### [DONE] #TASK-0d61
 - **Waktu:** 2026-11-17 11:31:32
 - **Pengirim:** IDE Chat

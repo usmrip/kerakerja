@@ -56,6 +56,11 @@ test('Worker Control - handleHeartbeatResponse menyinkronkan timer TASK_AGENTS.m
 
     await worker.stop();
     assert.strictEqual(worker.taskAgentsTimer, null);
+
+    let pollTriggered = false;
+    worker.checkAndProcessNextTask = async () => { pollTriggered = true; };
+    await worker.handleHeartbeatResponse({ status: 'ok', command: 'wakeup' });
+    assert.strictEqual(pollTriggered, true);
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
