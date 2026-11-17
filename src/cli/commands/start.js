@@ -6,7 +6,7 @@ const MultiProjectWorker = require('../../worker/multi_worker');
 const { loadConfig } = require('../../config/config');
 const { getGlobalDir, loadWorkspaces, registerWorkspace } = require('../../config/workspaces');
 
-const PID_FILE = 'tele-worker.pid';
+const PID_FILE = 'kerakerja-worker.pid';
 const MULTI_PID_FILE = 'multi-worker.pid';
 
 function isProjectConfigured(cfg) {
@@ -48,8 +48,8 @@ async function startCommand(args = []) {
     console.log(`🚀 Otomatis menjalankan Multi-Project Worker untuk ${mode.registeredCount} proyek terdaftar...\n`);
   } else if (!isAll && !mode.localConfigured) {
     console.error(`❌ Direktori '${cwd}' belum dikonfigurasi dan belum ada proyek di Multi-Project Registry.`);
-    console.error(`💡 Masuk ke folder proyek Anda (misal /a, /b) lalu jalankan 'tele init',`);
-    console.error(`   setelah itu jalankan 'tele start --all --daemon' (atau 'tele start --daemon' dari folder mana saja).`);
+    console.error(`💡 Masuk ke folder proyek Anda (misal /a, /b) lalu jalankan 'kerakerja init',`);
+    console.error(`   setelah itu jalankan 'kerakerja start --all --daemon' (atau 'kerakerja start --daemon' dari folder mana saja).`);
     process.exit(1);
   }
 
@@ -66,8 +66,8 @@ async function startCommand(args = []) {
     if (existingPid !== process.pid) {
       try {
         process.kill(existingPid, 0);
-        console.log(`⚠️ ${isAll ? 'Multi-Project Worker' : 'Tele-vs-CLI Worker'} sudah aktif dengan PID ${existingPid}.`);
-        console.log(`Gunakan 'tele stop${isAll ? ' --all' : ''}' untuk menghentikan terlebih dahulu.`);
+        console.log(`⚠️ ${isAll ? 'Multi-Project Worker' : 'KeraKerja Worker'} sudah aktif dengan PID ${existingPid}.`);
+        console.log(`Gunakan 'kerakerja stop${isAll ? ' --all' : ''}' untuk menghentikan terlebih dahulu.`);
         return;
       } catch (e) {
         fs.unlinkSync(pidPath);
@@ -83,7 +83,7 @@ async function startCommand(args = []) {
     const err = fs.openSync(logFile, 'a');
 
     const nodeBin = process.execPath;
-    const scriptPath = path.join(__dirname, '..', '..', '..', 'bin', 'tele.js');
+    const scriptPath = path.join(__dirname, '..', '..', '..', 'bin', 'kerakerja.js');
 
     const spawnArgs = [scriptPath, 'start'];
     if (isAll) spawnArgs.push('--all');
@@ -99,14 +99,14 @@ async function startCommand(args = []) {
     child.unref();
 
     fs.writeFileSync(pidPath, String(child.pid), 'utf-8');
-    console.log(`🚀 ${isAll ? 'Tele-vs-CLI Multi-Project Worker' : 'Tele-vs-CLI Worker'} berhasil dijalankan di background!`);
+    console.log(`🚀 ${isAll ? 'KeraKerja Multi-Project Worker' : 'KeraKerja Worker'} berhasil dijalankan di background!`);
     console.log(`📌 Process ID (PID) : ${child.pid}`);
     console.log(`📁 File Log         : ${logFile}`);
     if (isVerbose) {
       console.log(`🔍 Mode Verbose     : AKTIF (progres berjalan agent dicatat ke log)`);
     }
-    console.log(`💡 Ketik 'tele logs${isAll ? ' --all' : ''} -f' untuk memantau log secara real-time.`);
-    console.log(`💡 Ketik 'tele stop${isAll ? ' --all' : ''}' untuk menghentikan worker.`);
+    console.log(`💡 Ketik 'kerakerja logs${isAll ? ' --all' : ''} -f' untuk memantau log secara real-time.`);
+    console.log(`💡 Ketik 'kerakerja stop${isAll ? ' --all' : ''}' untuk menghentikan worker.`);
     return;
   }
 

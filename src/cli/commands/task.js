@@ -3,7 +3,7 @@ const { loadConfig } = require('../../config/config');
 
 async function taskCommand(args) {
   if (args.length === 0) {
-    console.log('Penggunaan: tele task "<instruksi>" [--agent <nama>] [--priority <NORMAL|HIGH>] [--verbose]');
+    console.log('Penggunaan: kerakerja task "<instruksi>" [--agent <nama>] [--priority <NORMAL|HIGH>] [--verbose]');
     return;
   }
 
@@ -54,7 +54,7 @@ async function taskCommand(args) {
       console.log(`   Status   : PENDING`);
       console.log(`   Executor : CLI (Headless Worker)`);
       if (isVerbose) console.log(`   Verbose  : AKTIF (menampilkan progres berjalan agent)`);
-      console.log(`\n💡 Pantau eksekusi dengan: tele status atau tele logs -f`);
+      console.log(`\n💡 Pantau eksekusi dengan: kerakerja status atau kerakerja logs -f`);
     } else {
       console.log(`\n⚠️ Respon server: ${JSON.stringify(data)}`);
     }

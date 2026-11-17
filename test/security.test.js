@@ -32,6 +32,6 @@ test('Security Guard - isDangerousSystemCommand mendeteksi perintah berbahaya', 
   assert.strictEqual(isDangerousSystemCommand('rm -rf /'), true);
   assert.strictEqual(isDangerousSystemCommand('Restart-Computer -Force'), true);
   assert.strictEqual(isDangerousSystemCommand('format c:'), true);
-  assert.strictEqual(isDangerousSystemCommand('node bin/tele.js start'), false);
+  assert.strictEqual(isDangerousSystemCommand('node bin/kerakerja.js start'), false);
   assert.strictEqual(isDangerousSystemCommand('buat fitur login jwt'), false);
 });

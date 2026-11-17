@@ -310,13 +310,13 @@ async function quotaCommand(args = []) {
   }
 
   console.log('==============================================================================');
-  console.log('🧠 STATUS KUOTA & AI AGENT AKTIF (TELE-VS-CLI)');
+  console.log('🧠 STATUS KUOTA & AI AGENT AKTIF (KERAKERJA)');
   console.log('==============================================================================');
 
   console.log(`\n🤖 AI Agent Terpilih : ${quotaPayload.agent.name} [${agentKey}]`);
   console.log(`📍 Path Binary Exec  : ${resolved ? resolved.binaryPath : '❌ Tidak ditemukan di PATH'}`);
   console.log(`🟢 Status Kesiapan   : ${isInstalled ? '✅ 100% SIAP & TERSEDIA' : '❌ Perlu diinstal'}`);
-  console.log(`⚡ Background Worker : ${workerPid ? `🟢 AKTIF (PID: ${workerPid})` : '⚪ MATI (Gunakan `tele start --daemon`)'}`);
+  console.log(`⚡ Background Worker : ${workerPid ? `🟢 AKTIF (PID: ${workerPid})` : '⚪ MATI (Gunakan `kerakerja start --daemon`)'}`);
   console.log(`🔍 Parameter Verbose : ✅ Didukung (--verbose / -v)`);
 
   if (agyQuota && agyQuota.groups.length > 0) {
@@ -364,8 +364,8 @@ async function quotaCommand(args = []) {
   console.log(`  • Server Biru Dashboard  : ${config.serverUrl} (${serverOk ? '✅ Terhubung' : '❌ ' + (serverError || 'Error')})`);
 
   console.log(`\n💡 TIPS PENGGUNAAN:`);
-  console.log(`  - Jalankan worker dengan live progress: tele start --verbose`);
-  console.log(`  - Kirim tugas dengan streaming log  : tele task "<instruksi>" --verbose`);
+  console.log(`  - Jalankan worker dengan live progress: kerakerja start --verbose`);
+  console.log(`  - Kirim tugas dengan streaming log  : kerakerja task "<instruksi>" --verbose`);
   console.log(`  - Cek dari Telegram                 : ketik /quota atau /model di chat bot`);
   console.log('==============================================================================\n');
 }

@@ -4,18 +4,18 @@ const { execSync } = require('child_process');
 const path = require('path');
 const quotaCommand = require('../src/cli/commands/quota');
 
-test('CLI - tele help berjalan dengan exit code 0 dan memuat quota serta verbose', () => {
-  const binPath = path.join(__dirname, '..', 'bin', 'tele.js');
+test('CLI - kerakerja help berjalan dengan exit code 0 dan memuat quota serta verbose', () => {
+  const binPath = path.join(__dirname, '..', 'bin', 'kerakerja.js');
   const out = execSync(`node "${binPath}" help`, { encoding: 'utf-8' });
-  assert.ok(out.includes('Tele-vs-CLI'));
+  assert.ok(out.includes('KeraKerja'));
   assert.ok(out.includes('doctor'));
   assert.ok(out.includes('start'));
   assert.ok(out.includes('quota'));
   assert.ok(out.includes('--verbose'));
 });
 
-test('CLI - tele quota --json menghasilkan struktur data kuota yang valid', () => {
-  const binPath = path.join(__dirname, '..', 'bin', 'tele.js');
+test('CLI - kerakerja quota --json menghasilkan struktur data kuota yang valid', () => {
+  const binPath = path.join(__dirname, '..', 'bin', 'kerakerja.js');
   const out = execSync(`node "${binPath}" quota --json`, { encoding: 'utf-8' });
   const data = JSON.parse(out);
   assert.ok(data.agent);
@@ -109,8 +109,8 @@ test('Installer - Skrip instalasi multi-OS (Linux, macOS, Windows) tersedia dan 
   assert.ok(psContent.includes('node scripts/install.js'));
 });
 
-test('CLI - tele queue --json menghasilkan format JSON valid', () => {
-  const binPath = path.join(__dirname, '..', 'bin', 'tele.js');
+test('CLI - kerakerja queue --json menghasilkan format JSON valid', () => {
+  const binPath = path.join(__dirname, '..', 'bin', 'kerakerja.js');
   const out = execSync(`node "${binPath}" queue --json`, { encoding: 'utf-8' });
   const data = JSON.parse(out);
   assert.ok(data.project);
@@ -119,8 +119,8 @@ test('CLI - tele queue --json menghasilkan format JSON valid', () => {
   assert.ok(Array.isArray(data.pending));
 });
 
-test('CLI - tele update --check dapat dijalankan dengan aman', () => {
-  const binPath = path.join(__dirname, '..', 'bin', 'tele.js');
+test('CLI - kerakerja update --check dapat dijalankan dengan aman', () => {
+  const binPath = path.join(__dirname, '..', 'bin', 'kerakerja.js');
   const out = execSync(`node "${binPath}" update --check`, { encoding: 'utf-8' });
-  assert.ok(out.includes('PEMBARUAN TELE-VS-CLI'));
+  assert.ok(out.includes('PEMBARUAN KERAKERJA'));
 });

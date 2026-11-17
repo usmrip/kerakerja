@@ -153,7 +153,7 @@ async function initCommand(args = []) {
   const appInfo = getAppInfo(rootDir);
 
   console.log('==============================================================================');
-  console.log('🚀 PENGATURAN AWAL TELE-VS-CLI (SETUP WIZARD)');
+  console.log('🚀 PENGATURAN AWAL KERAKERJA (SETUP WIZARD)');
   console.log('==============================================================================');
   console.log(`📦 Versi Aplikasi  : v${appInfo.version}${appInfo.commitHash ? ` (${appInfo.commitHash})` : ''}`);
   console.log(`🕒 Terakhir Update : ${appInfo.lastUpdateDate}`);
@@ -255,9 +255,9 @@ async function initCommand(args = []) {
   }
 
   console.log('\n💡 Langkah berikutnya:');
-  console.log('   - Jalankan `tele doctor` untuk mengecek kesiapan sistem lengkap.');
-  console.log('   - Jalankan `tele start --daemon` (1 proyek) atau `tele start --all --daemon` (semua proyek terdaftar).');
-  console.log('   - Kirim tugas dengan `tele task "instruksi..."`.\n');
+  console.log('   - Jalankan `kerakerja doctor` untuk mengecek kesiapan sistem lengkap.');
+  console.log('   - Jalankan `kerakerja start --daemon` (1 proyek) atau `kerakerja start --all --daemon` (semua proyek terdaftar).');
+  console.log('   - Kirim tugas dengan `kerakerja task "instruksi..."`.\n');
 }
 
 initCommand.askQuestion = askQuestion;

@@ -7,7 +7,7 @@ const { formatLocalTimestamp } = require('./time');
 
 /**
  * Mengambil informasi versi aplikasi dan tanggal pembaruan terakhir.
- * @param {string} rootDir Direktori root proyek Tele-vs-CLI
+ * @param {string} rootDir Direktori root proyek KeraKerja
  * @returns {{ version: string, commitHash: string, lastUpdateDate: string, hasGit: boolean }}
  */
 function getAppInfo(rootDir = path.resolve(__dirname, '..', '..')) {
@@ -120,7 +120,7 @@ function getProjectSwitchGuideLines(projectTag = '') {
     `   • Di Telegram  : Ketik /use <#tag>  (contoh: /use ${sampleTag})`,
     `   • Di Dashboard : Ketik <#tag> pada kolom perintah (contoh: ${sampleTag}), ATAU`,
     '                    klik dropdown proyek di Dashboard -> pilih proyek tujuan',
-    `   • Di Terminal  : Ketik tele use ${sampleTag}`
+    `   • Di Terminal  : Ketik kerakerja use ${sampleTag}`
   ];
 }
 
@@ -179,7 +179,7 @@ async function testCommunication(config, deps = {}) {
     const userHost = `${os.userInfo().username}@${os.hostname()}`;
     const tagDisplay = projectTag ? ` (#${projectTag})` : '';
     const testText =
-      `✅ <b>Test Komunikasi Tele-vs-CLI Berhasil!</b>\n\n` +
+      `✅ <b>Test Komunikasi KeraKerja Berhasil!</b>\n\n` +
       `💻 <b>Workstation:</b> <code>${userHost}</code>\n` +
       `🌐 <b>Dashboard:</b> Terhubung\n` +
       `🏢 <b>Proyek:</b> <code>${projectName}${tagDisplay}</code>\n\n` +

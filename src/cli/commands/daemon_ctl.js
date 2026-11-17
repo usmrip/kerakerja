@@ -3,7 +3,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 const { getGlobalDir } = require('../../config/workspaces');
 
-const PID_FILE = 'tele-worker.pid';
+const PID_FILE = 'kerakerja-worker.pid';
 const MULTI_PID_FILE = 'multi-worker.pid';
 
 function resolvePidFile(cwd, isAll = false) {

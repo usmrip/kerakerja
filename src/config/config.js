@@ -25,7 +25,12 @@ function loadEnvFile(filePath) {
 }
 
 function loadConfig(workDir = process.cwd()) {
-  const jsonConfigPath = path.join(workDir, 'tele.config.json');
+  const kerakerjaJsonPath = path.join(workDir, 'kerakerja.config.json');
+  const legacyJsonPath = path.join(workDir, 'tele.config.json');
+  const jsonConfigPath = fs.existsSync(kerakerjaJsonPath)
+    ? kerakerjaJsonPath
+    : (fs.existsSync(legacyJsonPath) ? legacyJsonPath : kerakerjaJsonPath);
+
   let jsonConfig = {};
   if (fs.existsSync(jsonConfigPath)) {
     try {
@@ -38,8 +43,8 @@ function loadConfig(workDir = process.cwd()) {
   const envCandidates = [
     path.join(workDir, 'config.env'),
     path.join(workDir, '.env'),
-    path.join(workDir, '.vscode', 'tele-vs-cli', 'config.env'),
-    path.join(workDir, '.vscode', 'tele-vs-code', 'config.env')
+    path.join(workDir, '.vscode', 'kerakerja', 'config.env'),
+    path.join(workDir, '.vscode', 'tele-vs-cli', 'config.env')
   ];
 
   let fileEnv = {};
@@ -104,7 +109,7 @@ function loadConfig(workDir = process.cwd()) {
 }
 
 function saveConfig(config, workDir = process.cwd()) {
-  const jsonConfigPath = path.join(workDir, 'tele.config.json');
+  const jsonConfigPath = path.join(workDir, 'kerakerja.config.json');
   fs.writeFileSync(jsonConfigPath, JSON.stringify(config, null, 2) + '\n', 'utf-8');
   return jsonConfigPath;
 }

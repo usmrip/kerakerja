@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# Tele-vs-CLI Uninstaller for Linux & macOS (OS X)
+# KeraKerja Uninstaller for Linux & macOS (OS X)
 # Usage:
 #   Local:  ./uninstall.sh [--yes] [--purge] [--dry-run]
 #   Remote: curl -fsSL https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/uninstall.sh | bash
@@ -9,11 +9,11 @@
 
 set -e
 
-INSTALL_DIR="${HOME}/.tele-vs-cli"
-BIN_LAUNCHER="${HOME}/.local/bin/tele"
+INSTALL_DIR="${HOME}/.kerakerja"
+BIN_LAUNCHER="${HOME}/.local/bin/kerakerja"
 
 echo "=============================================================================="
-echo "🧹 Tele-vs-CLI Uninstaller (Linux & macOS)"
+echo "🧹 KeraKerja Uninstaller (Linux & macOS)"
 echo "=============================================================================="
 
 # 1. Deteksi OS
@@ -60,35 +60,34 @@ else
     fi
 
     if [ "${OS_NAME}" = "Linux" ]; then
-        UNIT_FILE="${HOME}/.config/systemd/user/tele-vs-cli.service"
-        if [ -f "${UNIT_FILE}" ]; then
-            systemctl --user stop tele-vs-cli >/dev/null 2>&1 || true
-            systemctl --user disable tele-vs-cli >/dev/null 2>&1 || true
-            rm -f "${UNIT_FILE}"
-            systemctl --user daemon-reload >/dev/null 2>&1 || true
-            echo "✅ Layanan systemd tele-vs-cli dihapus."
-        fi
+        for SVC in "kerakerja" "tele-vs-cli"; do
+            UNIT_FILE="${HOME}/.config/systemd/user/${SVC}.service"
+            if [ -f "${UNIT_FILE}" ]; then
+                systemctl --user stop "${SVC}" >/dev/null 2>&1 || true
+                systemctl --user disable "${SVC}" >/dev/null 2>&1 || true
+                rm -f "${UNIT_FILE}"
+                systemctl --user daemon-reload >/dev/null 2>&1 || true
+                echo "✅ Layanan systemd ${SVC} dihapus."
+            fi
+        done
     elif [ "${OS_NAME}" = "macOS" ]; then
-        PLIST_FILE="${HOME}/Library/LaunchAgents/com.usmrip.tele-vs-cli.plist"
-        if [ -f "${PLIST_FILE}" ]; then
-            launchctl unload "${PLIST_FILE}" >/dev/null 2>&1 || true
-            rm -f "${PLIST_FILE}"
-            echo "✅ Layanan launchd com.usmrip.tele-vs-cli dihapus."
-        fi
+        for PLIST in "com.usmrip.kerakerja.plist" "com.usmrip.tele-vs-cli.plist"; do
+            PLIST_FILE="${HOME}/Library/LaunchAgents/${PLIST}"
+            if [ -f "${PLIST_FILE}" ]; then
+                launchctl unload "${PLIST_FILE}" >/dev/null 2>&1 || true
+                rm -f "${PLIST_FILE}"
+                echo "✅ Layanan launchd ${PLIST} dihapus."
+            fi
+        done
     fi
 
-    if [ -f "${BIN_LAUNCHER}" ]; then
-        rm -f "${BIN_LAUNCHER}"
-        echo "✅ Launcher dihapus: ${BIN_LAUNCHER}"
-    fi
+    rm -f "${BIN_LAUNCHER}" "${HOME}/.local/bin/tele"
+    echo "✅ Launcher dihapus: ${BIN_LAUNCHER}"
 
-    if [ -d "${INSTALL_DIR}" ]; then
-        cd "${HOME}"
-        rm -rf "${INSTALL_DIR}"
-        echo "✅ Direktori instalasi dihapus: ${INSTALL_DIR}"
-    fi
+    rm -rf "${INSTALL_DIR}" "${HOME}/.tele-vs-cli"
+    echo "✅ Direktori instalasi dihapus: ${INSTALL_DIR}"
 
     echo "=============================================================================="
-    echo "✅ Tele-vs-CLI Berhasil Dicopot!"
+    echo "✅ KeraKerja Berhasil Dicopot!"
     echo "=============================================================================="
 fi

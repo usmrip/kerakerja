@@ -32,7 +32,7 @@ class ApiClient {
           path: fullUrl.pathname + fullUrl.search,
           method: method.toUpperCase(),
           headers: {
-            'User-Agent': 'TeleVsCli/1.0.0 (Node.js/Headless)',
+            'User-Agent': 'KeraKerja/1.0.0 (Node.js/Headless)',
             'Accept': 'application/json'
           },
           timeout: 15000

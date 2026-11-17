@@ -103,14 +103,14 @@ test('CLI - parseKillArgs mem-parsing taskId, --reason, dan --force', () => {
   });
 });
 
-test('CLI - tele help menampilkan kill dan tele kill tanpa argumen menampilkan panduan', () => {
-  const binPath = path.join(__dirname, '..', 'bin', 'tele.js');
+test('CLI - kerakerja help menampilkan kill dan kerakerja kill tanpa argumen menampilkan panduan', () => {
+  const binPath = path.join(__dirname, '..', 'bin', 'kerakerja.js');
   const helpOut = execSync(`node "${binPath}" help`, { encoding: 'utf-8' });
   assert.ok(helpOut.includes('kill <task_id>'));
 
   const killOut = execSync(`node "${binPath}" kill`, { encoding: 'utf-8' });
-  assert.ok(killOut.includes('Penggunaan: tele kill <task_id>'));
+  assert.ok(killOut.includes('Penggunaan: kerakerja kill <task_id>'));
 
   const slashKillOut = execSync(`node "${binPath}" /kill`, { encoding: 'utf-8' });
-  assert.ok(slashKillOut.includes('Penggunaan: tele kill <task_id>'));
+  assert.ok(slashKillOut.includes('Penggunaan: kerakerja kill <task_id>'));
 });

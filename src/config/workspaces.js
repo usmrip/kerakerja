@@ -4,12 +4,12 @@ const path = require('path');
 
 function getGlobalDir(customHome) {
   const home = customHome || os.homedir();
-  return path.join(home, '.tele-vs-cli');
+  return path.join(home, '.kerakerja');
 }
 
 function getGlobalWorkspacesPath(customHome) {
-  if (!customHome && process.env.TELE_WORKSPACES_FILE) {
-    return process.env.TELE_WORKSPACES_FILE;
+  if (!customHome && (process.env.KERAKERJA_WORKSPACES_FILE || process.env.TELE_WORKSPACES_FILE)) {
+    return process.env.KERAKERJA_WORKSPACES_FILE || process.env.TELE_WORKSPACES_FILE;
   }
   return path.join(getGlobalDir(customHome), 'workspaces.json');
 }

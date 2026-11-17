@@ -1,19 +1,20 @@
 {
-  "name": "tele-vs-cli",
+  "name": "kerakerja",
   "version": "1.0.0",
-  "description": "Tele-vs-CLI: Headless Telegram & Remote AI Agent Runner (Zero VSIX)",
+  "description": "KeraKerja: Headless Telegram & Remote AI Agent Runner (Zero VSIX)",
   "main": "src/cli/index.js",
   "bin": {
-    "tele": "./bin/tele.js"
+    "kerakerja": "./bin/kerakerja.js"
   },
   "scripts": {
-    "start": "node bin/tele.js start",
+    "start": "node bin/kerakerja.js start",
     "test": "node --test test/**/*.test.js",
-    "doctor": "node bin/tele.js doctor",
+    "doctor": "node bin/kerakerja.js doctor",
     "install-cli": "node scripts/install.js",
     "uninstall-cli": "node scripts/uninstall.js"
   },
   "keywords": [
+    "kerakerja",
     "telegram",
     "ai-agent",
     "headless",

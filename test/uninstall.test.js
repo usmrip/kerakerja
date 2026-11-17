@@ -33,7 +33,7 @@ test('Uninstaller - Skrip uninstall multi-OS (Linux, macOS, Windows) tersedia da
   const psContent = fs.readFileSync(psPath, 'utf-8');
   assert.ok(psContent.includes('TargetDir'));
   assert.ok(psContent.includes('scripts\\uninstall.js'));
-  assert.ok(psContent.includes('TeleVsCliWorker'));
+  assert.ok(psContent.includes('KeraKerjaWorker'));
 
   const cmdContent = fs.readFileSync(cmdPath, 'utf-8');
   assert.ok(cmdContent.includes('uninstall.ps1'));
@@ -63,7 +63,7 @@ test('Uninstaller - parseUninstallArgs mem-parsing opsi CLI dengan benar', () =>
 });
 
 test('Uninstaller - removeDirFromWindowsPath menghapus entri PATH secara aman', () => {
-  const target = 'C:\\Users\\iam\\AppData\\Local\\tele-vs-cli\\bin';
+  const target = 'C:\\Users\\iam\\AppData\\Local\\kerakerja\\bin';
   const input = `C:\\Windows\\System32;${target}\\;C:\\Program Files\\nodejs`;
   const res = removeDirFromWindowsPath(input, target);
 
@@ -77,24 +77,24 @@ test('Uninstaller - removeDirFromWindowsPath menghapus entri PATH secara aman', 
 
 test('Uninstaller - getInstallPaths mengembalikan path sesuai OS (win32, linux, darwin)', () => {
   const winPaths = getInstallPaths('win32', 'C:\\Users\\test', 'C:\\Users\\test\\AppData\\Local');
-  assert.strictEqual(winPaths.serviceName, 'TeleVsCliWorker');
-  assert.ok(winPaths.appDir.endsWith(path.join('tele-vs-cli', 'app')));
+  assert.strictEqual(winPaths.serviceName, 'KeraKerjaWorker');
+  assert.ok(winPaths.appDir.endsWith(path.join('kerakerja', 'app')));
   assert.strictEqual(winPaths.launchers.length, 4);
 
   const linuxPaths = getInstallPaths('linux', '/home/test');
-  assert.strictEqual(linuxPaths.appDir, path.join('/home/test', '.tele-vs-cli'));
-  assert.strictEqual(linuxPaths.launchers[0], path.join('/home/test', '.local', 'bin', 'tele'));
-  assert.ok(linuxPaths.systemdUnit.endsWith('tele-vs-cli.service'));
+  assert.strictEqual(linuxPaths.appDir, path.join('/home/test', '.kerakerja'));
+  assert.strictEqual(linuxPaths.launchers[0], path.join('/home/test', '.local', 'bin', 'kerakerja'));
+  assert.ok(linuxPaths.systemdUnit.endsWith('kerakerja.service'));
 
   const macPaths = getInstallPaths('darwin', '/Users/test');
-  assert.strictEqual(macPaths.appDir, path.join('/Users/test', '.tele-vs-cli'));
-  assert.ok(macPaths.launchdPlist.endsWith('com.usmrip.tele-vs-cli.plist'));
+  assert.strictEqual(macPaths.appDir, path.join('/Users/test', '.kerakerja'));
+  assert.ok(macPaths.launchdPlist.endsWith('com.usmrip.kerakerja.plist'));
 });
 
 test('Uninstaller - scripts/uninstall.js --help dan --dry-run berjalan sukses', () => {
   const nodePath = path.join(__dirname, '..', 'scripts', 'uninstall.js');
   const helpOut = execSync(`node "${nodePath}" --help`, { encoding: 'utf-8' });
-  assert.ok(helpOut.includes('Tele-vs-CLI Universal Uninstaller'));
+  assert.ok(helpOut.includes('KeraKerja Universal Uninstaller'));
   assert.ok(helpOut.includes('--purge'));
   assert.ok(helpOut.includes('--dry-run'));
 
@@ -103,17 +103,17 @@ test('Uninstaller - scripts/uninstall.js --help dan --dry-run berjalan sukses', 
   assert.ok(dryOut.includes('Simulasi Uninstall Selesai'));
 });
 
-test('CLI - tele help menampilkan perintah uninstall', () => {
-  const binPath = path.join(__dirname, '..', 'bin', 'tele.js');
+test('CLI - kerakerja help menampilkan perintah uninstall', () => {
+  const binPath = path.join(__dirname, '..', 'bin', 'kerakerja.js');
   const out = execSync(`node "${binPath}" help`, { encoding: 'utf-8' });
   assert.ok(out.includes('uninstall'));
   assert.ok(out.includes('--uninstall'));
 });
 
-test('CLI - tele --uninstall --dry-run dan --help berjalan sukses, serta wajib konfirmasi jika tanpa --yes', () => {
-  const binPath = path.join(__dirname, '..', 'bin', 'tele.js');
+test('CLI - kerakerja --uninstall --dry-run dan --help berjalan sukses, serta wajib konfirmasi jika tanpa --yes', () => {
+  const binPath = path.join(__dirname, '..', 'bin', 'kerakerja.js');
   const helpOut = execSync(`node "${binPath}" --uninstall --help`, { encoding: 'utf-8' });
-  assert.ok(helpOut.includes('Tele-vs-CLI Universal Uninstaller'));
+  assert.ok(helpOut.includes('KeraKerja Universal Uninstaller'));
 
   const dryOut = execSync(`node "${binPath}" --uninstall --dry-run`, { encoding: 'utf-8' });
   assert.ok(dryOut.includes('DRY-RUN'));
@@ -131,18 +131,18 @@ test('CLI - tele --uninstall --dry-run dan --help berjalan sukses, serta wajib k
   assert.strictEqual(failed, true);
 });
 
-test('Uninstaller - cleanWorkspaces menghapus file Tele-vs-CLI di semua workspace tanpa menyentuh file proyek user', () => {
+test('Uninstaller - cleanWorkspaces menghapus file KeraKerja di semua workspace tanpa menyentuh file proyek user', () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tele-clean-ws-'));
   const dirA = path.join(tmpDir, 'a');
   const dirB = path.join(tmpDir, 'b');
   fs.mkdirSync(path.join(dirA, 'logs'), { recursive: true });
   fs.mkdirSync(path.join(dirB, 'logs'), { recursive: true });
 
-  // File milik Tele-vs-CLI
-  fs.writeFileSync(path.join(dirA, 'tele.config.json'), '{}');
-  fs.writeFileSync(path.join(dirA, 'tele-worker.pid'), '99999');
+  // File milik KeraKerja
+  fs.writeFileSync(path.join(dirA, 'kerakerja.config.json'), '{}');
+  fs.writeFileSync(path.join(dirA, 'kerakerja-worker.pid'), '99999');
   fs.writeFileSync(path.join(dirA, 'logs', 'worker.log'), 'log');
-  fs.writeFileSync(path.join(dirB, 'tele.config.json'), '{}');
+  fs.writeFileSync(path.join(dirB, 'kerakerja.config.json'), '{}');
 
   // File proyek user (tidak boleh terhapus)
   fs.writeFileSync(path.join(dirA, 'index.js'), 'console.log("app a")');
@@ -151,10 +151,10 @@ test('Uninstaller - cleanWorkspaces menghapus file Tele-vs-CLI di semua workspac
   const summary = [];
   cleanWorkspaces([dirA, dirB], false, summary);
 
-  assert.strictEqual(fs.existsSync(path.join(dirA, 'tele.config.json')), false);
-  assert.strictEqual(fs.existsSync(path.join(dirA, 'tele-worker.pid')), false);
+  assert.strictEqual(fs.existsSync(path.join(dirA, 'kerakerja.config.json')), false);
+  assert.strictEqual(fs.existsSync(path.join(dirA, 'kerakerja-worker.pid')), false);
   assert.strictEqual(fs.existsSync(path.join(dirA, 'logs')), false);
-  assert.strictEqual(fs.existsSync(path.join(dirB, 'tele.config.json')), false);
+  assert.strictEqual(fs.existsSync(path.join(dirB, 'kerakerja.config.json')), false);
 
   assert.strictEqual(fs.existsSync(path.join(dirA, 'index.js')), true);
   assert.strictEqual(fs.existsSync(path.join(dirB, 'README.md')), true);

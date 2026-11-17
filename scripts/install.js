@@ -73,7 +73,7 @@ async function runInstaller() {
   const appInfo = getAppInfo(rootDir);
 
   console.log('==============================================================================');
-  console.log('🚀 Memulai Pemasangan Tele-vs-CLI (Linux / Windows / macOS)');
+  console.log('🚀 Memulai Pemasangan KeraKerja (Linux / Windows / macOS)');
   console.log('==============================================================================');
   console.log(`📦 Versi Aplikasi    : v${appInfo.version}${appInfo.commitHash ? ` (${appInfo.commitHash})` : ''}`);
   console.log(`🕒 Terakhir Update   : ${appInfo.lastUpdateDate}`);
@@ -86,7 +86,7 @@ async function runInstaller() {
   console.log(`📌 Versi Node.js     : v${nodeVersion}`);
 
   if (majorVersion < 18) {
-    console.error(`\n❌ Versi Node.js terlalu lama! Tele-vs-CLI memerlukan Node.js versi >= 18.0.0.`);
+    console.error(`\n❌ Versi Node.js terlalu lama! KeraKerja memerlukan Node.js versi >= 18.0.0.`);
     process.exit(1);
   }
 
@@ -126,7 +126,7 @@ async function runInstaller() {
     }
   }
 
-  const binScript = path.join(rootDir, 'bin', 'tele.js');
+  const binScript = path.join(rootDir, 'bin', 'kerakerja.js');
   if (!fs.existsSync(binScript)) {
     console.error(`\n❌ File eksekusi utama tidak ditemukan: ${binScript}`);
     process.exit(1);
@@ -145,24 +145,31 @@ async function runInstaller() {
   // 3. Tentukan Direktori Launcher Berdasarkan Sistem Operasi
   if (process.platform === 'win32') {
     const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
-    targetBinDir = path.join(localAppData, 'tele-vs-cli', 'bin');
+    targetBinDir = path.join(localAppData, 'kerakerja', 'bin');
     if (!fs.existsSync(targetBinDir)) {
       fs.mkdirSync(targetBinDir, { recursive: true });
     }
 
-    launcherPath = path.join(targetBinDir, 'tele.cmd');
+    launcherPath = path.join(targetBinDir, 'kerakerja.cmd');
     const cmdContent = `@echo off\r\nnode "${binScript}" %*\r\n`;
     fs.writeFileSync(launcherPath, cmdContent, 'utf-8');
 
     // Buat juga bash shim (untuk Git Bash / MSYS2 / WSL)
-    const bashShimPath = path.join(targetBinDir, 'tele');
+    const bashShimPath = path.join(targetBinDir, 'kerakerja');
     const bashContent = `#!/usr/bin/env bash\nexec node "${binScript.replace(/\\/g, '/')}" "$@"\n`;
     fs.writeFileSync(bashShimPath, bashContent, 'utf-8');
 
-    // Hapus tele.ps1 lama agar PowerShell menjalankan tele.cmd (bebas blokir ExecutionPolicy Restricted)
-    const legacyPs1Path = path.join(targetBinDir, 'tele.ps1');
-    if (fs.existsSync(legacyPs1Path)) {
-      try { fs.unlinkSync(legacyPs1Path); } catch (e) {}
+    // Hapus kerakerja.ps1 / legacy tele-vs-cli jika masih ada agar bebas blokir ExecutionPolicy Restricted
+    for (const oldFile of [
+      path.join(targetBinDir, 'kerakerja.ps1'),
+      path.join(localAppData, 'tele-vs-cli', 'bin', 'tele.cmd'),
+      path.join(localAppData, 'tele-vs-cli', 'bin', 'tele.ps1'),
+      path.join(localAppData, 'tele-vs-cli', 'bin', 'tele'),
+      path.join(localAppData, 'tele-vs-cli', 'bin', 'start-hidden.vbs')
+    ]) {
+      if (fs.existsSync(oldFile)) {
+        try { fs.unlinkSync(oldFile); } catch (e) {}
+      }
     }
 
     // Periksa & tambahkan targetBinDir ke User PATH Windows secara aman
@@ -188,12 +195,18 @@ async function runInstaller() {
       fs.mkdirSync(targetBinDir, { recursive: true });
     }
 
-    launcherPath = path.join(targetBinDir, 'tele');
+    launcherPath = path.join(targetBinDir, 'kerakerja');
     const shContent = `#!/usr/bin/env bash\nexec node "${binScript}" "$@"\n`;
     fs.writeFileSync(launcherPath, shContent, 'utf-8');
     try {
       fs.chmodSync(launcherPath, 0o755);
     } catch (e) {}
+
+    // Hapus launcher lama tele jika ada
+    const legacyTele = path.join(targetBinDir, 'tele');
+    if (fs.existsSync(legacyTele)) {
+      try { fs.unlinkSync(legacyTele); } catch (e) {}
+    }
 
     // Cek apakah targetBinDir sudah ada di PATH
     const currentPathEnv = process.env.PATH || '';
@@ -218,8 +231,8 @@ async function runInstaller() {
   console.log(`\n✅ Launcher CLI berhasil dipasang di:`);
   console.log(`   👉 ${launcherPath}`);
 
-  // 4. Jalankan Diagnostik Awal (tele doctor)
-  console.log('\n🔎 Menjalankan diagnostik otomatis (tele doctor)...\n');
+  // 4. Jalankan Diagnostik Awal (kerakerja doctor)
+  console.log('\n🔎 Menjalankan diagnostik otomatis (kerakerja doctor)...\n');
   try {
     execSync(`node "${binScript}" doctor`, { stdio: 'inherit' });
   } catch (e) {
@@ -256,7 +269,7 @@ async function runInstaller() {
   }
 
   console.log('\n==============================================================================');
-  console.log('🎉 Pemasangan Tele-vs-CLI Berhasil!');
+  console.log('🎉 Pemasangan KeraKerja Berhasil!');
   console.log('==============================================================================');
   console.log('📌 PENTING — Daftarkan Proyek Terlebih Dahulu di Website:');
   console.log('   👉 Buka Dashboard Website (https://biru.co.id/kerakerja/)');
@@ -264,9 +277,9 @@ async function runInstaller() {
   console.log('');
   console.log('💡 Langkah Selanjutnya:');
   console.log('   1. Buka terminal baru atau muat ulang shell.');
-  console.log('   2. Ketik: tele init                  (Setup & daftarkan folder proyek ke registry global)');
-  console.log('   3. Ketik: tele start --all --daemon  (Jalankan 1 worker untuk semua proyek terdaftar)');
-  console.log('   4. Ketik: tele usage / tele quota    (Melihat kuota & kesiapan model AI)');
+  console.log('   2. Ketik: kerakerja init                  (Setup & daftarkan folder proyek ke registry global)');
+  console.log('   3. Ketik: kerakerja start --all --daemon  (Jalankan 1 worker untuk semua proyek terdaftar)');
+  console.log('   4. Ketik: kerakerja usage / kerakerja quota (Melihat kuota & kesiapan model AI)');
   console.log('');
   for (const line of getProjectSwitchGuideLines(commResult ? commResult.projectTag : '')) {
     console.log(line);

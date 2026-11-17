@@ -316,7 +316,7 @@ class TeleWorker {
 
   async start() {
     this.running = true;
-    this.log(`Tele-vs-CLI Worker dimulai.`);
+    this.log(`KeraKerja Worker dimulai.`);
     this.log(`Target Server : ${this.config.serverUrl}`);
     this.log(`Project ID    : ${this.config.projectId}`);
     this.log(`Agent CLI     : ${this.config.agent}`);
@@ -439,7 +439,7 @@ class TeleWorker {
       if (localCommit && remoteCommit && localCommit !== remoteCommit) {
         this.log(`🔄 [AUTO-UPDATE] Terdeteksi versi baru di remote (${remoteCommit.substring(0, 7)}). Mengunduh pembaruan otomatis...`);
         execSync('git pull origin main', { cwd: rootDir, stdio: 'ignore', timeout: 15000 });
-        this.log(`✅ [AUTO-UPDATE] Tele-vs-CLI berhasil diperbarui otomatis ke commit ${remoteCommit.substring(0, 7)}!`);
+        this.log(`✅ [AUTO-UPDATE] KeraKerja berhasil diperbarui otomatis ke commit ${remoteCommit.substring(0, 7)}!`);
       }
     } catch (e) {
       // Abaikan jika offline / git error

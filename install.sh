@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# Tele-vs-CLI Installer for Linux & macOS (OS X)
+# KeraKerja Installer for Linux & macOS (OS X)
 # Usage:
 #   Local:  ./install.sh
 #   Remote: curl -fsSL https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/install.sh | bash
@@ -10,10 +10,10 @@
 set -e
 
 REPO_URL="https://github.com/usmrip/tele-vs-cli.git"
-INSTALL_DIR="${HOME}/.tele-vs-cli"
+INSTALL_DIR="${HOME}/.kerakerja"
 
 echo "=============================================================================="
-echo "🚀 Tele-vs-CLI Installer (Linux & macOS)"
+echo "🚀 KeraKerja Installer (Linux & macOS)"
 echo "=============================================================================="
 
 # 1. Deteksi OS
@@ -71,7 +71,7 @@ if [ -n "${BASH_SOURCE[0]}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 fi
 
-if [ -n "${SCRIPT_DIR}" ] && [ -f "${SCRIPT_DIR}/bin/tele.js" ]; then
+if [ -n "${SCRIPT_DIR}" ] && [ -f "${SCRIPT_DIR}/bin/kerakerja.js" ]; then
     TARGET_DIR="${SCRIPT_DIR}"
     echo "📌 Menggunakan direktori lokal: ${TARGET_DIR}"
 else
@@ -81,7 +81,7 @@ else
         echo "Memperbarui repositori yang sudah ada..."
         cd "${TARGET_DIR}" && git pull origin main || true
     else
-        echo "Mengunduh Tele-vs-CLI dari GitHub..."
+        echo "Mengunduh KeraKerja dari GitHub..."
         mkdir -p "${TARGET_DIR}"
         git clone "${REPO_URL}" "${TARGET_DIR}"
     fi

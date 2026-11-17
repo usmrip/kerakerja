@@ -65,7 +65,7 @@ async function queueCommand(args = []) {
         console.log(`  ${i + 1}. [#${t.id}]${prio} "${t.instruction}"`);
       }
       if (!showAll && pending.length > 10) {
-        console.log(`  ...dan ${pending.length - 10} tugas lainnya (gunakan 'tele queue --all' untuk melihat semua).`);
+        console.log(`  ...dan ${pending.length - 10} tugas lainnya (gunakan 'kerakerja queue --all' untuk melihat semua).`);
       }
       console.log('');
     }
@@ -82,9 +82,9 @@ async function queueCommand(args = []) {
     console.log('------------------------------------------------------------------------------');
     console.log(`📊 Statistik Ringkasan: ⚡ ${inProgress.length} proses | ⏳ ${pending.length} antre | ✅ ${done.length} selesai | ❌ ${failed.length} gagal`);
     console.log('💡 Tips:');
-    console.log('  - Kirim tugas baru : tele task "<instruksi>" [--verbose]');
-    console.log('  - Batalkan tugas    : tele cancel <task_id>');
-    console.log('  - Hentikan paksa    : tele kill <task_id>');
+    console.log('  - Kirim tugas baru : kerakerja task "<instruksi>" [--verbose]');
+    console.log('  - Batalkan tugas    : kerakerja cancel <task_id>');
+    console.log('  - Hentikan paksa    : kerakerja kill <task_id>');
     console.log('==============================================================================\n');
   } catch (err) {
     console.error(`❌ Gagal mengambil antrean tugas: ${err.message}`);

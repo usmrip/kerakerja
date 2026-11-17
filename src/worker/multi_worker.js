@@ -67,13 +67,13 @@ class MultiProjectWorker {
     if (workspaces.length === 0) {
       throw new Error(
         `Belum ada proyek terdaftar di ${this.workspacesFile}.\n` +
-        `Masuk ke masing-masing folder proyek lalu jalankan 'tele init' atau 'tele use <project_id>'.`
+        `Masuk ke masing-masing folder proyek lalu jalankan 'kerakerja init' atau 'kerakerja use <project_id>'.`
       );
     }
 
     this.running = true;
     this.log(`====================================================================`);
-    this.log(`Memulai Tele-vs-CLI Multi-Project Worker (${workspaces.length} proyek)`);
+    this.log(`Memulai KeraKerja Multi-Project Worker (${workspaces.length} proyek)`);
     this.log(`Registry: ${this.workspacesFile}`);
     this.log(`====================================================================`);
 

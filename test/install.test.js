@@ -7,8 +7,8 @@ const { getInstallPaths } = require('../scripts/uninstall');
 
 test('Installer - normalizeWinPathEntry menormalkan slash akhir dan huruf kapital', () => {
   assert.strictEqual(
-    normalizeWinPathEntry('C:\\Users\\Demo\\AppData\\Local\\tele-vs-cli\\bin\\'),
-    'c:\\users\\demo\\appdata\\local\\tele-vs-cli\\bin'
+    normalizeWinPathEntry('C:\\Users\\Demo\\AppData\\Local\\kerakerja\\bin\\'),
+    'c:\\users\\demo\\appdata\\local\\kerakerja\\bin'
   );
   assert.strictEqual(
     normalizeWinPathEntry('  C:/Users/Demo/AppData/Local/tele-vs-cli/bin/  '),
@@ -31,16 +31,16 @@ test('Installer - addDirToWindowsPath menambahkan direktori baru dan mencegah du
     return '';
   };
 
-  const target = 'C:\\Users\\iam\\AppData\\Local\\tele-vs-cli\\bin';
+  const target = 'C:\\Users\\iam\\AppData\\Local\\kerakerja\\bin';
   const res1 = addDirToWindowsPath(target, mockExec);
   assert.strictEqual(res1.added, true);
-  assert.strictEqual(writtenEnv, 'C:\\Windows\\System32;C:\\Program Files\\nodejs;C:\\Users\\iam\\AppData\\Local\\tele-vs-cli\\bin');
+  assert.strictEqual(writtenEnv, 'C:\\Windows\\System32;C:\\Program Files\\nodejs;C:\\Users\\iam\\AppData\\Local\\kerakerja\\bin');
   assert.strictEqual(callCount, 2);
 
   // Jika sudah ada (dengan trailing slash & beda huruf besar/kecil), jangan duplikasi
   const mockExecExisting = (cmd) => {
     if (cmd.includes('GetEnvironmentVariable')) {
-      return 'C:\\Windows\\System32;c:\\users\\iam\\appdata\\local\\tele-vs-cli\\bin\\';
+      return 'C:\\Windows\\System32;c:\\users\\iam\\appdata\\local\\kerakerja\\bin\\';
     }
     throw new Error('SetEnvironmentVariable tidak boleh dipanggil jika sudah ada');
   };
@@ -51,23 +51,23 @@ test('Installer - addDirToWindowsPath menambahkan direktori baru dan mencegah du
 test('Installer - install.ps1 me-refresh $env:Path sesi PowerShell setelah instalasi', () => {
   const ps1 = fs.readFileSync(path.join(__dirname, '..', 'install.ps1'), 'utf-8');
   assert.ok(ps1.includes('$env:Path ='));
-  assert.ok(ps1.includes('tele-vs-cli\\bin'));
+  assert.ok(ps1.includes('kerakerja\\bin'));
 });
 
-test('Installer - scripts/install.js tidak membuat tele.ps1 agar aman dari ExecutionPolicy Restricted', () => {
+test('Installer - scripts/install.js tidak membuat kerakerja.ps1 agar aman dari ExecutionPolicy Restricted', () => {
   const src = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'install.js'), 'utf-8');
-  assert.ok(src.includes('legacyPs1Path'));
-  assert.ok(src.includes('fs.unlinkSync(legacyPs1Path)'));
+  assert.ok(src.includes('kerakerja.ps1'));
+  assert.ok(src.includes('fs.unlinkSync(oldFile)'));
 
   const winPaths = getInstallPaths('win32', 'C:\\Users\\Demo', 'C:\\Users\\Demo\\AppData\\Local');
-  assert.ok(winPaths.launchers.some(p => p.endsWith('tele.cmd')));
-  assert.ok(winPaths.launchers.some(p => p.endsWith('tele')));
+  assert.ok(winPaths.launchers.some(p => p.endsWith('kerakerja.cmd')));
+  assert.ok(winPaths.launchers.some(p => p.endsWith('kerakerja')));
 });
 
 test('Installer - install.cmd memperbarui PATH sesi CMD setelah endlocal', () => {
   const cmdSrc = fs.readFileSync(path.join(__dirname, '..', 'install.cmd'), 'utf-8');
   assert.ok(cmdSrc.includes('endlocal'));
-  assert.ok(cmdSrc.includes('tele-vs-cli\\bin'));
+  assert.ok(cmdSrc.includes('kerakerja\\bin'));
   assert.ok(cmdSrc.includes('set "PATH=%PATH%;%_TELE_BIN%"'));
 });
 

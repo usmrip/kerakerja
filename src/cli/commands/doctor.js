@@ -6,7 +6,7 @@ const ApiClient = require('../../api/client');
 
 async function doctorCommand(args) {
   console.log('==============================================================================');
-  console.log('🩺 DIAGNOSTIK KESEHATAN SISTEM TELE-VS-CLI');
+  console.log('🩺 DIAGNOSTIK KESEHATAN SISTEM KERAKERJA');
   console.log('==============================================================================');
 
   const cwd = process.cwd();

@@ -115,13 +115,13 @@ async function showMultiStatus(isJson, multiPid, workspacesFile = getGlobalWorks
   }
 
   console.log('==============================================================================');
-  console.log('📊 STATUS MULTI-PROYEK TELE-VS-CLI');
+  console.log('📊 STATUS MULTI-PROYEK KERAKERJA');
   console.log('==============================================================================');
-  console.log(`\n🤖 Multi-Project Worker : ${multiPid ? `🟢 AKTIF (PID: ${multiPid})` : '⚪ MATI (Gunakan `tele start --all --daemon`)'}`);
+  console.log(`\n🤖 Multi-Project Worker : ${multiPid ? `🟢 AKTIF (PID: ${multiPid})` : '⚪ MATI (Gunakan `kerakerja start --all --daemon`)'}`);
   console.log(`📂 Registry Global      : ${workspacesFile} (${results.length} proyek)`);
 
   if (results.length === 0) {
-    console.log('\n⚪ Belum ada proyek terdaftar. Masuk ke folder proyek (/a, /b) lalu jalankan `tele init`.');
+    console.log('\n⚪ Belum ada proyek terdaftar. Masuk ke folder proyek (/a, /b) lalu jalankan `kerakerja init`.');
   } else {
     console.log('\n🏢 Daftar Proyek Terdaftar:');
     for (let i = 0; i < results.length; i++) {
@@ -179,12 +179,12 @@ async function statusCommand(args = []) {
   }
 
   console.log('==============================================================================');
-  console.log('📊 STATUS SISTEM & ANTREAN TELE-VS-CLI');
+  console.log('📊 STATUS SISTEM & ANTREAN KERAKERJA');
   console.log('==============================================================================');
 
   const workerLabel = workerPid
     ? `🟢 AKTIF (PID: ${workerPid})`
-    : (multiPid ? `🟢 AKTIF via Multi-Project Worker (PID: ${multiPid})` : '⚪ MATI (Gunakan `tele start --daemon` / `tele start --all --daemon`)');
+    : (multiPid ? `🟢 AKTIF via Multi-Project Worker (PID: ${multiPid})` : '⚪ MATI (Gunakan `kerakerja start --daemon` / `kerakerja start --all --daemon`)');
   const prjDisplay = projectInfo && projectInfo.name
     ? `${projectInfo.name}${projectInfo.code ? ` (#${projectInfo.code})` : ''} [${config.projectId}]`
     : config.projectId;

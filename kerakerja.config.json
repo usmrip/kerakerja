@@ -1,0 +1,8 @@
+{
+  "serverUrl": "https://biru.co.id/kerakerja/",
+  "secret": "tvsc_ed2f972bf47fd5182a8fccc11f3febb2",
+  "projectId": "prj_e69443b6e6",
+  "agent": "agy",
+  "taskTimeout": 600000,
+  "pollInterval": 5000
+}

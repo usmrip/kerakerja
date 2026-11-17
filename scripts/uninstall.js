@@ -57,41 +57,48 @@ function removeDirFromWindowsPath(currentPath, targetDir) {
 function getInstallPaths(platform = process.platform, homeDir = os.homedir(), localAppData = process.env.LOCALAPPDATA) {
   if (platform === 'win32') {
     const baseAppData = localAppData || path.join(homeDir, 'AppData', 'Local');
-    const baseDir = path.join(baseAppData, 'tele-vs-cli');
+    const baseDir = path.join(baseAppData, 'kerakerja');
     return {
       baseDir,
       appDir: path.join(baseDir, 'app'),
       binDir: path.join(baseDir, 'bin'),
       launchers: [
-        path.join(baseDir, 'bin', 'tele.cmd'),
-        path.join(baseDir, 'bin', 'tele.ps1'),
-        path.join(baseDir, 'bin', 'tele'),
+        path.join(baseDir, 'bin', 'kerakerja.cmd'),
+        path.join(baseDir, 'bin', 'kerakerja.ps1'),
+        path.join(baseDir, 'bin', 'kerakerja'),
         path.join(baseDir, 'bin', 'start-hidden.vbs')
       ],
-      serviceName: 'TeleVsCliWorker'
+      serviceName: 'KeraKerjaWorker',
+      legacyBaseDir: path.join(baseAppData, 'tele-vs-cli'),
+      legacyBinDir: path.join(baseAppData, 'tele-vs-cli', 'bin'),
+      legacyServiceName: 'TeleVsCliWorker'
     };
   }
 
   return {
-    baseDir: path.join(homeDir, '.tele-vs-cli'),
-    appDir: path.join(homeDir, '.tele-vs-cli'),
+    baseDir: path.join(homeDir, '.kerakerja'),
+    appDir: path.join(homeDir, '.kerakerja'),
     binDir: path.join(homeDir, '.local', 'bin'),
-    launchers: [path.join(homeDir, '.local', 'bin', 'tele')],
-    systemdUnit: path.join(homeDir, '.config', 'systemd', 'user', 'tele-vs-cli.service'),
-    launchdPlist: path.join(homeDir, 'Library', 'LaunchAgents', 'com.usmrip.tele-vs-cli.plist')
+    launchers: [path.join(homeDir, '.local', 'bin', 'kerakerja')],
+    systemdUnit: path.join(homeDir, '.config', 'systemd', 'user', 'kerakerja.service'),
+    launchdPlist: path.join(homeDir, 'Library', 'LaunchAgents', 'com.usmrip.kerakerja.plist'),
+    legacyBaseDir: path.join(homeDir, '.tele-vs-cli'),
+    legacyLaunchers: [path.join(homeDir, '.local', 'bin', 'tele')],
+    legacySystemdUnit: path.join(homeDir, '.config', 'systemd', 'user', 'tele-vs-cli.service'),
+    legacyLaunchdPlist: path.join(homeDir, 'Library', 'LaunchAgents', 'com.usmrip.tele-vs-cli.plist')
   };
 }
 
 function printUsage() {
   console.log(`
-Tele-vs-CLI Universal Uninstaller (Linux / macOS / Windows)
+KeraKerja Universal Uninstaller (Linux / macOS / Windows)
 
 Penggunaan:
   node scripts/uninstall.js [opsi]
 
 Opsi:
   --yes, -y     Lanjutkan tanpa konfirmasi interaktif
-  --purge       Hapus juga konfigurasi lokal (tele.config.json, logs/, PID)
+  --purge       Hapus juga konfigurasi lokal (kerakerja.config.json, logs/, PID)
   --dry-run     Tampilkan simulasi penghapusan tanpa mengubah sistem
   --help, -h    Tampilkan bantuan ini
 `);
@@ -189,11 +196,16 @@ function stopWorkerDaemon(dirs, dryRun, summary, globalDir = getGlobalDir()) {
     const resolved = path.resolve(dir);
     if (checked.has(resolved)) continue;
     checked.add(resolved);
-    stopPidFile(path.join(resolved, 'tele-worker.pid'), dryRun, summary, 'Worker daemon');
+    stopPidFile(path.join(resolved, 'kerakerja-worker.pid'), dryRun, summary, 'Worker daemon');
+    stopPidFile(path.join(resolved, 'tele-worker.pid'), dryRun, summary, 'Legacy worker daemon');
   }
 
   if (globalDir) {
     stopPidFile(path.join(globalDir, 'multi-worker.pid'), dryRun, summary, 'Multi-Project worker');
+  }
+  const legacyGlobalDir = path.join(os.homedir(), '.tele-vs-cli');
+  if (fs.existsSync(legacyGlobalDir)) {
+    stopPidFile(path.join(legacyGlobalDir, 'multi-worker.pid'), dryRun, summary, 'Legacy Multi-Project worker');
   }
 }
 
@@ -208,6 +220,8 @@ function cleanWorkspaces(workspaceDirs, dryRun, summary) {
 
     if (!fs.existsSync(resolved)) continue;
     console.log(`   🧹 Membersihkan workspace: ${resolved}`);
+    safeUnlink(path.join(resolved, 'kerakerja.config.json'), dryRun, summary);
+    safeUnlink(path.join(resolved, 'kerakerja-worker.pid'), dryRun, summary);
     safeUnlink(path.join(resolved, 'tele.config.json'), dryRun, summary);
     safeUnlink(path.join(resolved, 'tele-worker.pid'), dryRun, summary);
     safeRmDir(path.join(resolved, 'logs'), dryRun, summary);
@@ -216,62 +230,58 @@ function cleanWorkspaces(workspaceDirs, dryRun, summary) {
 
 function removeAutoService(paths, dryRun, summary) {
   if (process.platform === 'win32') {
-    try {
-      execSync(`schtasks /query /tn "${paths.serviceName}"`, { stdio: 'ignore', windowsHide: true });
-      if (dryRun) {
-        console.log(`   [dry-run] Akan menghapus Windows Task Scheduler: ${paths.serviceName}`);
-        summary.push(`(dry-run) Hapus service ${paths.serviceName}`);
-      } else {
-        execSync(`schtasks /delete /tn "${paths.serviceName}" /f`, { stdio: 'ignore', windowsHide: true });
-        console.log(`   ✅ Windows Task Scheduler '${paths.serviceName}' dihapus.`);
-        summary.push(`Hapus service ${paths.serviceName}`);
-      }
-    } catch (e) {
-      // Task tidak terpasang
-    }
-    return;
-  }
-
-  if (process.platform === 'linux' && paths.systemdUnit) {
-    if (fs.existsSync(paths.systemdUnit)) {
-      if (dryRun) {
-        console.log(`   [dry-run] Akan menonaktifkan & menghapus systemd unit: ${paths.systemdUnit}`);
-        summary.push('(dry-run) Hapus systemd service tele-vs-cli');
-      } else {
-        try {
-          execSync('systemctl --user stop tele-vs-cli', { stdio: 'ignore' });
-        } catch (e) {}
-        try {
-          execSync('systemctl --user disable tele-vs-cli', { stdio: 'ignore' });
-        } catch (e) {}
-        safeUnlink(paths.systemdUnit, false, summary);
-        try {
-          execSync('systemctl --user daemon-reload', { stdio: 'ignore' });
-        } catch (e) {}
-        console.log('   ✅ Layanan systemd user service tele-vs-cli dihapus.');
+    for (const svcName of [paths.serviceName, paths.legacyServiceName].filter(Boolean)) {
+      try {
+        execSync(`schtasks /query /tn "${svcName}"`, { stdio: 'ignore', windowsHide: true });
+        if (dryRun) {
+          console.log(`   [dry-run] Akan menghapus Windows Task Scheduler: ${svcName}`);
+          summary.push(`(dry-run) Hapus service ${svcName}`);
+        } else {
+          execSync(`schtasks /delete /tn "${svcName}" /f`, { stdio: 'ignore', windowsHide: true });
+          console.log(`   ✅ Windows Task Scheduler '${svcName}' dihapus.`);
+          summary.push(`Hapus service ${svcName}`);
+        }
+      } catch (e) {
+        // Task tidak terpasang
       }
     }
     return;
   }
 
-  if (process.platform === 'darwin' && paths.launchdPlist) {
-    if (fs.existsSync(paths.launchdPlist)) {
+  if (process.platform === 'linux') {
+    for (const [unitName, unitPath] of [['kerakerja', paths.systemdUnit], ['tele-vs-cli', paths.legacySystemdUnit]]) {
+      if (!unitPath || !fs.existsSync(unitPath)) continue;
       if (dryRun) {
-        console.log(`   [dry-run] Akan unload & menghapus launchd plist: ${paths.launchdPlist}`);
-        summary.push('(dry-run) Hapus launchd service com.usmrip.tele-vs-cli');
+        console.log(`   [dry-run] Akan menonaktifkan & menghapus systemd unit: ${unitPath}`);
+        summary.push(`(dry-run) Hapus systemd service ${unitName}`);
       } else {
-        try {
-          execSync(`launchctl unload "${paths.launchdPlist}"`, { stdio: 'ignore' });
-        } catch (e) {}
-        safeUnlink(paths.launchdPlist, false, summary);
-        console.log('   ✅ Layanan macOS launchd com.usmrip.tele-vs-cli dihapus.');
+        try { execSync(`systemctl --user stop ${unitName}`, { stdio: 'ignore' }); } catch (e) {}
+        try { execSync(`systemctl --user disable ${unitName}`, { stdio: 'ignore' }); } catch (e) {}
+        safeUnlink(unitPath, false, summary);
+        try { execSync('systemctl --user daemon-reload', { stdio: 'ignore' }); } catch (e) {}
+        console.log(`   ✅ Layanan systemd user service ${unitName} dihapus.`);
+      }
+    }
+    return;
+  }
+
+  if (process.platform === 'darwin') {
+    for (const plistPath of [paths.launchdPlist, paths.legacyLaunchdPlist].filter(Boolean)) {
+      if (!fs.existsSync(plistPath)) continue;
+      if (dryRun) {
+        console.log(`   [dry-run] Akan unload & menghapus launchd plist: ${plistPath}`);
+        summary.push(`(dry-run) Hapus launchd service ${path.basename(plistPath)}`);
+      } else {
+        try { execSync(`launchctl unload "${plistPath}"`, { stdio: 'ignore' }); } catch (e) {}
+        safeUnlink(plistPath, false, summary);
+        console.log(`   ✅ Layanan macOS launchd ${path.basename(plistPath)} dihapus.`);
       }
     }
   }
 }
 
 function removeLaunchersAndPath(paths, dryRun, summary) {
-  for (const launcher of paths.launchers) {
+  for (const launcher of [...(paths.launchers || []), ...(paths.legacyLaunchers || [])]) {
     safeUnlink(launcher, dryRun, summary);
   }
 
@@ -286,23 +296,30 @@ function removeLaunchersAndPath(paths, dryRun, summary) {
     }
 
     try {
-      const currentPath = execSync(
+      let currentPath = execSync(
         'powershell -NoProfile -ExecutionPolicy Bypass -Command "[Environment]::GetEnvironmentVariable(\'Path\', \'User\')"',
         { encoding: 'utf-8', windowsHide: true }
       ).trim();
-      const { changed, newPath } = removeDirFromWindowsPath(currentPath, paths.binDir);
-      if (changed) {
-        if (dryRun) {
-          console.log(`   [dry-run] Akan menghapus '${paths.binDir}' dari User PATH Windows.`);
-          summary.push(`(dry-run) Hapus ${paths.binDir} dari User PATH`);
-        } else {
-          execSync(
-            'powershell -NoProfile -ExecutionPolicy Bypass -Command "[Environment]::SetEnvironmentVariable(\'Path\', $env:__TELE_NEW_PATH, \'User\')"',
-            { windowsHide: true, env: { ...process.env, __TELE_NEW_PATH: newPath } }
-          );
-          console.log(`   ✅ '${paths.binDir}' dihapus dari User PATH Windows.`);
-          summary.push(`Hapus ${paths.binDir} dari User PATH`);
+      let anyChanged = false;
+      for (const dirToRemove of [paths.binDir, paths.legacyBinDir].filter(Boolean)) {
+        const { changed, newPath } = removeDirFromWindowsPath(currentPath, dirToRemove);
+        if (changed) {
+          currentPath = newPath;
+          anyChanged = true;
+          if (dryRun) {
+            console.log(`   [dry-run] Akan menghapus '${dirToRemove}' dari User PATH Windows.`);
+            summary.push(`(dry-run) Hapus ${dirToRemove} dari User PATH`);
+          } else {
+            console.log(`   ✅ '${dirToRemove}' dihapus dari User PATH Windows.`);
+            summary.push(`Hapus ${dirToRemove} dari User PATH`);
+          }
         }
+      }
+      if (anyChanged && !dryRun) {
+        execSync(
+          'powershell -NoProfile -ExecutionPolicy Bypass -Command "[Environment]::SetEnvironmentVariable(\'Path\', $env:__TELE_NEW_PATH, \'User\')"',
+          { windowsHide: true, env: { ...process.env, __TELE_NEW_PATH: currentPath } }
+        );
       }
     } catch (e) {
       console.log(`   ⚠️ Tidak dapat memperbarui User PATH otomatis: ${e.message}`);
@@ -318,7 +335,7 @@ async function runUninstall(argv = process.argv.slice(2)) {
   }
 
   console.log('==============================================================================');
-  console.log('🧹 Tele-vs-CLI Universal Uninstaller (Linux / Windows / macOS)');
+  console.log('🧹 KeraKerja Universal Uninstaller (Linux / Windows / macOS)');
   console.log('==============================================================================\n');
   console.log(`📌 Sistem Operasi : ${process.platform} (${os.type()} ${os.arch()})`);
   if (opts.dryRun) {
@@ -341,12 +358,12 @@ async function runUninstall(argv = process.argv.slice(2)) {
 
   if (!opts.yes && !opts.dryRun) {
     if (!process.stdin.isTTY) {
-      console.log('\n❌ Konfirmasi diperlukan untuk mencopot Tele-vs-CLI dan membersihkan semua workspace.');
+      console.log('\n❌ Konfirmasi diperlukan untuk mencopot KeraKerja dan membersihkan semua workspace.');
       console.log('   Jalankan di terminal interaktif atau tambahkan flag --yes (-y).');
       return { exitCode: 1, aborted: true };
     }
     const confirmed = await askConfirmation(
-      '\n⚠️ Apakah Anda yakin ingin mencopot Tele-vs-CLI dan menghapus konfigurasi di semua workspace? (y/N): '
+      '\n⚠️ Apakah Anda yakin ingin mencopot KeraKerja dan menghapus konfigurasi di semua workspace? (y/N): '
     );
     if (!confirmed) {
       console.log('❌ Pencopotan dibatalkan.');
@@ -411,11 +428,16 @@ async function runUninstall(argv = process.argv.slice(2)) {
     }
   }
 
+  // Hapus direktori instalasi legacy ~/.tele-vs-cli atau %LOCALAPPDATA%\tele-vs-cli
+  if (paths.legacyBaseDir && fs.existsSync(paths.legacyBaseDir)) {
+    safeRmDir(paths.legacyBaseDir, opts.dryRun, summary);
+  }
+
   console.log('\n==============================================================================');
   if (opts.dryRun) {
     console.log('🔍 Simulasi Uninstall Selesai (Dry-Run)');
   } else {
-    console.log('✅ Tele-vs-CLI Berhasil Dicopot!');
+    console.log('✅ KeraKerja Berhasil Dicopot!');
   }
   console.log('==============================================================================');
   if (summary.length === 0) {

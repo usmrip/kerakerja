@@ -110,8 +110,8 @@ test('agy_usage - render dan renderTelegram memformat teks dan HTML yang rapi', 
   assert.ok(teleOut.includes('tester@example.com'));
 });
 
-test('CLI - tele usage --json menghasilkan output JSON valid', () => {
-  const binPath = path.join(__dirname, '..', 'bin', 'tele.js');
+test('CLI - kerakerja usage --json menghasilkan output JSON valid', () => {
+  const binPath = path.join(__dirname, '..', 'bin', 'kerakerja.js');
   const out = execSync(`node "${binPath}" usage --json`, { encoding: 'utf-8' });
   const data = JSON.parse(out);
   assert.ok(data.plan);
@@ -120,10 +120,10 @@ test('CLI - tele usage --json menghasilkan output JSON valid', () => {
   assert.ok(data.fetchedAt);
 });
 
-test('CLI - tele usage --help mencetak bantuan penggunaan', () => {
-  const binPath = path.join(__dirname, '..', 'bin', 'tele.js');
+test('CLI - kerakerja usage --help mencetak bantuan penggunaan', () => {
+  const binPath = path.join(__dirname, '..', 'bin', 'kerakerja.js');
   const out = execSync(`node "${binPath}" usage --help`, { encoding: 'utf-8' });
-  assert.ok(out.includes('tele usage'));
+  assert.ok(out.includes('kerakerja usage'));
   assert.ok(out.includes('--json'));
   assert.ok(out.includes('--watch'));
 });

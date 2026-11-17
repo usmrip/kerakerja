@@ -9,7 +9,7 @@ async function updateCommand(args = []) {
   const gitDir = path.join(rootDir, '.git');
 
   console.log('==============================================================================');
-  console.log('🔄 PEMBARUAN TELE-VS-CLI (AUTO-UPDATE)');
+  console.log('🔄 PEMBARUAN KERAKERJA (AUTO-UPDATE)');
   console.log('==============================================================================\n');
 
   if (!fs.existsSync(gitDir)) {
@@ -29,7 +29,7 @@ async function updateCommand(args = []) {
     const remoteCommit = execSync('git rev-parse origin/main', { cwd: rootDir, encoding: 'utf-8' }).trim();
 
     if (localCommit === remoteCommit) {
-      console.log(`\n🟢 Anda sudah menggunakan versi Tele-vs-CLI TERBARU (${localCommit.substring(0, 7)}).`);
+      console.log(`\n🟢 Anda sudah menggunakan versi KeraKerja TERBARU (${localCommit.substring(0, 7)}).`);
       console.log('Tidak ada pembaruan yang diperlukan.\n');
       return;
     }
@@ -41,7 +41,7 @@ async function updateCommand(args = []) {
     }
 
     if (isCheckOnly) {
-      console.log(`\n💡 Jalankan 'tele update' tanpa opsi untuk menerapkan pembaruan.\n`);
+      console.log(`\n💡 Jalankan 'kerakerja update' tanpa opsi untuk menerapkan pembaruan.\n`);
       return;
     }
 
@@ -58,14 +58,14 @@ async function updateCommand(args = []) {
     }
 
     console.log('\n==============================================================================');
-    console.log('🎉 Tele-vs-CLI Berhasil Diperbarui ke Versi Terbaru!');
+    console.log('🎉 KeraKerja Berhasil Diperbarui ke Versi Terbaru!');
     console.log('==============================================================================');
 
     // Cek apakah ada background worker yang aktif
     const workerPid = getRunningPid(process.cwd());
     if (workerPid) {
       console.log(`\n⚡ Background worker aktif terdeteksi (PID: ${workerPid}).`);
-      console.log(`💡 Disarankan merestart worker agar modul baru dimuat: tele restart\n`);
+      console.log(`💡 Disarankan merestart worker agar modul baru dimuat: kerakerja restart\n`);
     }
   } catch (err) {
     console.error(`\n❌ Gagal memeriksa/menerapkan pembaruan: ${err.message}`);

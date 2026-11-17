@@ -1,15 +1,15 @@
 $ErrorActionPreference = "Stop"
 
-# Tele-vs-CLI Installer for Windows (PowerShell)
+# KeraKerja Installer for Windows (PowerShell)
 # Usage:
 #   Local:  powershell -ExecutionPolicy Bypass -File .\install.ps1
 #   Remote: irm https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/install.ps1 | iex
 
 $RepoUrl = "https://github.com/usmrip/tele-vs-cli.git"
-$InstallDir = Join-Path $env:LOCALAPPDATA "tele-vs-cli\app"
+$InstallDir = Join-Path $env:LOCALAPPDATA "kerakerja\app"
 
 Write-Host "==============================================================================" -ForegroundColor Cyan
-Write-Host " Tele-vs-CLI Installer (Windows)" -ForegroundColor Cyan
+Write-Host " KeraKerja Installer (Windows)" -ForegroundColor Cyan
 Write-Host "==============================================================================" -ForegroundColor Cyan
 
 # 1. Periksa Node.js
@@ -42,7 +42,7 @@ if ($majorVer -lt 18) {
 
 # 2. Tentukan Direktori (Lokal atau Clone Git)
 $localScriptDir = $PSScriptRoot
-if ($localScriptDir -and (Test-Path (Join-Path $localScriptDir "bin\tele.js"))) {
+if ($localScriptDir -and (Test-Path (Join-Path $localScriptDir "bin\kerakerja.js"))) {
     $TargetDir = $localScriptDir
     Write-Host "[OK] Menggunakan direktori lokal : $TargetDir" -ForegroundColor Green
 } else {
@@ -54,7 +54,7 @@ if ($localScriptDir -and (Test-Path (Join-Path $localScriptDir "bin\tele.js"))) 
         try { git pull origin main } catch {}
         Pop-Location
     } else {
-        Write-Host "Mengunduh Tele-vs-CLI dari GitHub..." -ForegroundColor Yellow
+        Write-Host "Mengunduh KeraKerja dari GitHub..." -ForegroundColor Yellow
         New-Item -ItemType Directory -Force -Path $TargetDir | Out-Null
         git clone $RepoUrl $TargetDir
     }
@@ -73,7 +73,7 @@ try {
 }
 
 # 4. Pastikan PATH di sesi PowerShell saat ini langsung aktif (tanpa perlu buka terminal baru)
-$BinDir = Join-Path $env:LOCALAPPDATA "tele-vs-cli\bin"
+$BinDir = Join-Path $env:LOCALAPPDATA "kerakerja\bin"
 $userPath = [System.Environment]::GetEnvironmentVariable("Path", "User")
 if (-not $userPath) { $userPath = "" }
 $userEntries = $userPath.Split(';') | Where-Object { $_.Trim() -ne "" }
@@ -84,4 +84,4 @@ if ($userEntries -notcontains $BinDir) {
 }
 $machinePath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
 $env:Path = (@($machinePath, $userPath) | Where-Object { $_ -and $_.Trim() -ne "" }) -join ';'
-Write-Host "[INFO] Perintah 'tele' sekarang aktif di sesi ini. Coba ketik: tele --help" -ForegroundColor Cyan
+Write-Host "[INFO] Perintah 'kerakerja' sekarang aktif di sesi ini. Coba ketik: kerakerja --help" -ForegroundColor Cyan

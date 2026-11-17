@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Tele-vs-CLI Entry Point
+ * KeraKerja Entry Point
  * Headless CLI & Telegram task runner for autonomous AI agents.
  */
 

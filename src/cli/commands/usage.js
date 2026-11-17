@@ -3,10 +3,10 @@
 const { fetchReport, render, UsageError } = require('../../utils/agy_usage');
 
 const USAGE_HELP = `
-tele usage â€” Pantau sisa kuota Antigravity AI (Gemini, Claude, GPT, Argon)
+kerakerja usage â€” Pantau sisa kuota Antigravity AI (Gemini, Claude, GPT, Argon)
 
 PENGGUNAAN:
-  tele usage [opsi]
+  kerakerja usage [opsi]
 
 OPSI:
   --json            Keluaran dalam format JSON
@@ -16,9 +16,9 @@ OPSI:
   -h, --help        Tampilkan bantuan ini
 
 CONTOH:
-  tele usage
-  tele usage --json
-  tele usage --watch 30
+  kerakerja usage
+  kerakerja usage --json
+  kerakerja usage --watch 30
 `;
 
 async function usageCommand(args = []) {

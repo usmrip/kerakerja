@@ -15,11 +15,11 @@ const { runUninstall } = require('../../scripts/uninstall');
 
 function printHelp() {
   console.log(`
-Tele-vs-CLI — Headless Telegram & Remote AI Agent Runner (Zero VSIX)
+KeraKerja — Headless Telegram & Remote AI Agent Runner (Zero VSIX)
 Versi: 1.0.0
 
 PENGGUNAAN:
-  tele <perintah> [opsi]
+  kerakerja <perintah> [opsi]
 
 PERINTAH UTAMA:
   init                      Setup interaktif (server URL, secret, project key, default agent)
@@ -41,17 +41,17 @@ PERINTAH UTAMA:
   use <project_id>          Pilih proyek aktif lokal
   doctor                    Diagnostik lingkungan, koneksi, izin, dan CLI agent
   service install [--all]|uninstall Pasang/hapus autostart service (Windows Task Scheduler / Linux systemd / macOS launchd)
-  update [--check]          Perbarui Tele-vs-CLI ke versi terbaru dari GitHub
-  uninstall, --uninstall    Copot Tele-vs-CLI dari sistem & seluruh workspace terdaftar
+  update [--check]          Perbarui KeraKerja ke versi terbaru dari GitHub
+  uninstall, --uninstall    Copot KeraKerja dari sistem & seluruh workspace terdaftar
   help, --help              Tampilkan bantuan ini
 
 CONTOH:
-  tele doctor
-  tele start --daemon --verbose
-  tele task "Buat endpoint API login JWT" --agent agy --verbose
-  tele quota
-  tele status
-  tele logs -f
+  kerakerja doctor
+  kerakerja start --daemon --verbose
+  kerakerja task "Buat endpoint API login JWT" --agent agy --verbose
+  kerakerja quota
+  kerakerja status
+  kerakerja logs -f
 `);
 }
 
@@ -139,7 +139,7 @@ async function main() {
       break;
     default:
       console.error(`❌ Perintah tidak dikenal: '${command}'`);
-      console.log(`Ketik 'tele help' untuk daftar perintah lengkap.`);
+      console.log(`Ketik 'kerakerja help' untuk daftar perintah lengkap.`);
       process.exit(1);
   }
 }

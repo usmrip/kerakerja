@@ -80,7 +80,7 @@ test('app_info - testCommunication memverifikasi koneksi Workstation, Dashboard 
   assert.strictEqual(result.projectTag, 'tvscli');
   assert.ok(sentTelegramUrl.includes('123456:TESTTOKEN/sendMessage'));
   assert.strictEqual(sentBody.chat_id, '987654321');
-  assert.ok(sentBody.text.includes('Test Komunikasi Tele-vs-CLI Berhasil'));
+  assert.ok(sentBody.text.includes('Test Komunikasi KeraKerja Berhasil'));
 });
 
 test('app_info - testCommunication menangani proyek belum terdaftar di website', async () => {

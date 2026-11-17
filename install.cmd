@@ -1,7 +1,7 @@
 @echo off
 setlocal
 echo ==============================================================================
-echo  Tele-vs-CLI Windows Installer
+echo  KeraKerja Windows Installer
 echo ==============================================================================
 echo.
 
@@ -25,7 +25,7 @@ echo.
 echo Pemasangan selesai dengan sukses!
 pause
 endlocal
-set "_TELE_BIN=%LOCALAPPDATA%\tele-vs-cli\bin"
+set "_TELE_BIN=%LOCALAPPDATA%\kerakerja\bin"
 echo "%PATH%" | findstr /i /c:"%_TELE_BIN%" >nul
 if %errorlevel% neq 0 (
     set "PATH=%PATH%;%_TELE_BIN%"

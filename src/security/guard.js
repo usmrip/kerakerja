@@ -10,7 +10,7 @@ function maskSecrets(text) {
   return text
     // Telegram Bot Tokens: 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ (25-45 char hash)
     .replace(/\b\d{8,12}:[A-Za-z0-9_-]{25,45}\b/g, '[TELEGRAM_BOT_TOKEN_PROTECTED]')
-    // Tele-vs-CLI API Secret Keys: tvscli_... (and legacy tvsc_...)
+    // KeraKerja API Secret Keys: tvscli_... (and legacy tvsc_...)
     .replace(/\b(?:tvscli|tvsc)_[a-zA-Z0-9_\-]{16,64}\b/g, '[API_SECRET_PROTECTED]')
     // Common API Keys and Tokens
     .replace(/(bearer\s+)[a-zA-Z0-9_\-\.]{16,}/gi, '$1[BEARER_TOKEN_PROTECTED]')

@@ -10,7 +10,7 @@ const ApiClient = require('../src/api/client');
 test('Worker Control - readTaskAgentsMd membaca TASK_AGENTS.md dan menghitung [PENDING]', () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tele-task-agents-'));
   try {
-    fs.writeFileSync(path.join(tmpDir, 'tele.config.json'), JSON.stringify({
+    fs.writeFileSync(path.join(tmpDir, 'kerakerja.config.json'), JSON.stringify({
       serverUrl: 'http://localhost',
       secret: 'sec_test',
       projectId: 'prj_test',
@@ -35,7 +35,7 @@ test('Worker Control - readTaskAgentsMd membaca TASK_AGENTS.md dan menghitung [P
 test('Worker Control - handleHeartbeatResponse menyinkronkan timer TASK_AGENTS.md', async () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tele-hb-timer-'));
   try {
-    fs.writeFileSync(path.join(tmpDir, 'tele.config.json'), JSON.stringify({
+    fs.writeFileSync(path.join(tmpDir, 'kerakerja.config.json'), JSON.stringify({
       serverUrl: 'http://localhost',
       secret: 'sec_test',
       projectId: 'prj_test',

@@ -17,7 +17,7 @@ async function projectsCommand(args = []) {
       const tagStr = p.code ? ` [#${p.code}]` : '';
       console.log(`  ${isCurrent ? '👉 [AKTIF]' : '   '} ${p.name || pKey}${tagStr} (Key: ${pKey})`);
     }
-    console.log('\nGunakan `tele use <kode_atau_key>` untuk beralih proyek aktif.\n');
+    console.log('\nGunakan `kerakerja use <kode_atau_key>` untuk beralih proyek aktif.\n');
   } catch (e) {
     console.log(`Proyek lokal saat ini: ${config.projectId}`);
   }
@@ -28,14 +28,14 @@ async function projectsCommand(args = []) {
     for (const ws of localWorkspaces) {
       console.log(`   • ${ws.projectId} -> ${ws.workDir} (agent: ${ws.agent || 'auto'})`);
     }
-    console.log('   💡 Jalankan `tele start --all --daemon` untuk menjalankan semua proyek sekaligus.\n');
+    console.log('   💡 Jalankan `kerakerja start --all --daemon` untuk menjalankan semua proyek sekaligus.\n');
   }
 }
 
 async function useCommand(args) {
   const target = args[0];
   if (!target) {
-    console.log('Penggunaan: tele use <nama_atau_project_id>');
+    console.log('Penggunaan: kerakerja use <nama_atau_project_id>');
     return;
   }
 
@@ -43,7 +43,7 @@ async function useCommand(args) {
   const config = loadConfig(cwd);
   config.projectId = target;
   saveConfig(config, cwd);
-  console.log(`✅ Proyek aktif lokal berhasil diubah menjadi: '${target}' (disimpan di tele.config.json)`);
+  console.log(`✅ Proyek aktif lokal berhasil diubah menjadi: '${target}' (disimpan di kerakerja.config.json)`);
 
   const regRes = registerWorkspace({ ...config, workDir: cwd });
   if (regRes.registered) {

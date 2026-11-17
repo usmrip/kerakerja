@@ -39,7 +39,7 @@ async function listCommand(args) {
 async function cancelCommand(args) {
   const taskId = args[0];
   if (!taskId) {
-    console.log('Penggunaan: tele cancel <task_id>');
+    console.log('Penggunaan: kerakerja cancel <task_id>');
     return;
   }
 
@@ -59,7 +59,7 @@ async function cancelCommand(args) {
 async function retryCommand(args) {
   const taskId = args[0];
   if (!taskId) {
-    console.log('Penggunaan: tele retry <task_id>');
+    console.log('Penggunaan: kerakerja retry <task_id>');
     return;
   }
 
@@ -106,8 +106,8 @@ function parseKillArgs(args = []) {
 async function killCommand(args) {
   const { taskId, reason, force } = parseKillArgs(args);
   if (!taskId) {
-    console.log('Penggunaan: tele kill <task_id> [--reason "<alasan>"] [--force]');
-    console.log('Contoh    : tele kill TASK-92fe');
+    console.log('Penggunaan: kerakerja kill <task_id> [--reason "<alasan>"] [--force]');
+    console.log('Contoh    : kerakerja kill TASK-92fe');
     return;
   }
 

@@ -11,7 +11,7 @@ test('Config - Memuat konfigurasi default dengan benar', () => {
   assert.ok(cfg.pollInterval > 0);
 });
 
-test('Config - Menyimpan dan membaca tele.config.json', () => {
+test('Config - Menyimpan dan membaca kerakerja.config.json', () => {
   const tmpDir = path.join(__dirname, 'tmp_cfg');
   if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
 
