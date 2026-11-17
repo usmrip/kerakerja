@@ -10,6 +10,7 @@ const path = require('path');
 const os = require('os');
 const readline = require('readline');
 const { execSync } = require('child_process');
+const { loadWorkspaces, getGlobalDir, getGlobalWorkspacesPath } = require('../src/config/workspaces');
 
 /**
  * Mem-parsing argumen CLI untuk uninstaller.
@@ -145,45 +146,70 @@ function safeRmDir(dirPath, dryRun, summary) {
   }
 }
 
-function stopWorkerDaemon(dirs, dryRun, summary) {
-  const checked = new Set();
-  for (const dir of dirs) {
-    if (!dir || checked.has(dir)) continue;
-    checked.add(dir);
-    const pidPath = path.join(dir, 'tele-worker.pid');
-    if (!fs.existsSync(pidPath)) continue;
+function stopPidFile(pidPath, dryRun, summary, label = 'Worker daemon') {
+  if (!fs.existsSync(pidPath)) return;
+  const raw = fs.readFileSync(pidPath, 'utf-8').trim();
+  const pid = parseInt(raw, 10);
+  if (!Number.isNaN(pid) && pid > 0) {
+    let alive = false;
+    try {
+      process.kill(pid, 0);
+      alive = true;
+    } catch (e) {
+      alive = false;
+    }
 
-    const raw = fs.readFileSync(pidPath, 'utf-8').trim();
-    const pid = parseInt(raw, 10);
-    if (!Number.isNaN(pid) && pid > 0) {
-      let alive = false;
-      try {
-        process.kill(pid, 0);
-        alive = true;
-      } catch (e) {
-        alive = false;
-      }
-
-      if (alive) {
-        if (dryRun) {
-          console.log(`   [dry-run] Akan menghentikan worker PID ${pid}`);
-          summary.push(`(dry-run) Hentikan worker PID ${pid}`);
-        } else {
-          try {
-            if (process.platform === 'win32') {
-              execSync(`taskkill /pid ${pid} /T /F`, { stdio: 'ignore' });
-            } else {
-              process.kill(pid, 'SIGTERM');
-            }
-            console.log(`   ✅ Worker daemon (PID ${pid}) dihentikan.`);
-            summary.push(`Hentikan worker PID ${pid}`);
-          } catch (e) {
-            console.log(`   ⚠️ Gagal menghentikan worker PID ${pid}: ${e.message}`);
+    if (alive) {
+      if (dryRun) {
+        console.log(`   [dry-run] Akan menghentikan ${label} PID ${pid}`);
+        summary.push(`(dry-run) Hentikan ${label} PID ${pid}`);
+      } else {
+        try {
+          if (process.platform === 'win32') {
+            execSync(`taskkill /pid ${pid} /T /F`, { stdio: 'ignore' });
+          } else {
+            process.kill(pid, 'SIGTERM');
           }
+          console.log(`   ✅ ${label} (PID ${pid}) dihentikan.`);
+          summary.push(`Hentikan ${label} PID ${pid}`);
+        } catch (e) {
+          console.log(`   ⚠️ Gagal menghentikan ${label} PID ${pid}: ${e.message}`);
         }
       }
     }
-    safeUnlink(pidPath, dryRun, summary);
+  }
+  safeUnlink(pidPath, dryRun, summary);
+}
+
+function stopWorkerDaemon(dirs, dryRun, summary, globalDir = getGlobalDir()) {
+  const checked = new Set();
+  for (const dir of dirs) {
+    if (!dir) continue;
+    const resolved = path.resolve(dir);
+    if (checked.has(resolved)) continue;
+    checked.add(resolved);
+    stopPidFile(path.join(resolved, 'tele-worker.pid'), dryRun, summary, 'Worker daemon');
+  }
+
+  if (globalDir) {
+    stopPidFile(path.join(globalDir, 'multi-worker.pid'), dryRun, summary, 'Multi-Project worker');
+  }
+}
+
+function cleanWorkspaces(workspaceDirs, dryRun, summary) {
+  const seen = new Set();
+  for (const dir of workspaceDirs) {
+    if (!dir) continue;
+    const resolved = path.resolve(dir);
+    const key = process.platform === 'win32' ? resolved.toLowerCase() : resolved;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    if (!fs.existsSync(resolved)) continue;
+    console.log(`   🧹 Membersihkan workspace: ${resolved}`);
+    safeUnlink(path.join(resolved, 'tele.config.json'), dryRun, summary);
+    safeUnlink(path.join(resolved, 'tele-worker.pid'), dryRun, summary);
+    safeRmDir(path.join(resolved, 'logs'), dryRun, summary);
   }
 }
 
@@ -298,20 +324,39 @@ async function runUninstall(argv = process.argv.slice(2)) {
     console.log('📌 Mode           : DRY-RUN (tidak ada perubahan permanen)');
   }
 
-  if (!opts.yes && !opts.dryRun && process.stdin.isTTY) {
-    const confirmed = await askConfirmation('\nApakah Anda yakin ingin mencopot Tele-vs-CLI dari sistem ini? (y/N): ');
+  const rootDir = path.resolve(__dirname, '..');
+  const paths = getInstallPaths(process.platform);
+  const globalDir = getGlobalDir();
+  const workspacesFile = getGlobalWorkspacesPath();
+  const registeredWorkspaces = loadWorkspaces(workspacesFile);
+  const workspaceDirs = registeredWorkspaces.map(w => w.workDir);
+
+  if (registeredWorkspaces.length > 0) {
+    console.log(`📌 Workspace terdaftar (${registeredWorkspaces.length}):`);
+    for (const ws of registeredWorkspaces) {
+      console.log(`   • ${ws.projectId} -> ${ws.workDir}`);
+    }
+  }
+
+  if (!opts.yes && !opts.dryRun) {
+    if (!process.stdin.isTTY) {
+      console.log('\n❌ Konfirmasi diperlukan untuk mencopot Tele-vs-CLI dan membersihkan semua workspace.');
+      console.log('   Jalankan di terminal interaktif atau tambahkan flag --yes (-y).');
+      return { exitCode: 1, aborted: true };
+    }
+    const confirmed = await askConfirmation(
+      '\n⚠️ Apakah Anda yakin ingin mencopot Tele-vs-CLI dan menghapus konfigurasi di semua workspace? (y/N): '
+    );
     if (!confirmed) {
       console.log('❌ Pencopotan dibatalkan.');
       return { exitCode: 0, aborted: true };
     }
   }
 
-  const rootDir = path.resolve(__dirname, '..');
-  const paths = getInstallPaths(process.platform);
   const summary = [];
 
-  console.log('\n1️⃣  Menghentikan background worker...');
-  stopWorkerDaemon([rootDir, process.cwd(), paths.appDir], opts.dryRun, summary);
+  console.log('\n1️⃣  Menghentikan semua background worker...');
+  stopWorkerDaemon([rootDir, process.cwd(), paths.appDir, ...workspaceDirs], opts.dryRun, summary, globalDir);
 
   console.log('\n2️⃣  Memeriksa & menghapus auto-start service...');
   removeAutoService(paths, opts.dryRun, summary);
@@ -319,9 +364,20 @@ async function runUninstall(argv = process.argv.slice(2)) {
   console.log('\n3️⃣  Menghapus launcher CLI & entri PATH...');
   removeLaunchersAndPath(paths, opts.dryRun, summary);
 
-  console.log('\n4️⃣  Membersihkan direktori instalasi...');
+  console.log('\n4️⃣  Membersihkan direktori instalasi & semua workspace...');
   const normalizedRoot = path.normalize(rootDir).toLowerCase();
   const normalizedApp = path.normalize(paths.appDir).toLowerCase();
+
+  // Bersihkan file runtime Tele-vs-CLI di seluruh workspace terdaftar
+  const dirsToClean = [...workspaceDirs];
+  if (opts.purge && normalizedRoot !== normalizedApp) {
+    dirsToClean.push(rootDir, process.cwd());
+  }
+  cleanWorkspaces(dirsToClean, opts.dryRun, summary);
+
+  // Hapus global registry & multi-worker logs (~/.tele-vs-cli/workspaces.json, multi-worker.log)
+  safeUnlink(workspacesFile, opts.dryRun, summary);
+  safeUnlink(path.join(globalDir, 'multi-worker.log'), opts.dryRun, summary);
 
   // Hapus direktori instalasi remote (~/.tele-vs-cli atau %LOCALAPPDATA%\tele-vs-cli\app)
   // Jika skrip dijalankan dari dalam appDir pada Windows, pindah cwd dulu agar tidak terkunci.
@@ -334,6 +390,14 @@ async function runUninstall(argv = process.argv.slice(2)) {
     safeRmDir(paths.appDir, opts.dryRun, summary);
   }
 
+  if (process.platform !== 'win32' && fs.existsSync(globalDir)) {
+    try {
+      if (fs.readdirSync(globalDir).length === 0) {
+        safeRmDir(globalDir, opts.dryRun, summary);
+      }
+    } catch (e) {}
+  }
+
   if (process.platform === 'win32' && fs.existsSync(paths.baseDir)) {
     if (opts.purge) {
       safeRmDir(paths.baseDir, opts.dryRun, summary);
@@ -344,13 +408,6 @@ async function runUninstall(argv = process.argv.slice(2)) {
         }
       } catch (e) {}
     }
-  }
-
-  // Jika --purge pada repositori lokal, hapus file runtime lokal (tanpa menghapus source code)
-  if (opts.purge && normalizedRoot !== normalizedApp) {
-    safeUnlink(path.join(rootDir, 'tele.config.json'), opts.dryRun, summary);
-    safeUnlink(path.join(rootDir, 'tele-worker.pid'), opts.dryRun, summary);
-    safeRmDir(path.join(rootDir, 'logs'), opts.dryRun, summary);
   }
 
   console.log('\n==============================================================================');
@@ -374,7 +431,9 @@ async function runUninstall(argv = process.argv.slice(2)) {
 }
 
 if (require.main === module) {
-  runUninstall().catch((err) => {
+  runUninstall().then((res) => {
+    if (res && res.exitCode) process.exit(res.exitCode);
+  }).catch((err) => {
     console.error(`\n❌ Terjadi kesalahan saat uninstall: ${err.message}`);
     process.exit(1);
   });
@@ -384,5 +443,6 @@ module.exports = {
   parseUninstallArgs,
   removeDirFromWindowsPath,
   getInstallPaths,
+  cleanWorkspaces,
   runUninstall
 };

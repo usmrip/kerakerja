@@ -29,16 +29,6 @@ waktu di logger dan jam workstation tidak sama
 
 
 
-### [PENDING] #TASK-10d7
-- **Waktu:** 2026-11-17 10:21:05
-- **Pengirim:** Dashboard User
-- **Agent:** Antigravity AI Agent
-- **Instruksi:** 1. di windows, tele tidak masuk path, sehingga user harus menulis lengkap direktorinya, perbaiki
-- **Status:** PENDING
-- **Catatan:** Menunggu giliran eksekusi oleh AI Agent...
-
-
-
 ### [PENDING] #TASK-2bb7
 - **Waktu:** 2026-11-17 10:01:09
 - **Pengirim:** Dashboard User
@@ -66,6 +56,28 @@ waktu di logger dan jam workstation tidak sama
 
 
 ## ✅ Riwayat Tugas Selesai
+
+### [DONE] #TASK-db44
+- **Waktu:** 2026-11-17 03:45:41
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 2 menit 10 detik
+- **Instruksi:** Tambahkan perintah tele --uninstall dengan konfirmasi dan pembersihan di semua workspace
+- **Status:** DONE
+- **Laporan Agent:** Perintah tele --uninstall berhasil ditambahkan dengan konfirmasi wajib, penghentian seluruh worker (termasuk multi-worker.pid), serta pembersihan konfigurasi/PID/logs Tele-vs-CLI di seluruh workspace terdaftar (~/.tele-vs-cli/workspaces.json). Lolos 45/45 unit test.
+
+
+
+### [DONE] TASK-10d7
+- **Waktu:** 2026-11-17 03:43:47
+- **Pengirim:** Dashboard User
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 0 detik
+- **Instruksi:** 1. di windows, tele tidak masuk path, sehingga user harus menulis lengkap direktorinya, perbaiki
+- **Status:** DONE
+- **Laporan Agent:** Perbaikan Windows PATH selesai: launcher tele.cmd & bash shim di %LOCALAPPDATA%\tele-vs-cli\bin, registrasi User PATH otomatis via addDirToWindowsPath, refresh PATH langsung di install.ps1 dan install.cmd (pasca-endlocal), serta 53/53 unit test lulus.
+
+
 
 ### [DONE] #TASK-bd98
 - **Waktu:** 2026-11-17 03:42:47

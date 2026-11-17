@@ -42,7 +42,7 @@ PERINTAH UTAMA:
   doctor                    Diagnostik lingkungan, koneksi, izin, dan CLI agent
   service install [--all]|uninstall Pasang/hapus autostart service (Windows Task Scheduler / Linux systemd / macOS launchd)
   update [--check]          Perbarui Tele-vs-CLI ke versi terbaru dari GitHub
-  uninstall [--purge]       Copot Tele-vs-CLI dari sistem (launcher, service, PATH)
+  uninstall, --uninstall    Copot Tele-vs-CLI dari sistem & seluruh workspace terdaftar
   help, --help              Tampilkan bantuan ini
 
 CONTOH:
@@ -127,8 +127,11 @@ async function main() {
       await serviceCommand(subArgs);
       break;
     case 'uninstall':
-      await runUninstall(subArgs);
+    case '--uninstall': {
+      const res = await runUninstall(subArgs);
+      if (res && res.exitCode) process.exit(res.exitCode);
       break;
+    }
     case 'help':
     case '--help':
     case '-h':

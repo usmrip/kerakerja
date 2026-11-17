@@ -4,10 +4,12 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
+const os = require('os');
 const {
   parseUninstallArgs,
   removeDirFromWindowsPath,
-  getInstallPaths
+  getInstallPaths,
+  cleanWorkspaces
 } = require('../scripts/uninstall');
 
 test('Uninstaller - Skrip uninstall multi-OS (Linux, macOS, Windows) tersedia dan valid', () => {
@@ -105,4 +107,57 @@ test('CLI - tele help menampilkan perintah uninstall', () => {
   const binPath = path.join(__dirname, '..', 'bin', 'tele.js');
   const out = execSync(`node "${binPath}" help`, { encoding: 'utf-8' });
   assert.ok(out.includes('uninstall'));
+  assert.ok(out.includes('--uninstall'));
+});
+
+test('CLI - tele --uninstall --dry-run dan --help berjalan sukses, serta wajib konfirmasi jika tanpa --yes', () => {
+  const binPath = path.join(__dirname, '..', 'bin', 'tele.js');
+  const helpOut = execSync(`node "${binPath}" --uninstall --help`, { encoding: 'utf-8' });
+  assert.ok(helpOut.includes('Tele-vs-CLI Universal Uninstaller'));
+
+  const dryOut = execSync(`node "${binPath}" --uninstall --dry-run`, { encoding: 'utf-8' });
+  assert.ok(dryOut.includes('DRY-RUN'));
+  assert.ok(dryOut.includes('Simulasi Uninstall Selesai'));
+
+  // Non-TTY tanpa --yes harus dibatalkan demi keamanan konfirmasi
+  let failed = false;
+  try {
+    execSync(`node "${binPath}" --uninstall`, { encoding: 'utf-8', stdio: 'pipe' });
+  } catch (err) {
+    failed = true;
+    const out = String(err.stdout || '') + String(err.stderr || '');
+    assert.ok(out.includes('Konfirmasi diperlukan'));
+  }
+  assert.strictEqual(failed, true);
+});
+
+test('Uninstaller - cleanWorkspaces menghapus file Tele-vs-CLI di semua workspace tanpa menyentuh file proyek user', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tele-clean-ws-'));
+  const dirA = path.join(tmpDir, 'a');
+  const dirB = path.join(tmpDir, 'b');
+  fs.mkdirSync(path.join(dirA, 'logs'), { recursive: true });
+  fs.mkdirSync(path.join(dirB, 'logs'), { recursive: true });
+
+  // File milik Tele-vs-CLI
+  fs.writeFileSync(path.join(dirA, 'tele.config.json'), '{}');
+  fs.writeFileSync(path.join(dirA, 'tele-worker.pid'), '99999');
+  fs.writeFileSync(path.join(dirA, 'logs', 'worker.log'), 'log');
+  fs.writeFileSync(path.join(dirB, 'tele.config.json'), '{}');
+
+  // File proyek user (tidak boleh terhapus)
+  fs.writeFileSync(path.join(dirA, 'index.js'), 'console.log("app a")');
+  fs.writeFileSync(path.join(dirB, 'README.md'), '# App B');
+
+  const summary = [];
+  cleanWorkspaces([dirA, dirB], false, summary);
+
+  assert.strictEqual(fs.existsSync(path.join(dirA, 'tele.config.json')), false);
+  assert.strictEqual(fs.existsSync(path.join(dirA, 'tele-worker.pid')), false);
+  assert.strictEqual(fs.existsSync(path.join(dirA, 'logs')), false);
+  assert.strictEqual(fs.existsSync(path.join(dirB, 'tele.config.json')), false);
+
+  assert.strictEqual(fs.existsSync(path.join(dirA, 'index.js')), true);
+  assert.strictEqual(fs.existsSync(path.join(dirB, 'README.md')), true);
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
 });
