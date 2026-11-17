@@ -92,6 +92,17 @@ jangan ada sampah tele-vs-cli
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-6b35
+- **Waktu:** 2026-11-17 05:34:12
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 1 menit 54 detik
+- **Instruksi:** Jadikan public_html/kerakerja sebagai direktori utama dan public_html/tele-vs-cli sebagai symlink
+- **Status:** DONE
+- **Laporan Agent:** Direktori public_html/kerakerja kini menjadi direktori utama (drwxr-xr-x) dan public_html/tele-vs-cli menjadi symlink (lrwxrwxrwx -> kerakerja) melalui SFTP. Kedua URL dan favicon terverifikasi HTTP 200.
+
+
+
 ### [DONE] #TASK-2bb7
 - **Waktu:** 2026-11-17 05:30:29
 - **Pengirim:** Dashboard User
