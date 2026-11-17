@@ -39,3 +39,6 @@ Setiap kali ada perubahan kode atau konfigurasi yang selesai diuji:
    - Commit dan push seluruh perubahan ke remote (`git push origin main`).
 2. **Restart Semua Worker yang Aktif:**
    - Periksa worker yang sedang berjalan (`tele-worker.pid` maupun `~/.tele-vs-cli/multi-worker.pid`) dan restart semuanya (`node bin/tele.js restart` / `node bin/tele.js restart --all`) agar langsung memakai kode terbaru.
+
+## 🌐 4. AKSES & UPLOAD KE SERVER (WAJIB SFTP)
+- Gunakan **SFTP** untuk seluruh proses upload, download, maupun akses/modifikasi file di server remote.
