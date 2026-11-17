@@ -8,6 +8,8 @@ const {
   getProjectSwitchGuideLines,
   testCommunication
 } = require('../../utils/app_info');
+const doctorCommand = require('./doctor');
+const startCommand = require('./start');
 
 function askQuestion(rl, query, defaultValue = '') {
   return new Promise(resolve => {
@@ -252,6 +254,33 @@ async function initCommand(args = []) {
 
   for (const line of getProjectSwitchGuideLines(commResult.projectTag)) {
     console.log(line);
+  }
+
+  if (!args.includes('--skip-doctor')) {
+    console.log('\n🩺 Menjalankan `kerakerja doctor` secara otomatis...');
+    const doctorRes = await doctorCommand([]);
+    if (doctorRes && doctorRes.ok && process.stdin.isTTY && !args.includes('--no-start-prompt')) {
+      console.log('🚀 Diagnostik lolos tanpa error! Pilih mode eksekusi KeraKerja:');
+      console.log('   [1] Jalankan biasa (foreground: kerakerja start)');
+      console.log('   [2] Jalankan daemon (background: kerakerja start --daemon)');
+      console.log('   [3] Jalankan daemon + verbose (kerakerja start --daemon --verbose)');
+      console.log('   [4] Keluar');
+
+      const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+      const choice = (await askQuestion(rl, '\nPilih [1/2/3/4] (default 4): ')).trim();
+      rl.close();
+
+      if (choice === '1') {
+        await startCommand([]);
+      } else if (choice === '2') {
+        await startCommand(['--daemon']);
+      } else if (choice === '3') {
+        await startCommand(['--daemon', '--verbose']);
+      } else {
+        console.log('👋 Keluar. Anda dapat menjalankan `kerakerja start --daemon` kapan saja.\n');
+      }
+      return;
+    }
   }
 
   console.log('\n💡 Langkah berikutnya:');

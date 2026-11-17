@@ -13,6 +13,7 @@ const initCommand = require('./commands/init');
 const serviceCommand = require('./commands/service');
 const { sampahCommand } = require('./commands/sampah');
 const { snapshotCommand, restoreCommand } = require('./commands/snapshot');
+const { sysinfoCommand } = require('./commands/sysinfo');
 const { runUninstall } = require('../../scripts/uninstall');
 
 function printHelp() {
@@ -45,6 +46,7 @@ PERINTAH UTAMA:
   service install [--all]|uninstall Pasang/hapus autostart service (Windows Task Scheduler / Linux systemd / macOS launchd)
   update [--check]          Perbarui KeraKerja ke versi terbaru dari GitHub
   sampah [--dry-run]        Bersihkan sampah tele-vs-cli & kirim laporan tabel ke Telegram
+  sysinfo [--json]          Info sistem mesin, worker aktif, CPU/RAM & total usage worker
   snapshot <kode> [param]   Buat snapshot (full, db, kode, upload, db,kode) ke ../snapshot-kerakerja
   restore [<kode_lengkap>]  Restore snapshot (atau tampilkan 4 snapshot terakhir)
   uninstall, --uninstall    Copot KeraKerja dari sistem & seluruh workspace terdaftar
@@ -134,6 +136,10 @@ async function main() {
     case 'sampah':
     case '/sampah':
       await sampahCommand(subArgs);
+      break;
+    case 'sysinfo':
+    case '/sysinfo':
+      await sysinfoCommand(subArgs);
       break;
     case 'snapshot':
     case '/snapshot':

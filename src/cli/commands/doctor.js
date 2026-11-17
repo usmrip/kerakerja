@@ -11,6 +11,7 @@ async function doctorCommand(args) {
 
   const cwd = process.cwd();
   const config = loadConfig(cwd);
+  const issues = [];
 
   // 1. Node runtime
   console.log(`\n[1/5] Runtime Lingkungan:`);
@@ -24,6 +25,8 @@ async function doctorCommand(args) {
   console.log(`  - Project ID : ${config.projectId || '(Belum disetel)'}`);
   console.log(`  - Secret Key : ${config.secret ? 'Terkonfigurasi (' + config.secret.substring(0, 8) + '...)' : '❌ BELUM DISETEL'}`);
   console.log(`  - Agent Pref : ${config.agent}`);
+  if (!config.secret) issues.push('Secret Key belum disetel.');
+  if (!config.projectId) issues.push('Project ID belum disetel.');
 
   // 3. Tes Koneksi Server
   console.log(`\n[3/5] Konektivitas Server Biru:`);
@@ -33,6 +36,7 @@ async function doctorCommand(args) {
     console.log(`  - Status Koneksi: ✅ TERHUBUNG (HTTP ${res.statusCode})`);
   } catch (e) {
     console.log(`  - Status Koneksi: ⚠️ PERINGATAN (${e.message})`);
+    issues.push(`Koneksi server gagal: ${e.message}`);
   }
 
   // 4. Deteksi Binary Agent
@@ -59,6 +63,7 @@ async function doctorCommand(args) {
   if (foundCount === 0) {
     console.log(`\n  ⚠️ CATATAN: Belum ada CLI AI Agent yang terpasang di PATH.`);
     console.log(`     Disarankan memasang Antigravity CLI (agy), Claude Code (claude), atau Gemini CLI.`);
+    issues.push('Belum ada CLI AI Agent yang terpasang di PATH.');
   }
 
   // 5. Izin File & Logs
@@ -72,11 +77,19 @@ async function doctorCommand(args) {
     console.log(`  - Akses folder logs : ✅ BISA TULIS & BACA (${logsDir})`);
   } catch (e) {
     console.log(`  - Akses folder logs : ❌ GAGAL (${e.message})`);
+    issues.push(`Akses folder logs gagal: ${e.message}`);
   }
 
   console.log('\n==============================================================================');
   console.log('🎉 Diagnostik Selesai.');
   console.log('==============================================================================\n');
+
+  return {
+    ok: issues.length === 0,
+    issues,
+    foundCount,
+    config
+  };
 }
 
 module.exports = doctorCommand;

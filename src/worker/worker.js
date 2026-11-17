@@ -31,11 +31,16 @@ const {
   formatRestoreSuccessHtml
 } = require('../cli/commands/snapshot');
 const { sendTelegramHtml } = require('../utils/telegram');
+const {
+  collectSysinfo,
+  formatSysinfoText,
+  formatSysinfoTelegramHtml
+} = require('../cli/commands/sysinfo');
 
 const KILLED_STATUSES = new Set(['FAILED', 'CANCELLED', 'CANCELED', 'KILLED']);
 const PENDING_STATUSES = new Set(['PENDING', 'WAITING', 'QUEUE']);
 const IN_PROGRESS_STATUSES = new Set(['IN_PROGRESS', 'RUNNING']);
-const CLI_EXECUTORS = new Set(['', 'all', 'any', 'cli', 'tele-vs-cli', 'headless', 'terminal']);
+const CLI_EXECUTORS = new Set(['', 'all', 'any', 'cli', 'kerakerja', 'tele-vs-cli', 'headless', 'terminal']);
 const VSCODE_EXECUTORS = new Set(['vscode', 'tele-vs-code', 'code', 'ide', 'extension', 'editor']);
 
 function normalizeExecutor(executor) {
@@ -174,6 +179,16 @@ function parseRestoreCommand(instruction) {
   const rawArgs = (match[1] || '').trim();
   return {
     code: rawArgs ? rawArgs.split(/\s+/)[0].trim() : ''
+  };
+}
+
+function parseSysinfoCommand(instruction) {
+  const text = String(instruction || '').trim();
+  const match = text.match(/^\/sysinfo(?:@\w+)?(?:\s+([\s\S]*))?$/i);
+  if (!match) return null;
+  const argText = (match[1] || '').trim().toLowerCase();
+  return {
+    json: argText.includes('--json')
   };
 }
 
@@ -459,6 +474,12 @@ class TeleWorker {
       return;
     }
 
+    const parsedSysinfo = parseSysinfoCommand(pending.instruction);
+    if (parsedSysinfo) {
+      await this.handleSysinfoInstruction(pending, parsedSysinfo);
+      return;
+    }
+
     if (process.env.TELE_IGNORE_LOCAL_QUEUE !== '1') {
       const localQueue = hasLocalQueueInProgress(this.workDir, pending.id);
       if (localQueue.active) {
@@ -561,6 +582,28 @@ class TeleWorker {
       this.log(`❌ Gagal memproses /sampah #${task.id}: ${e.message}`);
       try {
         await this.api.failTask(task.id, `Gagal memproses /sampah: ${e.message}`);
+      } catch (err) {}
+    }
+  }
+
+  async handleSysinfoInstruction(task) {
+    this.log(`🖥️ Memproses perintah /sysinfo (#${task.id})...`);
+    try {
+      await this.api.startTask(task.id, this.workerId, this.config.agent);
+      const info = collectSysinfo({ workDir: this.workDir });
+      const textReport = formatSysinfoText(info);
+      const htmlReport = formatSysinfoTelegramHtml(info, { projectId: this.config.projectId });
+      const tgRes = await sendTelegramHtml(this.config, htmlReport);
+
+      const t = info.workerTotals;
+      const summary = `Sysinfo ${info.machine.hostname}: ${t.runningCount} worker aktif, Total CPU ${t.totalCpuPercent.toFixed(1)}%, Total RAM ${formatBytes(t.totalMemoryBytes)} (${t.totalMemoryPercent.toFixed(2)}%).\n\n${textReport}`;
+      const extra = (tgRes && tgRes.ok) ? { skip_notify: '1' } : {};
+      await this.api.doneTask(task.id, summary, '', textReport, extra);
+      this.log(`✅ /sysinfo #${task.id} selesai (Telegram: ${tgRes && tgRes.ok ? 'terkirim' : 'via server'}).`);
+    } catch (e) {
+      this.log(`❌ Gagal memproses /sysinfo #${task.id}: ${e.message}`);
+      try {
+        await this.api.failTask(task.id, `Gagal memproses /sysinfo: ${e.message}`);
       } catch (err) {}
     }
   }
@@ -828,6 +871,7 @@ TeleWorker.parseKillCommand = parseKillCommand;
 TeleWorker.parseSampahCommand = parseSampahCommand;
 TeleWorker.parseSnapshotCommand = parseSnapshotCommand;
 TeleWorker.parseRestoreCommand = parseRestoreCommand;
+TeleWorker.parseSysinfoCommand = parseSysinfoCommand;
 TeleWorker.normalizeExecutor = normalizeExecutor;
 TeleWorker.isCliExecutor = isCliExecutor;
 TeleWorker.isVscodeExecutor = isVscodeExecutor;
