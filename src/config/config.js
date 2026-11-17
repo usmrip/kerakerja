@@ -25,18 +25,44 @@ function loadEnvFile(filePath) {
 }
 
 function getConfigPath(workDir = process.cwd()) {
-  return path.join(workDir, '.config', 'kerakerja.config.json');
+  return path.join(workDir, '.biru', 'kerakerja.config.json');
+}
+
+function ensureSecureConfigDir(configDir) {
+  if (!fs.existsSync(configDir)) {
+    fs.mkdirSync(configDir, { recursive: true, mode: 0o700 });
+  }
+  if (process.platform !== 'win32') {
+    try { fs.chmodSync(configDir, 0o700); } catch (e) {}
+  }
+
+  const htaccessPath = path.join(configDir, '.htaccess');
+  if (!fs.existsSync(htaccessPath)) {
+    const htaccessContent = [
+      '# Lindungi konfigurasi KeraKerja agar tidak bisa diakses/diunduh publik',
+      '<IfModule mod_authz_core.c>',
+      '    Require all denied',
+      '</IfModule>',
+      '<IfModule !mod_authz_core.c>',
+      '    Order allow,deny',
+      '    Deny from all',
+      '</IfModule>',
+      ''
+    ].join('\n');
+    fs.writeFileSync(htaccessPath, htaccessContent, { encoding: 'utf-8', mode: 0o644 });
+    if (process.platform !== 'win32') {
+      try { fs.chmodSync(htaccessPath, 0o644); } catch (e) {}
+    }
+  }
 }
 
 function loadConfig(workDir = process.cwd()) {
-  const dotConfigJsonPath = getConfigPath(workDir);
+  const biruJsonPath = getConfigPath(workDir);
+  const dotConfigJsonPath = path.join(workDir, '.config', 'kerakerja.config.json');
   const legacyKerakerjaJsonPath = path.join(workDir, 'kerakerja.config.json');
   const legacyTeleJsonPath = path.join(workDir, 'tele.config.json');
-  const jsonConfigPath = fs.existsSync(dotConfigJsonPath)
-    ? dotConfigJsonPath
-    : (fs.existsSync(legacyKerakerjaJsonPath)
-        ? legacyKerakerjaJsonPath
-        : (fs.existsSync(legacyTeleJsonPath) ? legacyTeleJsonPath : dotConfigJsonPath));
+  const jsonConfigPath = [biruJsonPath, dotConfigJsonPath, legacyKerakerjaJsonPath, legacyTeleJsonPath]
+    .find((p) => fs.existsSync(p)) || biruJsonPath;
 
   let jsonConfig = {};
   if (fs.existsSync(jsonConfigPath)) {
@@ -116,15 +142,17 @@ function loadConfig(workDir = process.cwd()) {
 function saveConfig(config, workDir = process.cwd()) {
   const jsonConfigPath = getConfigPath(workDir);
   const configDir = path.dirname(jsonConfigPath);
-  if (!fs.existsSync(configDir)) {
-    fs.mkdirSync(configDir, { recursive: true });
+  ensureSecureConfigDir(configDir);
+  fs.writeFileSync(jsonConfigPath, JSON.stringify(config, null, 2) + '\n', { encoding: 'utf-8', mode: 0o600 });
+  if (process.platform !== 'win32') {
+    try { fs.chmodSync(jsonConfigPath, 0o600); } catch (e) {}
   }
-  fs.writeFileSync(jsonConfigPath, JSON.stringify(config, null, 2) + '\n', 'utf-8');
   return jsonConfigPath;
 }
 
 module.exports = {
   getConfigPath,
+  ensureSecureConfigDir,
   loadConfig,
   saveConfig,
   DEFAULT_SERVER_URL

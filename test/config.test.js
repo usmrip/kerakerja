@@ -11,7 +11,7 @@ test('Config - Memuat konfigurasi default dengan benar', () => {
   assert.ok(cfg.pollInterval > 0);
 });
 
-test('Config - Menyimpan dan membaca .config/kerakerja.config.json', () => {
+test('Config - Menyimpan dan membaca .biru/kerakerja.config.json beserta .htaccess proteksi publik', () => {
   const tmpDir = path.join(__dirname, 'tmp_cfg');
   if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
 
@@ -25,8 +25,14 @@ test('Config - Menyimpan dan membaca .config/kerakerja.config.json', () => {
   };
 
   const savedPath = saveConfig(custom, tmpDir);
-  assert.strictEqual(savedPath, path.join(tmpDir, '.config', 'kerakerja.config.json'));
+  assert.strictEqual(savedPath, path.join(tmpDir, '.biru', 'kerakerja.config.json'));
   assert.strictEqual(fs.existsSync(savedPath), true);
+
+  const htaccessPath = path.join(tmpDir, '.biru', '.htaccess');
+  assert.strictEqual(fs.existsSync(htaccessPath), true);
+  const htContent = fs.readFileSync(htaccessPath, 'utf-8');
+  assert.ok(htContent.includes('Require all denied'));
+  assert.ok(htContent.includes('Deny from all'));
 
   const loaded = loadConfig(tmpDir);
 

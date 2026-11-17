@@ -98,7 +98,7 @@ Penggunaan:
 
 Opsi:
   --yes, -y     Lanjutkan tanpa konfirmasi interaktif
-  --purge       Hapus juga konfigurasi lokal (.config/kerakerja.config.json, logs/, PID)
+  --purge       Hapus juga konfigurasi lokal (.biru/kerakerja.config.json, logs/, PID)
   --dry-run     Tampilkan simulasi penghapusan tanpa mengubah sistem
   --help, -h    Tampilkan bantuan ini
 `);
@@ -220,6 +220,7 @@ function cleanWorkspaces(workspaceDirs, dryRun, summary) {
 
     if (!fs.existsSync(resolved)) continue;
     console.log(`   🧹 Membersihkan workspace: ${resolved}`);
+    safeRmDir(path.join(resolved, '.biru'), dryRun, summary);
     safeUnlink(path.join(resolved, '.config', 'kerakerja.config.json'), dryRun, summary);
     safeUnlink(path.join(resolved, 'kerakerja.config.json'), dryRun, summary);
     safeUnlink(path.join(resolved, 'kerakerja-worker.pid'), dryRun, summary);

@@ -43,7 +43,7 @@ async function useCommand(args) {
   const config = loadConfig(cwd);
   config.projectId = target;
   saveConfig(config, cwd);
-  console.log(`✅ Proyek aktif lokal berhasil diubah menjadi: '${target}' (disimpan di .config/kerakerja.config.json)`);
+  console.log(`✅ Proyek aktif lokal berhasil diubah menjadi: '${target}' (disimpan di .biru/kerakerja.config.json)`);
 
   const regRes = registerWorkspace({ ...config, workDir: cwd });
   if (regRes.registered) {

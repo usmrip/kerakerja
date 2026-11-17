@@ -3,7 +3,7 @@ const os = require('os');
 const path = require('path');
 const https = require('https');
 const { execSync } = require('child_process');
-const { loadConfig, getConfigPath } = require('../../config/config');
+const { loadConfig, getConfigPath, ensureSecureConfigDir } = require('../../config/config');
 const { loadWorkspaces } = require('../../config/workspaces');
 const ApiClient = require('../../api/client');
 const { formatLocalTimestamp } = require('../../utils/time');
@@ -95,14 +95,17 @@ function migrateOrDeleteLegacyConfig(legacyPath, targetConfigPath, label, scope,
   const size = getPathSize(legacyPath);
   if (!fs.existsSync(targetConfigPath)) {
     if (dryRun) {
-      items.push({ item: `${label} -> .config/`, path: legacyPath, scope, status: 'Akan Dimigrasi', size, ok: true });
+      items.push({ item: `${label} -> .biru/`, path: legacyPath, scope, status: 'Akan Dimigrasi', size, ok: true });
       return;
     }
     try {
-      fs.mkdirSync(path.dirname(targetConfigPath), { recursive: true });
+      ensureSecureConfigDir(path.dirname(targetConfigPath));
       fs.copyFileSync(legacyPath, targetConfigPath);
+      if (process.platform !== 'win32') {
+        try { fs.chmodSync(targetConfigPath, 0o600); } catch (e) {}
+      }
       fs.unlinkSync(legacyPath);
-      items.push({ item: `${label} -> .config/`, path: legacyPath, scope, status: 'Dimigrasi', size, ok: true });
+      items.push({ item: `${label} -> .biru/`, path: legacyPath, scope, status: 'Dimigrasi', size, ok: true });
     } catch (e) {
       items.push({ item: label, path: legacyPath, scope, status: 'Gagal', size, ok: false, error: e.message });
     }
@@ -155,6 +158,14 @@ function cleanTeleVsCliTrash(options = {}) {
     removeFileItem(path.join(resolved, 'tele-worker.log'), 'tele-worker.log', scope, dryRun, items);
     removeFileItem(path.join(resolved, 'logs', 'tele-worker.log'), 'logs/tele-worker.log', scope, dryRun, items);
 
+    migrateOrDeleteLegacyConfig(
+      path.join(resolved, '.config', 'kerakerja.config.json'),
+      dotConfigPath,
+      '.config/kerakerja.config.json',
+      scope,
+      dryRun,
+      items
+    );
     migrateOrDeleteLegacyConfig(
       path.join(resolved, 'kerakerja.config.json'),
       dotConfigPath,

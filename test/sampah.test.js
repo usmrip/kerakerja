@@ -59,8 +59,9 @@ test('Sampah - cleanTeleVsCliTrash membersihkan sampah tele-vs-cli lokal & globa
     assert.ok(report.cleanedCount >= 6);
     assert.strictEqual(report.migratedCount, 1);
 
-    // Config dimigrasi ke .config/kerakerja.config.json
-    assert.strictEqual(fs.existsSync(path.join(workDir, '.config', 'kerakerja.config.json')), true);
+    // Config dimigrasi ke .biru/kerakerja.config.json + .htaccess proteksi
+    assert.strictEqual(fs.existsSync(path.join(workDir, '.biru', 'kerakerja.config.json')), true);
+    assert.strictEqual(fs.existsSync(path.join(workDir, '.biru', '.htaccess')), true);
     assert.strictEqual(fs.existsSync(path.join(workDir, 'kerakerja.config.json')), false);
     assert.strictEqual(fs.existsSync(path.join(workDir, 'tele.config.json')), false);
 

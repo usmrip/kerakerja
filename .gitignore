@@ -9,6 +9,7 @@ tele-worker.pid
 kerakerja-worker.pid
 
 # Configuration & secrets
+.biru/
 .config/
 config.env
 .env
