@@ -11,7 +11,8 @@ const {
   writeActiveTask,
   clearActiveTask,
   isActiveTaskLocked,
-  hasLocalQueueInProgress
+  hasLocalQueueInProgress,
+  reconcileLocalQueueStatus
 } = require('../utils/process');
 const { fetchReport } = require('../utils/agy_usage');
 const { formatLocalTimestamp } = require('../utils/time');
@@ -494,8 +495,34 @@ class TeleWorker {
     if (process.env.TELE_IGNORE_LOCAL_QUEUE !== '1') {
       const localQueue = hasLocalQueueInProgress(this.workDir, pending.id);
       if (localQueue.active) {
-        this.logThrottled(`⏳ Tugas ${localQueue.taskId} masih [IN_PROGRESS] di TASK_QUEUE.md (IDE/tele-vs-code). Menunggu selesai...`);
-        return;
+        let shouldWait = true;
+        if (typeof this.api.getStatus === 'function') {
+          try {
+            const stRes = await this.api.getStatus();
+            const srvInProg = stRes && stRes.data && stRes.data.summary
+              ? Number(stRes.data.summary.IN_PROGRESS || 0)
+              : null;
+            if (srvInProg === 0 && !isActiveTaskLocked(this.workDir, this.workerId).locked) {
+              let targetStatus = 'PENDING';
+              if (typeof this.api.getTask === 'function') {
+                try {
+                  const tRes = await this.api.getTask(localQueue.taskId);
+                  const srvStatus = tRes && tRes.data && tRes.data.task && String(tRes.data.task.status || '').toUpperCase();
+                  if (srvStatus && srvStatus !== 'IN_PROGRESS' && srvStatus !== 'RUNNING') {
+                    targetStatus = srvStatus;
+                  }
+                } catch (_) {}
+              }
+              reconcileLocalQueueStatus(this.workDir, localQueue.taskId, targetStatus);
+              this.log(`🔄 Sinkronisasi TASK_QUEUE.md: ${localQueue.taskId} sudah berstatus [${targetStatus}] di server (stale lock dibersihkan).`);
+              shouldWait = false;
+            }
+          } catch (_) {}
+        }
+        if (shouldWait) {
+          this.logThrottled(`⏳ Tugas ${localQueue.taskId} masih [IN_PROGRESS] di TASK_QUEUE.md (IDE/tele-vs-code). Menunggu selesai...`);
+          return;
+        }
       }
     }
 

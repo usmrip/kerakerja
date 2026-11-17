@@ -6,6 +6,16 @@
 
 ## ⏳ Tugas Aktif
 
+### [IN_PROGRESS] #TASK-82dc
+- **Waktu:** 2026-11-17 11:09:31
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Instruksi:** Investigasi & perbaiki kenapa worker aktif tidak segera mengambil pekerjaan antrean PENDING saat Sedang Dikerjakan = 0
+- **Status:** IN_PROGRESS
+- **Catatan:** Sedang dikerjakan oleh AI Agent...
+
+
+
 ### [PENDING] #TASK-3c6f
 - **Waktu:** 2026-11-17 12:30:43
 - **Pengirim:** @usmrip (Private Chat)
@@ -74,7 +84,7 @@ termasuk peritah use juga dengan info working direktori
 ### [IN_PROGRESS] #TASK-fbfd
 - **Waktu:** 2026-11-17 11:14:16
 - **Pengirim:** @usmrip (Private Chat)
-- **Agent:** Antigravity AI Agent
+- **Agent:** Google Antigravity CLI (agy)
 - **Instruksi:** 1. tambahkan perintah /sysinfo
 
 berikan infomasi  system mesin terpasang termasuk jumlah worker runinning dan masing2 memakan cpu serta memory beberapa. tambahkan juga total usage system darer worker tele
@@ -84,8 +94,8 @@ berikan infomasi  system mesin terpasang termasuk jumlah worker runinning dan ma
 ganti semua tele-vs-cli dengan kerakerja termasuk di git, dashboard dan folder
 
 jangan ada sampah tele-vs-cli
-- **Status:** IN_PROGRESS
-- **Catatan:** Sedang dikerjakan oleh AI Agent...
+- **Status:** ON PROCESS — Mengerjakan: "1. tambahkan perintah /sysinfo" (Oleh: Google Antigravity CLI (agy) | Worker: PAUSED)
+- **Catatan:** Sedang mengerjakan: "1. tambahkan perintah /sysinfo" (Google Antigravity CLI (agy)). Worker dijeda otomatis hingga tugas ditandai Selesai (DONE) atau Kendala (FAILED).
 
 
 

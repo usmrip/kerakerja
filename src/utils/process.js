@@ -160,6 +160,22 @@ function clearActiveTask(workDir, expectedTaskId = null) {
   } catch (e) {}
 }
 
+function reconcileLocalQueueStatus(workDir, taskId, newStatus = 'PENDING') {
+  const queueFile = path.join(workDir || process.cwd(), 'TASK_QUEUE.md');
+  if (!fs.existsSync(queueFile) || !taskId) return false;
+  try {
+    const content = fs.readFileSync(queueFile, 'utf-8');
+    const cleanId = normalizeTaskId(taskId).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`(###\\s+)\\[IN_PROGRESS\\](\\s+#?${cleanId}\\b)`, 'gi');
+    const updated = content.replace(re, `$1[${String(newStatus || 'PENDING').toUpperCase()}]$2`);
+    if (updated !== content) {
+      fs.writeFileSync(queueFile, updated, 'utf-8');
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+
 module.exports = {
   normalizeTaskId,
   matchesTaskId,
@@ -170,5 +186,6 @@ module.exports = {
   readActiveTask,
   clearActiveTask,
   isActiveTaskLocked,
-  hasLocalQueueInProgress
+  hasLocalQueueInProgress,
+  reconcileLocalQueueStatus
 };

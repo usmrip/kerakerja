@@ -222,3 +222,39 @@ test('ApiClient - request POST mengirim params di body form-urlencoded (bukan qu
     server.close();
   }
 });
+
+test('TeleWorker - checkAndProcessNextTask membersihkan stale IN_PROGRESS di TASK_QUEUE.md jika server IN_PROGRESS=0', async () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tele-stale-q-'));
+  const prevIgnore = process.env.TELE_IGNORE_LOCAL_QUEUE;
+  delete process.env.TELE_IGNORE_LOCAL_QUEUE;
+  try {
+    fs.writeFileSync(path.join(tmpDir, 'TASK_QUEUE.md'), '# Queue\n\n### [IN_PROGRESS] #TASK-STALE\n- old\n');
+    const worker = new TeleWorker({ workDir: tmpDir, workerId: 'w-cli' });
+    let executedId = null;
+
+    worker.api = {
+      pullTasks: async () => ({
+        statusCode: 200,
+        data: { tasks: [{ id: 'TASK-NEXT', status: 'PENDING', executor: 'cli', instruction: 'Kerjakan ini' }] }
+      }),
+      getStatus: async () => ({ statusCode: 200, data: { ok: true, summary: { PENDING: 1, IN_PROGRESS: 0 } } }),
+      getTask: async () => ({ statusCode: 200, data: { ok: true, task: { id: '#TASK-STALE', status: 'PENDING' } } }),
+      startTask: async () => ({ statusCode: 200, data: { ok: true, task: { id: 'TASK-NEXT', worker_id: 'w-cli', executor: 'cli' } } }),
+      doneTask: async () => ({ statusCode: 200, data: { ok: true } }),
+      failTask: async () => ({ statusCode: 200, data: { ok: true } })
+    };
+    worker.executor = {
+      execute: async (task) => { executedId = task.id; return { success: true, summary: 'OK' }; }
+    };
+
+    await worker.checkAndProcessNextTask();
+    assert.strictEqual(executedId, 'TASK-NEXT');
+    const qContent = fs.readFileSync(path.join(tmpDir, 'TASK_QUEUE.md'), 'utf-8');
+    assert.strictEqual(qContent.includes('[IN_PROGRESS] #TASK-STALE'), false);
+    assert.strictEqual(qContent.includes('[PENDING] #TASK-STALE'), true);
+  } finally {
+    if (prevIgnore === undefined) delete process.env.TELE_IGNORE_LOCAL_QUEUE;
+    else process.env.TELE_IGNORE_LOCAL_QUEUE = prevIgnore;
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
