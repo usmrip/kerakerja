@@ -194,21 +194,21 @@ async function initCommand(args = []) {
     console.log('\n🩺 Menjalankan `kerakerja doctor` secara otomatis...');
     const doctorRes = await doctorCommand([]);
     if (doctorRes && doctorRes.ok && process.stdin.isTTY && !args.includes('--no-start-prompt')) {
-      console.log('🚀 Diagnostik lolos tanpa error! Pilih mode eksekusi KeraKerja:');
-      console.log('   [1] Jalankan biasa (foreground: kerakerja start)');
-      console.log('   [2] Jalankan daemon (background: kerakerja start --daemon)');
-      console.log('   [3] Jalankan daemon + verbose (kerakerja start --daemon --verbose)');
-      console.log('   [4] Keluar');
+      const selectedMode = await selectFromListInteractive(
+        '🚀 Diagnostik lolos tanpa error! Pilih mode eksekusi KeraKerja (gunakan ↑/↓ + Enter):',
+        [
+          { label: 'Jalankan biasa (foreground: kerakerja start)', value: 'foreground' },
+          { label: 'Jalankan daemon (background: kerakerja start --daemon)', value: 'daemon' },
+          { label: 'Jalankan daemon + verbose (kerakerja start --daemon --verbose)', value: 'daemon-verbose' },
+          { label: 'Keluar', value: 'exit' }
+        ]
+      );
 
-      const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-      const choice = (await askQuestion(rl, '\nPilih [1/2/3/4] (default 4): ')).trim();
-      rl.close();
-
-      if (choice === '1') {
+      if (selectedMode && selectedMode.value === 'foreground') {
         await startCommand([]);
-      } else if (choice === '2') {
+      } else if (selectedMode && selectedMode.value === 'daemon') {
         await startCommand(['--daemon']);
-      } else if (choice === '3') {
+      } else if (selectedMode && selectedMode.value === 'daemon-verbose') {
         await startCommand(['--daemon', '--verbose']);
       } else {
         console.log('👋 Keluar. Anda dapat menjalankan `kerakerja start --daemon` kapan saja.\n');

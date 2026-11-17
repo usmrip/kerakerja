@@ -114,6 +114,17 @@ jangan ada sampah tele-vs-cli
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-2eb1
+- **Waktu:** 2026-11-17 10:53:19
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 28 detik
+- **Instruksi:** Ubah menu pilihan mode eksekusi pasca kerakerja init/doctor menjadi menu panah naik/turun (selectFromListInteractive)
+- **Status:** DONE
+- **Laporan Agent:** Menu pilihan mode eksekusi pasca kerakerja init/doctor kini menggunakan navigasi panah naik/turun (selectFromListInteractive) di src/cli/commands/init.js. Lolos 85/85 unit test.
+
+
+
 ### [DONE] #TASK-cf08
 - **Waktu:** 2026-11-17 10:51:39
 - **Pengirim:** IDE Chat
