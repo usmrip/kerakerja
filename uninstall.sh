@@ -4,7 +4,7 @@
 # KeraKerja Uninstaller for Linux & macOS (OS X)
 # Usage:
 #   Local:  ./uninstall.sh [--yes] [--purge] [--dry-run]
-#   Remote: curl -fsSL https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/uninstall.sh | bash
+#   Remote: curl -fsSL https://raw.githubusercontent.com/usmrip/kerakerja/main/uninstall.sh | bash
 # ==============================================================================
 
 set -e

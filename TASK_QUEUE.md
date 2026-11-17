@@ -104,6 +104,17 @@ jangan ada sampah tele-vs-cli
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-f511
+- **Waktu:** 2026-11-17 05:53:10
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 1 menit 21 detik
+- **Instruksi:** Ubah nama repositori GitHub dari usmrip/tele-vs-cli menjadi usmrip/kerakerja dan perbarui remote serta URL installer
+- **Status:** DONE
+- **Laporan Agent:** Repositori GitHub resmi diubah dari usmrip/tele-vs-cli menjadi usmrip/kerakerja via GitHub REST API, git remote origin diperbarui ke https://github.com/usmrip/kerakerja.git, dan seluruh URL installer/uninstaller/README/dashboard (views/tab_bantuan.php) telah diarahkan ke usmrip/kerakerja. Lolos 71/71 unit test & php -l.
+
+
+
 ### [DONE] #TASK-df07
 - **Waktu:** 2026-11-17 05:50:10
 - **Pengirim:** IDE Chat

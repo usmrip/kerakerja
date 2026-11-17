@@ -4,12 +4,12 @@
 # KeraKerja Installer for Linux & macOS (OS X)
 # Usage:
 #   Local:  ./install.sh
-#   Remote: curl -fsSL https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/install.sh | bash
+#   Remote: curl -fsSL https://raw.githubusercontent.com/usmrip/kerakerja/main/install.sh | bash
 # ==============================================================================
 
 set -e
 
-REPO_URL="https://github.com/usmrip/tele-vs-cli.git"
+REPO_URL="https://github.com/usmrip/kerakerja.git"
 INSTALL_DIR="${HOME}/.kerakerja"
 
 echo "=============================================================================="

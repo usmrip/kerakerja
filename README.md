@@ -30,12 +30,12 @@ Tele-vs-CLI menyediakan skrip instalasi otomatis untuk **Linux**, **Windows**, d
 
 **Cara 1: One-liner via cURL (Instalasi Langsung):**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/usmrip/kerakerja/main/install.sh | bash
 ```
 
 **Cara 2: Dari Repositori Lokal:**
 ```bash
-git clone https://github.com/usmrip/tele-vs-cli.git
+git clone https://github.com/usmrip/kerakerja.git
 cd tele-vs-cli
 ./install.sh
 ```
@@ -46,12 +46,12 @@ cd tele-vs-cli
 
 **Cara 1: One-liner via PowerShell:**
 ```powershell
-irm https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/usmrip/kerakerja/main/install.ps1 | iex
 ```
 
 **Cara 2: Dari Repositori Lokal:**
 ```powershell
-git clone https://github.com/usmrip/tele-vs-cli.git
+git clone https://github.com/usmrip/kerakerja.git
 cd tele-vs-cli
 .\install.ps1
 ```
@@ -79,7 +79,7 @@ Tele-vs-CLI menyediakan skrip pencopotan otomatis untuk membersihkan worker daem
 ### 🐧 Linux & 🍎 macOS (OS X)
 ```bash
 # One-liner via cURL
-curl -fsSL https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/usmrip/kerakerja/main/uninstall.sh | bash
 
 # Atau dari repositori lokal
 ./uninstall.sh [--yes] [--purge] [--dry-run]
@@ -88,7 +88,7 @@ curl -fsSL https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/uninstall.s
 ### 🪟 Windows (PowerShell / Command Prompt)
 ```powershell
 # One-liner via PowerShell
-irm https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/uninstall.ps1 | iex
+irm https://raw.githubusercontent.com/usmrip/kerakerja/main/uninstall.ps1 | iex
 
 # Atau dari repositori lokal
 .\uninstall.ps1 [-Yes] [-Purge] [-DryRun]

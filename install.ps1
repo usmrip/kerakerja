@@ -3,9 +3,9 @@ $ErrorActionPreference = "Stop"
 # KeraKerja Installer for Windows (PowerShell)
 # Usage:
 #   Local:  powershell -ExecutionPolicy Bypass -File .\install.ps1
-#   Remote: irm https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/install.ps1 | iex
+#   Remote: irm https://raw.githubusercontent.com/usmrip/kerakerja/main/install.ps1 | iex
 
-$RepoUrl = "https://github.com/usmrip/tele-vs-cli.git"
+$RepoUrl = "https://github.com/usmrip/kerakerja.git"
 $InstallDir = Join-Path $env:LOCALAPPDATA "kerakerja\app"
 
 Write-Host "==============================================================================" -ForegroundColor Cyan

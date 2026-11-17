@@ -1,7 +1,7 @@
 # KeraKerja Uninstaller for Windows (PowerShell)
 # Usage:
 #   Local:  powershell -ExecutionPolicy Bypass -File .\uninstall.ps1 [-Yes] [-Purge] [-DryRun]
-#   Remote: irm https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/uninstall.ps1 | iex
+#   Remote: irm https://raw.githubusercontent.com/usmrip/kerakerja/main/uninstall.ps1 | iex
 
 param(
     [switch]$Purge,
