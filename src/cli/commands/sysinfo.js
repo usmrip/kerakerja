@@ -396,5 +396,6 @@ module.exports = {
   formatSysinfoTelegramHtml,
   formatWorkersTable,
   formatUptime,
-  isWorkerCommandLine
+  isWorkerCommandLine,
+  collectKnownWorkerPids
 };

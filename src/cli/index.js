@@ -16,6 +16,7 @@ const { snapshotCommand, restoreCommand } = require('./commands/snapshot');
 const { infoCommand } = require('./commands/info');
 const { whereCommand } = require('./commands/where');
 const { sysinfoCommand } = require('./commands/sysinfo');
+const { workersCommand } = require('./commands/workers');
 const { runUninstall } = require('../../scripts/uninstall');
 
 function printHelp() {
@@ -51,6 +52,7 @@ PERINTAH UTAMA:
   where [--json]            Tampilkan direktori kerja aktif (workDir) & proyek aktif
   sampah [--dry-run]        Bersihkan sampah tele-vs-cli & kirim laporan tabel ke Telegram
   sysinfo [--json]          Info sistem mesin, worker aktif, CPU/RAM & total usage worker
+  workers [--json] [--online] Lihat daftar worker terdaftar (server & lokal) beserta statusnya
   snapshot <kode> [param]   Buat snapshot (full, db, kode, upload, db,kode) ke ../snapshot-kerakerja
   restore [<kode_lengkap>]  Restore snapshot (atau tampilkan 4 snapshot terakhir)
   uninstall, --uninstall    Copot KeraKerja dari sistem & seluruh workspace terdaftar
@@ -154,6 +156,10 @@ async function main() {
     case 'sysinfo':
     case '/sysinfo':
       await sysinfoCommand(subArgs);
+      break;
+    case 'workers':
+    case '/workers':
+      await workersCommand(subArgs);
       break;
     case 'snapshot':
     case '/snapshot':

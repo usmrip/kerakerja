@@ -119,6 +119,13 @@ class ApiClient {
     return this.request('api_status');
   }
 
+  getWorkers(options = {}) {
+    const params = {};
+    if (options.all) params.all = '1';
+    if (options.status) params.status = options.status;
+    return this.request('api_workers', params);
+  }
+
   getTask(taskId) {
     return this.request('api_get_task', { id: taskId });
   }
