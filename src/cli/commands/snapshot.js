@@ -14,6 +14,8 @@ const DB_EXTENSIONS = new Set(['.db', '.sqlite', '.sqlite3']);
 const UPLOAD_DIR_CANDIDATES = [
   'uploads',
   'upload',
+  'files',
+  path.join('writable', 'uploads'),
   path.join('public', 'uploads'),
   path.join('storage', 'app', 'public'),
   'attachments',
@@ -271,6 +273,110 @@ function readSimpleEnv(workDir) {
   return env;
 }
 
+function extractPhpArrayValue(block, key) {
+  const re = new RegExp(`['"]${key}['"]\\s*=>\\s*(?:['"]([^'"]*)['"]|(\\d+))`, 'i');
+  const m = block.match(re);
+  if (!m) return '';
+  return (m[1] !== undefined ? m[1] : (m[2] !== undefined ? m[2] : '')).trim();
+}
+
+function extractPhpDefineValue(content, key) {
+  const re = new RegExp(`define\\s*\\(\\s*['"]${key}['"]\\s*,\\s*['"]([^'"]*)['"]`, 'i');
+  const m = content.match(re);
+  return m ? m[1].trim() : '';
+}
+
+function detectDatabaseConfig(workDir) {
+  const env = readSimpleEnv(workDir);
+  if (env.DB_DATABASE || env.MYSQL_DATABASE) {
+    return {
+      source: '.env',
+      driver: (env.DB_CONNECTION || (env.MYSQL_DATABASE ? 'mysql' : '')).toLowerCase(),
+      host: env.DB_HOST || '127.0.0.1',
+      port: env.DB_PORT || '',
+      username: env.DB_USERNAME || env.MYSQL_USER || '',
+      password: env.DB_PASSWORD || env.MYSQL_PASSWORD || '',
+      database: env.DB_DATABASE || env.MYSQL_DATABASE,
+      databaseUrl: env.DATABASE_URL || ''
+    };
+  }
+  if (env.DATABASE_URL) {
+    return {
+      source: '.env',
+      driver: env.DATABASE_URL.startsWith('postgres') ? 'postgres' : '',
+      databaseUrl: env.DATABASE_URL
+    };
+  }
+
+  // CodeIgniter 4: app/Config/Database.php
+  const ci4Path = path.join(workDir, 'app', 'Config', 'Database.php');
+  if (fs.existsSync(ci4Path)) {
+    try {
+      const content = fs.readFileSync(ci4Path, 'utf-8');
+      const blockMatch = content.match(/\$default\s*=\s*\[([\s\S]*?)\];/i);
+      const block = blockMatch ? blockMatch[1] : content;
+      const database = extractPhpArrayValue(block, 'database');
+      if (database) {
+        const dbDriver = extractPhpArrayValue(block, 'DBDriver').toLowerCase();
+        return {
+          source: 'app/Config/Database.php',
+          driver: dbDriver.includes('postgre') ? 'postgres' : (dbDriver.includes('sqlite') ? 'sqlite' : 'mysql'),
+          host: extractPhpArrayValue(block, 'hostname') || '127.0.0.1',
+          port: extractPhpArrayValue(block, 'port') || '',
+          username: extractPhpArrayValue(block, 'username'),
+          password: extractPhpArrayValue(block, 'password'),
+          database
+        };
+      }
+    } catch (e) {}
+  }
+
+  // CodeIgniter 3: application/config/database.php
+  const ci3Path = path.join(workDir, 'application', 'config', 'database.php');
+  if (fs.existsSync(ci3Path)) {
+    try {
+      const content = fs.readFileSync(ci3Path, 'utf-8');
+      const blockMatch = content.match(/\$db\[['"]default['"]\]\s*=\s*(?:array\s*\(|\[)([\s\S]*?)(?:\)|]);/i);
+      const block = blockMatch ? blockMatch[1] : content;
+      const database = extractPhpArrayValue(block, 'database');
+      if (database) {
+        const dbDriver = extractPhpArrayValue(block, 'dbdriver').toLowerCase();
+        return {
+          source: 'application/config/database.php',
+          driver: dbDriver.includes('postgre') ? 'postgres' : 'mysql',
+          host: extractPhpArrayValue(block, 'hostname') || '127.0.0.1',
+          port: extractPhpArrayValue(block, 'port') || '',
+          username: extractPhpArrayValue(block, 'username'),
+          password: extractPhpArrayValue(block, 'password'),
+          database
+        };
+      }
+    } catch (e) {}
+  }
+
+  // WordPress: wp-config.php
+  const wpPath = path.join(workDir, 'wp-config.php');
+  if (fs.existsSync(wpPath)) {
+    try {
+      const content = fs.readFileSync(wpPath, 'utf-8');
+      const database = extractPhpDefineValue(content, 'DB_NAME');
+      if (database) {
+        return {
+          source: 'wp-config.php',
+          driver: 'mysql',
+          host: extractPhpDefineValue(content, 'DB_HOST') || '127.0.0.1',
+          port: '',
+          username: extractPhpDefineValue(content, 'DB_USER'),
+          password: extractPhpDefineValue(content, 'DB_PASSWORD'),
+          database
+        };
+      }
+    } catch (e) {}
+  }
+
+  return null;
+}
+
 function backupDatabase(workDir, dbTargetDir) {
   const stats = { files: 0, bytes: 0, notes: [] };
   const sqliteFiles = findSqliteFiles(workDir);
@@ -288,35 +394,54 @@ function backupDatabase(workDir, dbTargetDir) {
     }
   }
 
-  const env = readSimpleEnv(workDir);
-  const dbName = env.DB_DATABASE || env.MYSQL_DATABASE;
-  const dbConn = (env.DB_CONNECTION || '').toLowerCase();
-  if (dbName && (dbConn === 'mysql' || env.MYSQL_DATABASE)) {
+  const dbCfg = detectDatabaseConfig(workDir);
+  if (dbCfg && dbCfg.database && (dbCfg.driver === 'mysql' || dbCfg.driver === 'mysqli' || !dbCfg.driver)) {
+    let fd = null;
     try {
-      const dumpArgs = [];
-      if (env.DB_HOST) dumpArgs.push('-h', env.DB_HOST);
-      if (env.DB_PORT) dumpArgs.push('-P', env.DB_PORT);
-      if (env.DB_USERNAME) dumpArgs.push('-u', env.DB_USERNAME);
-      if (env.DB_PASSWORD) dumpArgs.push(`-p${env.DB_PASSWORD}`);
-      dumpArgs.push(dbName);
-      const sqlOut = execFileSync('mysqldump', dumpArgs, { encoding: 'utf-8', timeout: 30000, windowsHide: true });
+      const dumpArgs = ['--single-transaction', '--no-tablespaces'];
+      if (dbCfg.host) dumpArgs.push('-h', dbCfg.host);
+      if (dbCfg.port) dumpArgs.push('-P', String(dbCfg.port));
+      if (dbCfg.username) dumpArgs.push('-u', dbCfg.username);
+      if (dbCfg.password) dumpArgs.push(`-p${dbCfg.password}`);
+      dumpArgs.push(dbCfg.database);
+
       fs.mkdirSync(dbTargetDir, { recursive: true });
-      const dumpPath = path.join(dbTargetDir, 'mysql_dump.sql');
-      fs.writeFileSync(dumpPath, sqlOut, 'utf-8');
-      stats.bytes += Buffer.byteLength(sqlOut);
-      stats.files += 1;
+      const dumpPath = path.join(dbTargetDir, `${dbCfg.database}.sql`);
+      fd = fs.openSync(dumpPath, 'w');
+      execFileSync('mysqldump', dumpArgs, { stdio: ['ignore', fd, 'pipe'], timeout: 120000, windowsHide: true });
+      fs.closeSync(fd);
+      fd = null;
+      const sz = fs.statSync(dumpPath).size || 0;
+      if (sz > 0) {
+        stats.bytes += sz;
+        stats.files += 1;
+      } else {
+        fs.unlinkSync(dumpPath);
+      }
     } catch (e) {
+      if (fd !== null) {
+        try { fs.closeSync(fd); } catch (_) {}
+      }
       stats.notes.push(`mysqldump dilewati: ${e.message}`);
     }
-  } else if (env.DATABASE_URL && env.DATABASE_URL.startsWith('postgres')) {
+  } else if (dbCfg && dbCfg.databaseUrl && dbCfg.databaseUrl.startsWith('postgres')) {
+    let fd = null;
     try {
-      const sqlOut = execFileSync('pg_dump', [env.DATABASE_URL], { encoding: 'utf-8', timeout: 30000, windowsHide: true });
       fs.mkdirSync(dbTargetDir, { recursive: true });
       const dumpPath = path.join(dbTargetDir, 'postgres_dump.sql');
-      fs.writeFileSync(dumpPath, sqlOut, 'utf-8');
-      stats.bytes += Buffer.byteLength(sqlOut);
-      stats.files += 1;
+      fd = fs.openSync(dumpPath, 'w');
+      execFileSync('pg_dump', [dbCfg.databaseUrl], { stdio: ['ignore', fd, 'pipe'], timeout: 120000, windowsHide: true });
+      fs.closeSync(fd);
+      fd = null;
+      const sz = fs.statSync(dumpPath).size || 0;
+      if (sz > 0) {
+        stats.bytes += sz;
+        stats.files += 1;
+      }
     } catch (e) {
+      if (fd !== null) {
+        try { fs.closeSync(fd); } catch (_) {}
+      }
       stats.notes.push(`pg_dump dilewati: ${e.message}`);
     }
   }
@@ -678,6 +803,7 @@ module.exports = {
   getSnapshotRoot,
   sanitizeBaseCode,
   parseSnapshotParams,
+  detectDatabaseConfig,
   listSnapshots,
   resolveSnapshotInputs,
   getNextSnapshotName,

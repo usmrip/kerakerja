@@ -104,6 +104,17 @@ jangan ada sampah tele-vs-cli
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-1d0b
+- **Waktu:** 2026-11-17 07:12:09
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 1 menit 26 detik
+- **Instruksi:** Perbaiki backupDatabase & backupUploads pada /snapshot agar membaca konfigurasi DB di proyek (termasuk config PHP/hai.biru.co.id) dan ulangi eksekusi task #TASK-2a11
+- **Status:** DONE
+- **Laporan Agent:** backupDatabase & backupUploads kini mendeteksi konfigurasi DB CodeIgniter 4 (app/Config/Database.php), CodeIgniter 3, WordPress (wp-config.php), dan .env (streaming mysqldump/pg_dump ke file), serta folder upload files/ dan writable/uploads/. Lolos 80/80 unit test. Worker biru-click di-update, di-restart, dan #TASK-2a11 diulang.
+
+
+
 ### [DONE] #TASK-a396
 - **Waktu:** 2026-11-17 07:06:13
 - **Pengirim:** IDE Chat

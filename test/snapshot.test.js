@@ -8,6 +8,7 @@ const TeleWorker = require('../src/worker/worker');
 const {
   getSnapshotRoot,
   parseSnapshotParams,
+  detectDatabaseConfig,
   resolveSnapshotInputs,
   createSnapshot,
   listSnapshots,
@@ -108,5 +109,45 @@ test('Snapshot & Restore - penomoran otomatis (-01, -02), lokasi sejajar snapsho
     assert.strictEqual(fs.readFileSync(path.join(workDir, 'uploads', 'pic.png'), 'utf-8'), 'img-v1');
   } finally {
     fs.rmSync(parentDir, { recursive: true, force: true });
+  }
+});
+
+test('Snapshot - detectDatabaseConfig membaca config CodeIgniter 4 dan WordPress', () => {
+  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kerakerja-dbcfg-'));
+  try {
+    const ci4Dir = path.join(tmpRoot, 'ci4');
+    fs.mkdirSync(path.join(ci4Dir, 'app', 'Config'), { recursive: true });
+    fs.writeFileSync(path.join(ci4Dir, 'app', 'Config', 'Database.php'), `<?php
+class Database {
+  public $default = [
+    'hostname' => 'localhost',
+    'username' => 'biru_user',
+    'password' => 'secret_pw',
+    'database' => 'biru_hai_db',
+    'DBDriver' => 'MySQLi',
+    'port' => 3306,
+  ];
+}`);
+    const ci4Cfg = detectDatabaseConfig(ci4Dir);
+    assert.strictEqual(ci4Cfg.source, 'app/Config/Database.php');
+    assert.strictEqual(ci4Cfg.driver, 'mysql');
+    assert.strictEqual(ci4Cfg.database, 'biru_hai_db');
+    assert.strictEqual(ci4Cfg.username, 'biru_user');
+    assert.strictEqual(ci4Cfg.port, '3306');
+
+    const wpDir = path.join(tmpRoot, 'wp');
+    fs.mkdirSync(wpDir, { recursive: true });
+    fs.writeFileSync(path.join(wpDir, 'wp-config.php'), `<?php
+define('DB_NAME', 'wp_site');
+define('DB_USER', 'wp_admin');
+define('DB_PASSWORD', 'wp_pass');
+define('DB_HOST', '127.0.0.1');
+`);
+    const wpCfg = detectDatabaseConfig(wpDir);
+    assert.strictEqual(wpCfg.source, 'wp-config.php');
+    assert.strictEqual(wpCfg.database, 'wp_site');
+    assert.strictEqual(wpCfg.username, 'wp_admin');
+  } finally {
+    fs.rmSync(tmpRoot, { recursive: true, force: true });
   }
 });
