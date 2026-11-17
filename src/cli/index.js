@@ -13,6 +13,7 @@ const initCommand = require('./commands/init');
 const serviceCommand = require('./commands/service');
 const { sampahCommand } = require('./commands/sampah');
 const { snapshotCommand, restoreCommand } = require('./commands/snapshot');
+const { infoCommand } = require('./commands/info');
 const { sysinfoCommand } = require('./commands/sysinfo');
 const { runUninstall } = require('../../scripts/uninstall');
 
@@ -45,6 +46,7 @@ PERINTAH UTAMA:
   doctor                    Diagnostik lingkungan, koneksi, izin, dan CLI agent
   service install [--all]|uninstall Pasang/hapus autostart service (Windows Task Scheduler / Linux systemd / macOS launchd)
   update [--check]          Perbarui KeraKerja ke versi terbaru dari GitHub
+  info [--json]             Tampilkan informasi versi KeraKerja & waktu update terakhir
   sampah [--dry-run]        Bersihkan sampah tele-vs-cli & kirim laporan tabel ke Telegram
   sysinfo [--json]          Info sistem mesin, worker aktif, CPU/RAM & total usage worker
   snapshot <kode> [param]   Buat snapshot (full, db, kode, upload, db,kode) ke ../snapshot-kerakerja
@@ -105,8 +107,14 @@ async function main() {
       await quotaCommand(subArgs);
       break;
     case 'update':
+    case '/update':
     case 'upgrade':
+    case '/upgrade':
       await updateCommand(subArgs);
+      break;
+    case 'info':
+    case '/info':
+      await infoCommand(subArgs);
       break;
     case 'list':
       await listCommand(subArgs);

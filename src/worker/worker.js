@@ -30,6 +30,7 @@ const {
   formatSnapshotSuccessHtml,
   formatRestoreSuccessHtml
 } = require('../cli/commands/snapshot');
+const { buildInfoData, formatInfoTelegramHtml } = require('../cli/commands/info');
 const { sendTelegramHtml } = require('../utils/telegram');
 const {
   collectSysinfo,
@@ -180,6 +181,11 @@ function parseRestoreCommand(instruction) {
   return {
     code: rawArgs ? rawArgs.split(/\s+/)[0].trim() : ''
   };
+}
+
+function parseInfoCommand(instruction) {
+  const text = String(instruction || '').trim();
+  return /^\/info(?:@\w+)?(?:\s+.*)?$/i.test(text);
 }
 
 function parseSysinfoCommand(instruction) {
@@ -474,6 +480,11 @@ class TeleWorker {
       return;
     }
 
+    if (parseInfoCommand(pending.instruction)) {
+      await this.handleInfoInstruction(pending);
+      return;
+    }
+
     const parsedSysinfo = parseSysinfoCommand(pending.instruction);
     if (parsedSysinfo) {
       await this.handleSysinfoInstruction(pending, parsedSysinfo);
@@ -668,6 +679,24 @@ class TeleWorker {
       this.log(`❌ Gagal memproses /restore #${task.id}: ${e.message}`);
       try {
         await this.api.failTask(task.id, `Gagal memproses /restore: ${e.message}`);
+      } catch (err) {}
+    }
+  }
+
+  async handleInfoInstruction(task) {
+    this.log(`ℹ️ Memproses perintah /info (#${task.id})...`);
+    try {
+      await this.api.startTask(task.id, this.workerId, this.config.agent);
+      const info = buildInfoData(this.workDir);
+      const tgRes = await sendTelegramHtml(this.config, formatInfoTelegramHtml(info));
+      const summary = `KeraKerja v${info.version} (${info.commitHash}) | Update Terakhir: ${info.lastUpdateDate}`;
+      const extra = (tgRes && tgRes.ok) ? { skip_notify: '1' } : {};
+      await this.api.doneTask(task.id, summary, info.commitHash !== '-' ? info.commitHash : '', '', extra);
+      this.log(`✅ Info versi terkirim (#${task.id}): ${summary}`);
+    } catch (e) {
+      this.log(`❌ Gagal memproses /info #${task.id}: ${e.message}`);
+      try {
+        await this.api.failTask(task.id, `Gagal memproses /info: ${e.message}`);
       } catch (err) {}
     }
   }
@@ -869,6 +898,7 @@ class TeleWorker {
 
 TeleWorker.parseKillCommand = parseKillCommand;
 TeleWorker.parseSampahCommand = parseSampahCommand;
+TeleWorker.parseInfoCommand = parseInfoCommand;
 TeleWorker.parseSnapshotCommand = parseSnapshotCommand;
 TeleWorker.parseRestoreCommand = parseRestoreCommand;
 TeleWorker.parseSysinfoCommand = parseSysinfoCommand;

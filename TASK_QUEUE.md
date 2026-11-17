@@ -114,6 +114,17 @@ jangan ada sampah tele-vs-cli
 
 ## ✅ Riwayat Tugas Selesai
 
+### [DONE] #TASK-cf08
+- **Waktu:** 2026-11-17 10:51:39
+- **Pengirim:** IDE Chat
+- **Agent:** Antigravity AI Agent
+- **Durasi:** 1 menit 46 detik
+- **Instruksi:** Tambahkan perintah kerakerja info (/info) dan /update di CLI, Worker, & menu Telegram, serta update semua worker aktif
+- **Status:** DONE
+- **Laporan Agent:** Perintah kerakerja info (/info) dan kerakerja update (/update) selesai ditambahkan di CLI, Worker, dan menu Telegram (setMyCommands 25 perintah + webhook.php + helpers.php). Semua worker aktif diperbarui dan di-restart. Lolos 85/85 unit test & php -l.
+
+
+
 ### [DONE] #TASK-dbe5
 - **Waktu:** 2026-11-17 10:48:46
 - **Pengirim:** IDE Chat

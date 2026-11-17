@@ -15,8 +15,8 @@ async function updateCommand(args = []) {
   if (!fs.existsSync(gitDir)) {
     console.log(`⚠️ Direktori instalasi (${rootDir}) bukan merupakan repositori Git.`);
     console.log(`💡 Untuk memperbarui instalasi global, jalankan ulang skrip installer:`);
-    console.log(`   Linux / macOS : curl -fsSL https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/install.sh | bash`);
-    console.log(`   Windows       : irm https://raw.githubusercontent.com/usmrip/tele-vs-cli/main/install.ps1 | iex\n`);
+    console.log(`   Linux / macOS : curl -fsSL https://raw.githubusercontent.com/usmrip/kerakerja/main/install.sh | bash`);
+    console.log(`   Windows       : irm https://raw.githubusercontent.com/usmrip/kerakerja/main/install.ps1 | iex\n`);
     return;
   }
 
