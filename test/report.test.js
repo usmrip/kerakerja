@@ -1,6 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const {
+  DEFAULT_MAX_SUMMARY_LENGTH,
+  DEFAULT_MAX_LINES,
   stripAnsi,
   cleanMarkdownForReport,
   buildTaskPrompt,
@@ -64,4 +66,26 @@ test('Report - extractTaskSummary tidak memotong laporan di 300 karakter dan mem
 
   const errSummary = extractTaskSummary('', '\x1B[31mError: koneksi gagal\x1B[0m', 1);
   assert.strictEqual(errSummary, 'Error: koneksi gagal');
+});
+
+test('Report - extractTaskSummary mendukung laporan panjang hingga 3500 karakter dan mempertahankan awal bagian Ringkasan Hasil', () => {
+  assert.ok(DEFAULT_MAX_SUMMARY_LENGTH >= 3500);
+  assert.ok(DEFAULT_MAX_LINES >= 60);
+
+  const manyPoints = Array.from(
+    { length: 40 },
+    (_, i) => `- Poin ${i + 1}: Penjelasan detail implementasi komponen ke-${i + 1} pada modul worker dan executor.`
+  );
+  const stdout = [
+    'Log proses awal yang tidak perlu masuk laporan...',
+    '',
+    'Ringkasan Hasil:',
+    ...manyPoints
+  ].join('\n');
+
+  const summary = extractTaskSummary(stdout, '', 0);
+  assert.ok(summary.length > 1500, 'Laporan harus bisa lebih panjang dari batas lama 1500 karakter');
+  assert.ok(summary.length <= DEFAULT_MAX_SUMMARY_LENGTH);
+  assert.ok(summary.startsWith('Ringkasan Hasil:'), 'Header Ringkasan Hasil harus tetap dipertahankan');
+  assert.ok(summary.includes('- Poin 1:'), 'Poin awal laporan tidak boleh terpotong');
 });

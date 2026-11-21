@@ -1,5 +1,5 @@
-const DEFAULT_MAX_SUMMARY_LENGTH = 1500;
-const DEFAULT_MAX_LINES = 25;
+const DEFAULT_MAX_SUMMARY_LENGTH = 3500;
+const DEFAULT_MAX_LINES = 80;
 
 /**
  * Menghapus kode escape ANSI (warna/kontrol terminal) dari teks.
@@ -43,11 +43,12 @@ function buildTaskPrompt(task, instruction) {
   return [
     `Tugas #${taskId}: ${cleanInstr}.`,
     '',
-    'Selesaikan dengan baik sesuai standar proyek. Pada akhir jawaban, tuliskan laporan hasil pekerjaan yang jelas dan terstruktur dalam Bahasa Indonesia (teks biasa tanpa link markdown file:///) dengan format:',
+    'Selesaikan dengan baik sesuai standar proyek. Pada akhir jawaban, tuliskan laporan hasil pekerjaan yang lengkap, jelas, dan terstruktur dalam Bahasa Indonesia (teks biasa tanpa link markdown file:///) dengan format:',
     'Ringkasan Hasil:',
-    '- Detail pekerjaan/perubahan yang dilakukan sesuai perintah',
-    '- File atau komponen utama yang diubah/dibuat',
-    '- Hasil pengujian atau verifikasi yang dijalankan'
+    '- Detail pekerjaan/perubahan teknis yang dilakukan sesuai perintah',
+    '- File, fungsi, atau komponen utama yang diubah/dibuat',
+    '- Hasil pengujian atau verifikasi yang dijalankan (termasuk jumlah test/command)',
+    '- Catatan tambahan atau tindak lanjut jika ada'
   ].join('\n');
 }
 
@@ -113,8 +114,10 @@ function extractTaskSummary(stdout, stderr = '', code = 0, options = {}) {
     .split('\n')
     .map((line) => line.replace(/[ \t]+$/g, ''));
 
-  const tailLines = lines.length > maxLines ? lines.slice(-maxLines) : lines;
-  const formatted = tailLines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  const selectedLines = lines.length > maxLines
+    ? (lastMatchIndex >= 0 ? lines.slice(0, maxLines) : lines.slice(-maxLines))
+    : lines;
+  const formatted = selectedLines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 
   return truncateCleanly(formatted, maxLength);
 }
