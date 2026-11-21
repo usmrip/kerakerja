@@ -605,12 +605,20 @@ class TeleWorker {
       const pullOut = execSync('git pull origin main', { cwd: rootDir, encoding: 'utf-8' }).trim();
       const afterCommit = execSync('git rev-parse HEAD', { cwd: rootDir, encoding: 'utf-8' }).trim();
 
-      const summary = (beforeCommit === afterCommit)
-        ? `Worker sudah menggunakan versi terbaru (${afterCommit.substring(0, 7)}).`
-        : `Worker berhasil diupdate otomatis dari ${beforeCommit.substring(0, 7)} ke ${afterCommit.substring(0, 7)}:\n${pullOut}`;
+      const updated = beforeCommit !== afterCommit;
+      const summary = updated
+        ? `Worker berhasil diupdate otomatis dari ${beforeCommit.substring(0, 7)} ke ${afterCommit.substring(0, 7)} (restart otomatis dijadwalkan):\n${pullOut}`
+        : `Worker sudah menggunakan versi terbaru (${afterCommit.substring(0, 7)}).`;
 
       await this.api.doneTask(task.id, summary, afterCommit);
       this.log(`✅ Pembaruan tugas #${task.id} selesai: ${summary}`);
+
+      if (updated && !this._restarting && this.running) {
+        this.log('🔄 Memuat ulang worker setelah update...');
+        setTimeout(() => {
+          this.restartSelf().catch(() => {});
+        }, 1200);
+      }
     } catch (e) {
       this.log(`❌ Gagal update #${task.id}: ${e.message}`);
       await this.api.failTask(task.id, `Gagal auto-update: ${e.message}`);
