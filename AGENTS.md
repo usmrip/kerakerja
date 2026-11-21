@@ -34,3 +34,8 @@ Setiap kali ada perubahan kode atau konfigurasi yang selesai diuji:
 
 ## 🌐 4. AKSES & UPLOAD KE SERVER (WAJIB SFTP)
 - Gunakan **SFTP** untuk seluruh proses upload, download, maupun akses/modifikasi file di server remote.
+
+
+## 📨 ATURAN ROUTING PENGIRIMAN TELEGRAM (ANTI-DUPLIKAT)
+- **Jika perintah/tugas berasal dari KeraKerja** (`kerakerja`, worker KeraKerja, atau `TASK_QUEUE.md` KeraKerja): pengiriman notifikasi & laporan Telegram **WAJIB hanya ke Telegram KeraKerja** (ditangani worker/API KeraKerja — **JANGAN** kirim ganda melalui script/bot `tele-vs-code`).
+- **Jika perintah/tugas berasal dari `tele-vs-code`**: pengiriman notifikasi & laporan Telegram **WAJIB hanya ke bot Telegram yang dikonfigurasi di setting `tele-vs-code`** (**JANGAN** kirim ke bot Telegram KeraKerja).

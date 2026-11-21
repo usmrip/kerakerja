@@ -118,3 +118,49 @@ test('CLI - kerakerja /sampah --dry-run --json --local-only berjalan sukses', ()
   assert.strictEqual(parsed.dryRun, true);
   assert.ok(Array.isArray(parsed.items));
 });
+
+test('Sampah - membersihkan perintah tele-vs-code dari AGENTS.md & .vscode/tele-vs-code serta menambahkan aturan routing Telegram', () => {
+  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kerakerja-sampah-tvsc-'));
+  try {
+    fs.mkdirSync(path.join(tmpRoot, '.vscode', 'tele-vs-code'), { recursive: true });
+    fs.writeFileSync(path.join(tmpRoot, '.vscode', 'tele-vs-code', 'tele-notify.js'), '// legacy');
+    fs.writeFileSync(path.join(tmpRoot, 'AGENTS.md'), [
+      '# 🤖 PANDUAN KERJA OTOMATIS AI AGENT (Tele-vs-Code)',
+      '',
+      '## 📢 2. NOTIFIKASI TELEGRAM',
+      'Jalankan: `node .vscode/tele-vs-code/tele-notify.js "Tugas" --status SELESAI`',
+      'Atau `node .vscode/tele-vs-code/tele-task.js done "#TASK-1" "OK"`',
+      '',
+      '## ✅ ATURAN PROYEK',
+      '- Gunakan TypeScript strict.'
+    ].join('\n'));
+
+    const report = cleanTeleVsCliTrash({
+      workDir: tmpRoot,
+      cleanGlobal: false,
+      includeRegisteredWorkspaces: false,
+      skipSystemCommands: true
+    });
+
+    assert.strictEqual(report.failedCount, 0);
+    assert.strictEqual(fs.existsSync(path.join(tmpRoot, '.vscode', 'tele-vs-code')), false);
+
+    const updatedAgents = fs.readFileSync(path.join(tmpRoot, 'AGENTS.md'), 'utf-8');
+    assert.strictEqual(/tele-notify\.js|tele-task\.js|\.vscode\/tele-vs-code/i.test(updatedAgents), false);
+    assert.ok(updatedAgents.includes('Gunakan TypeScript strict.'));
+    assert.ok(updatedAgents.includes('ATURAN ROUTING PENGIRIMAN TELEGRAM (ANTI-DUPLIKAT)'));
+    assert.ok(updatedAgents.includes('Telegram KeraKerja'));
+    assert.ok(updatedAgents.includes('setting `tele-vs-code`'));
+
+    // Idempoten: jalankan ulang tidak menduplikasi aturan
+    const report2 = cleanTeleVsCliTrash({
+      workDir: tmpRoot,
+      cleanGlobal: false,
+      includeRegisteredWorkspaces: false,
+      skipSystemCommands: true
+    });
+    assert.strictEqual(report2.items.length, 0);
+  } finally {
+    fs.rmSync(tmpRoot, { recursive: true, force: true });
+  }
+});

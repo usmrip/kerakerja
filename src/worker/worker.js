@@ -630,7 +630,7 @@ class TeleWorker {
       const htmlReport = formatCleanupTelegramHtml(report, { projectId: this.config.projectId });
       const tgRes = await sendTelegramReport(this.config, htmlReport);
 
-      const summary = `Pembersihan sampah tele-vs-cli selesai (${report.cleanedCount} dihapus, ${report.migratedCount} dimigrasi, ${formatBytes(report.totalBytes)}).\n\n${tableText}`;
+      const summary = `Pembersihan sampah tele-vs-cli & tele-vs-code selesai (${report.cleanedCount} dihapus/dibersihkan, ${report.migratedCount} dimigrasi, ${formatBytes(report.totalBytes)}).\n\n${tableText}`;
       const extra = (tgRes && tgRes.ok) ? { skip_notify: '1' } : {};
       await this.api.doneTask(task.id, summary, '', tableText, extra);
       this.log(`✅ Pembersihan /sampah #${task.id} selesai (Telegram: ${tgRes && tgRes.ok ? 'terkirim' : 'via server'}).`);

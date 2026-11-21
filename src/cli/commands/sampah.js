@@ -114,6 +114,124 @@ function migrateOrDeleteLegacyConfig(legacyPath, targetConfigPath, label, scope,
   removeFileItem(legacyPath, label, scope, dryRun, items);
 }
 
+const AGENT_RULE_FILES = [
+  'AGENTS.md',
+  'GEMINI.md',
+  'CLAUDE.md',
+  '.cursorrules',
+  '.clinerules',
+  '.roomodes',
+  path.join('.github', 'copilot-instructions.md')
+];
+
+const TELEGRAM_ROUTING_MARKER = 'ATURAN ROUTING PENGIRIMAN TELEGRAM (ANTI-DUPLIKAT)';
+const TELEGRAM_ROUTING_SECTION = [
+  `## 📨 ${TELEGRAM_ROUTING_MARKER}`,
+  '- **Jika perintah/tugas berasal dari KeraKerja** (`kerakerja`, worker KeraKerja, atau `TASK_QUEUE.md` KeraKerja): pengiriman notifikasi & laporan Telegram **WAJIB hanya ke Telegram KeraKerja** (ditangani worker/API KeraKerja — **JANGAN** kirim ganda melalui script/bot `tele-vs-code`).',
+  '- **Jika perintah/tugas berasal dari `tele-vs-code`**: pengiriman notifikasi & laporan Telegram **WAJIB hanya ke bot Telegram yang dikonfigurasi di setting `tele-vs-code`** (**JANGAN** kirim ke bot Telegram KeraKerja).'
+].join('\n');
+
+const TELE_VS_CODE_LINE_RE = /(?:tele-vs-code|tele-task\.js|tele-notify\.js|tele-worker\.js|tele-listener\.|tele-sync\.|telegramNotifier\.)/i;
+
+function isTeleVsCodeSourceRepo(workDir) {
+  try {
+    const pkgPath = path.join(workDir, 'package.json');
+    if (!fs.existsSync(pkgPath)) return false;
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+    const name = String((pkg && pkg.name) || '').toLowerCase();
+    return name === 'telegram-dev-notifier' || name === 'tele-vs-code';
+  } catch (e) {
+    return false;
+  }
+}
+
+function stripTeleVsCodeInstructions(content) {
+  const normalized = String(content || '').replace(/\r\n/g, '\n');
+  const lines = normalized.split('\n');
+  const kept = [];
+  let skippingTeleSection = false;
+  let inRoutingSection = false;
+  let inCodeBlock = false;
+  let hadTeleVsCode = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('```')) {
+      inCodeBlock = !inCodeBlock;
+      if (!skippingTeleSection) kept.push(line);
+      continue;
+    }
+
+    if (!inCodeBlock && /^#{1,3}\s+/.test(trimmed)) {
+      if (trimmed.includes(TELEGRAM_ROUTING_MARKER)) {
+        inRoutingSection = true;
+        skippingTeleSection = false;
+        kept.push(line);
+        continue;
+      }
+      inRoutingSection = false;
+      if (/\(Tele-vs-Code\)/i.test(trimmed) || (TELE_VS_CODE_LINE_RE.test(trimmed) && !/kerakerja/i.test(trimmed))) {
+        skippingTeleSection = true;
+        hadTeleVsCode = true;
+        continue;
+      }
+      if (/^#\s+/.test(trimmed) || /^##\s+/.test(trimmed)) {
+        skippingTeleSection = false;
+      }
+    }
+
+    if (skippingTeleSection) {
+      hadTeleVsCode = true;
+      continue;
+    }
+    if (!inRoutingSection && TELE_VS_CODE_LINE_RE.test(line) && !line.includes(TELEGRAM_ROUTING_MARKER) && !/kerakerja/i.test(line)) {
+      hadTeleVsCode = true;
+      continue;
+    }
+    kept.push(line);
+  }
+
+  const collapsed = kept.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  return { cleaned: collapsed, hadTeleVsCode };
+}
+
+function ensureTelegramRoutingRule(content) {
+  const text = String(content || '').replace(/\r\n/g, '\n').trim();
+  if (text.includes(TELEGRAM_ROUTING_MARKER)) {
+    return { updated: text + '\n', addedRule: false };
+  }
+  const combined = text ? `${text}\n\n${TELEGRAM_ROUTING_SECTION}\n` : `${TELEGRAM_ROUTING_SECTION}\n`;
+  return { updated: combined, addedRule: true };
+}
+
+function cleanTeleVsCodeRuleFiles(workDir, scope, dryRun, items) {
+  for (const relPath of AGENT_RULE_FILES) {
+    const fullPath = path.join(workDir, relPath);
+    if (!fs.existsSync(fullPath)) continue;
+    try {
+      const original = fs.readFileSync(fullPath, 'utf-8');
+      const { cleaned, hadTeleVsCode } = stripTeleVsCodeInstructions(original);
+      const { updated, addedRule } = ensureTelegramRoutingRule(cleaned);
+      if (!hadTeleVsCode && !addedRule) continue;
+
+      const size = Buffer.byteLength(original, 'utf-8');
+      const label = hadTeleVsCode && addedRule
+        ? `${relPath} (-tele-vs-code + aturan TG)`
+        : (hadTeleVsCode ? `${relPath} (-tele-vs-code)` : `${relPath} (+aturan TG)`);
+      const status = dryRun
+        ? (hadTeleVsCode ? 'Akan Dibersihkan' : 'Akan Diperbarui')
+        : (hadTeleVsCode ? 'Dibersihkan' : 'Diperbarui');
+
+      if (!dryRun) {
+        fs.writeFileSync(fullPath, updated, 'utf-8');
+      }
+      items.push({ item: label, path: fullPath, scope, status, size, ok: true });
+    } catch (e) {
+      items.push({ item: relPath, path: fullPath, scope, status: 'Gagal', size: 0, ok: false, error: e.message });
+    }
+  }
+}
+
 /**
  * Membersihkan seluruh file/direktori legacy `tele-vs-cli` di workspace dan sistem global.
  */
@@ -182,6 +300,23 @@ function cleanTeleVsCliTrash(options = {}) {
       dryRun,
       items
     );
+
+    if (!isTeleVsCodeSourceRepo(resolved)) {
+      removeDirItem(path.join(resolved, '.vscode', 'tele-vs-code'), '.vscode/tele-vs-code', scope, dryRun, items);
+      for (const legacyScript of [
+        'tele-notify.ps1',
+        'tele-listener.js',
+        'tele-listener.cmd',
+        'tele-listener.ps1',
+        'tele-listener.sh',
+        'tele-sync.cmd',
+        'tele-sync.ps1',
+        'tele-sync.sh'
+      ]) {
+        removeFileItem(path.join(resolved, legacyScript), legacyScript, scope, dryRun, items);
+      }
+      cleanTeleVsCodeRuleFiles(resolved, scope, dryRun, items);
+    }
   }
 
   if (cleanGlobal) {
@@ -285,7 +420,7 @@ function formatCleanupTable(report) {
         status: truncateCell(it.status, 14),
         size: it.size > 0 ? formatBytes(it.size) : '-'
       }))
-    : [{ no: '-', item: 'Tidak ada sampah tele-vs-cli', scope: 'Semua', status: 'Sudah Bersih', size: '-' }];
+    : [{ no: '-', item: 'Tidak ada sampah tele-vs-cli / tele-vs-code', scope: 'Semua', status: 'Sudah Bersih', size: '-' }];
 
   const headers = { no: 'No', item: 'Item', scope: 'Scope', status: 'Status', size: 'Ukuran' };
   const widths = {
@@ -315,10 +450,10 @@ function formatCleanupTelegramHtml(report, meta = {}) {
 
   const totalActionable = (report.cleanedCount || 0) + (report.migratedCount || 0);
   const summaryLine = totalActionable === 0
-    ? '✅ <b>Status:</b> Tidak ditemukan sampah <code>tele-vs-cli</code> (sudah bersih).'
+    ? '✅ <b>Status:</b> Tidak ditemukan sampah <code>tele-vs-cli</code> / <code>tele-vs-code</code> (sudah bersih).'
     : `📊 <b>Ringkasan:</b> ${report.cleanedCount} dihapus, ${report.migratedCount} dimigrasi (${formatBytes(report.totalBytes)})${report.failedCount ? `, ${report.failedCount} gagal` : ''}.`;
 
-  let msg = `🧹 <b>LAPORAN PEMBERSIHAN SAMPAH TELE-VS-CLI${escapeHtml(modeTag)}</b>\n`
+  let msg = `🧹 <b>LAPORAN PEMBERSIHAN SAMPAH TELE-VS-CLI &amp; TELE-VS-CODE${escapeHtml(modeTag)}</b>\n`
           + `📁 <b>Proyek:</b> <code>${escapeHtml(projectLabel)}</code>\n`
           + `🕒 <b>Waktu:</b> ${escapeHtml(timestamp)}\n\n`
           + `<pre>${escapeHtml(table)}</pre>\n\n`
@@ -420,7 +555,7 @@ async function sampahCommand(args = []) {
   }
 
   console.log('\n==============================================================================');
-  console.log(`🧹 PEMBERSIHAN SAMPAH TELE-VS-CLI${dryRun ? ' (DRY-RUN)' : ''}`);
+  console.log(`🧹 PEMBERSIHAN SAMPAH TELE-VS-CLI & TELE-VS-CODE${dryRun ? ' (DRY-RUN)' : ''}`);
   console.log('==============================================================================\n');
   console.log(formatCleanupTable(report));
   console.log(`\n📊 Ringkasan: ${report.cleanedCount} dihapus, ${report.migratedCount} dimigrasi (${formatBytes(report.totalBytes)}), ${report.failedCount} gagal.`);
@@ -438,6 +573,8 @@ async function sampahCommand(args = []) {
 module.exports = {
   sampahCommand,
   cleanTeleVsCliTrash,
+  stripTeleVsCodeInstructions,
+  ensureTelegramRoutingRule,
   formatCleanupTable,
   formatCleanupTelegramHtml,
   sendTelegramReport,

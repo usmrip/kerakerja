@@ -50,7 +50,7 @@ PERINTAH UTAMA:
   update [--check]          Perbarui KeraKerja ke versi terbaru dari GitHub
   info [--json]             Tampilkan informasi versi KeraKerja & waktu update terakhir
   where [--json]            Tampilkan direktori kerja aktif (workDir) & proyek aktif
-  sampah [--dry-run]        Bersihkan sampah tele-vs-cli & kirim laporan tabel ke Telegram
+  sampah [--dry-run]        Bersihkan sampah tele-vs-cli & tele-vs-code + kirim laporan tabel ke Telegram
   sysinfo [--json]          Info sistem mesin, worker aktif, CPU/RAM & total usage worker
   workers [--json] [--online] Lihat daftar worker terdaftar (server & lokal) beserta statusnya
   snapshot <kode> [param]   Buat snapshot (full, db, kode, upload, db,kode) ke ../snapshot-kerakerja

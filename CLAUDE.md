@@ -24,3 +24,8 @@ Setiap kali Anda menerima giliran bicara, prompt, atau instruksi apapun dari USE
 ## 📢 2. STATUS & KOMUNIKASI WORKER CLI
 - Gunakan perintah CLI `node bin/kerakerja.js status` / `kerakerja queue` / `kerakerja logs -f` untuk memantau eksekusi worker.
 - > ⚠️ **ATURAN MUTLAK:** JANGAN PERNAH melaporkan tugas `SELESAI` sebelum tugas benar-benar 100% tuntas dan teruji.
+
+
+## 📨 ATURAN ROUTING PENGIRIMAN TELEGRAM (ANTI-DUPLIKAT)
+- **Jika perintah/tugas berasal dari KeraKerja** (`kerakerja`, worker KeraKerja, atau `TASK_QUEUE.md` KeraKerja): pengiriman notifikasi & laporan Telegram **WAJIB hanya ke Telegram KeraKerja** (ditangani worker/API KeraKerja — **JANGAN** kirim ganda melalui script/bot `tele-vs-code`).
+- **Jika perintah/tugas berasal dari `tele-vs-code`**: pengiriman notifikasi & laporan Telegram **WAJIB hanya ke bot Telegram yang dikonfigurasi di setting `tele-vs-code`** (**JANGAN** kirim ke bot Telegram KeraKerja).
