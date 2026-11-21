@@ -3,6 +3,7 @@ const BaseExecutor = require('./base');
 const { resolveAgent } = require('./adapters/registry');
 const { maskSecrets, validateWorkDir } = require('../security/guard');
 const { killProcessTree } = require('../utils/process');
+const { buildTaskPrompt, extractTaskSummary } = require('./report');
 
 class CliExecutor extends BaseExecutor {
   constructor(options = {}) {
@@ -47,7 +48,7 @@ class CliExecutor extends BaseExecutor {
       .replace(/\s*-v\b/g, '')
       .trim();
 
-    const promptText = `Tugas #${task.id || 'CLI'}: ${cleanInstruction || rawInstruction}. Selesaikan dengan baik sesuai standar proyek.`;
+    const promptText = buildTaskPrompt(task, cleanInstruction || rawInstruction);
     const args = adapter.getArgs(promptText);
 
     console.log(`[EXECUTOR-CLI] Menjalankan agent '${adapter.name}' (${binaryPath})`);
@@ -158,8 +159,7 @@ class CliExecutor extends BaseExecutor {
         const newCommit = (latestCommit && latestCommit !== initialCommit) ? latestCommit : '';
 
         const fullLog = maskSecrets(`--- STDOUT ---\n${stdoutBuffer}\n--- STDERR ---\n${stderrBuffer}`);
-        const cleanStdout = stdoutBuffer.trim();
-        const summary = cleanStdout ? cleanStdout.split('\n').slice(-5).join(' ').substring(0, 300) : `Selesai dengan exit code ${code}`;
+        const summary = extractTaskSummary(stdoutBuffer, stderrBuffer, code);
 
         if (code === 0) {
           resolve({
